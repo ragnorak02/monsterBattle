@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="MonsterData" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/monster_data.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/sprites/monsters/pebblix_front.png" id="2"]
+[ext_resource type="Texture2D" path="res://assets/sprites/monsters/pebblix_back.png" id="3"]
+[ext_resource type="Resource" path="res://data/skills/rock_throw.tres" id="4"]
+[ext_resource type="Resource" path="res://data/skills/tackle.tres" id="5"]
+
+[resource]
+script = ExtResource("1")
+id = 9
+monster_name = "Pebblix"
+front_sprite = ExtResource("2")
+back_sprite = ExtResource("3")
+max_hp = 52
+attack = 14
+defense = 16
+agility = 5
+starting_skills = Array[Resource]([ExtResource("4"), ExtResource("5")])
