@@ -23,3 +23,27 @@ desktop.ini
 *.swp
 *.swo
 *~
+
+# Secrets and credentials
+.env
+.env.*
+*.key
+*.pem
+*.p12
+*.pfx
+*.jks
+*.keystore
+
+# Dependencies
+node_modules/
+
+# Build and dist
+build/
+dist/
+export/
+*.exe
+*.x86_64
+*.apk
+
+# Godot exports
+*.pck

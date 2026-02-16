@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monster Catcher — Project Status</title>
+<style>
+  :root { --bg: #1a1a2e; --card: #16213e; --accent: #0f3460; --green: #4ecca3; --yellow: #f0c040; --red: #e74c3c; --text: #eee; --muted: #888; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); padding: 2rem; }
+  h1 { text-align: center; margin-bottom: .25rem; font-size: 1.8rem; }
+  .subtitle { text-align: center; color: var(--muted); margin-bottom: 2rem; font-size: .9rem; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; max-width: 1100px; margin: 0 auto; }
+  .card { background: var(--card); border-radius: 10px; padding: 1.25rem; border-left: 4px solid var(--accent); }
+  .card h2 { font-size: 1.1rem; margin-bottom: .75rem; }
+  .stat-row { display: flex; justify-content: space-between; padding: .35rem 0; border-bottom: 1px solid #ffffff10; }
+  .stat-row:last-child { border-bottom: none; }
+  .stat-label { color: var(--muted); }
+  .stat-value { font-weight: 600; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: .8rem; font-weight: 600; }
+  .done { background: var(--green); color: #111; }
+  .wip { background: var(--yellow); color: #111; }
+  .todo { background: var(--red); color: #fff; }
+  .progress-bar { background: #ffffff15; border-radius: 6px; height: 10px; margin-top: .5rem; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 6px; background: linear-gradient(90deg, var(--green), #2ecc71); }
+  ul { list-style: none; padding: 0; }
+  ul li { padding: .3rem 0; border-bottom: 1px solid #ffffff08; }
+  ul li:last-child { border-bottom: none; }
+  ul li::before { content: ''; display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: .5rem; vertical-align: middle; }
+  li.done::before { background: var(--green); }
+  li.wip::before { background: var(--yellow); }
+  li.todo::before { background: var(--red); }
+  .footer { text-align: center; color: var(--muted); margin-top: 2rem; font-size: .8rem; }
+</style>
+</head>
+<body>
+
+<h1>Monster Catcher</h1>
+<p class="subtitle">Godot 4.6 &bull; 640x360 &bull; GL Compatibility</p>
+
+<div class="grid">
+
+  <div class="card">
+    <h2>Phase 1 — Core Loop <span class="badge done">DONE</span></h2>
+    <ul>
+      <li class="done">Overworld movement &amp; camera</li>
+      <li class="done">Wild monster spawning &amp; wandering AI</li>
+      <li class="done">Encounter UI (pick monster to fight)</li>
+      <li class="done">Turn-based battle system</li>
+      <li class="done">HP bars, damage calc, win/lose/run</li>
+      <li class="done">Party menu</li>
+      <li class="done">NPC interaction &amp; dialogue</li>
+      <li class="done">Controls HUD (keyboard + gamepad)</li>
+      <li class="done">Audio: town theme, battle theme, SFX</li>
+    </ul>
+    <div class="progress-bar"><div class="progress-fill" style="width:100%"></div></div>
+  </div>
+
+  <div class="card">
+    <h2>Phase 2 — Catching &amp; Progression <span class="badge todo">TODO</span></h2>
+    <ul>
+      <li class="todo">Monster catching mechanic</li>
+      <li class="todo">XP &amp; leveling system</li>
+      <li class="todo">Evolution system</li>
+      <li class="todo">Expanded overworld areas</li>
+      <li class="todo">Gender &amp; starter selection flow</li>
+    </ul>
+    <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
+  </div>
+
+  <div class="card">
+    <h2>Phase 3 — Story &amp; Polish <span class="badge todo">TODO</span></h2>
+    <ul>
+      <li class="todo">NPC dialogue trees</li>
+      <li class="todo">Quest system</li>
+      <li class="todo">Gym / boss battles</li>
+      <li class="todo">Save &amp; load</li>
+      <li class="todo">Audio polish</li>
+    </ul>
+    <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
+  </div>
+
+  <div class="card">
+    <h2>Content Stats</h2>
+    <div class="stat-row"><span class="stat-label">Monsters</span><span class="stat-value">30</span></div>
+    <div class="stat-row"><span class="stat-label">Skills</span><span class="stat-value">20</span></div>
+    <div class="stat-row"><span class="stat-label">Starters</span><span class="stat-value">3 (Emberpup, Aqualing, Thornlet)</span></div>
+    <div class="stat-row"><span class="stat-label">Scenes</span><span class="stat-value">15</span></div>
+    <div class="stat-row"><span class="stat-label">Scripts</span><span class="stat-value">26 (1,618 LOC)</span></div>
+    <div class="stat-row"><span class="stat-label">Sprites</span><span class="stat-value">64</span></div>
+    <div class="stat-row"><span class="stat-label">Audio Files</span><span class="stat-value">6</span></div>
+    <div class="stat-row"><span class="stat-label">.tres Resources</span><span class="stat-value">50</span></div>
+  </div>
+
+  <div class="card">
+    <h2>Known Issues</h2>
+    <div class="stat-row"><span class="stat-label">Placeholder tileset</span><span class="stat-value"><span class="badge wip">WIP</span></span></div>
+    <div class="stat-row"><span class="stat-label">Dead audio refs (cancel.wav, encounter.wav)</span><span class="stat-value"><span class="badge wip">Minor</span></span></div>
+    <div class="stat-row"><span class="stat-label">Gender/starter select bypassed</span><span class="stat-value"><span class="badge wip">Skipped</span></span></div>
+    <div class="stat-row"><span class="stat-label">No automated tests</span><span class="stat-value"><span class="badge todo">TODO</span></span></div>
+  </div>
+
+  <div class="card">
+    <h2>Architecture</h2>
+    <div class="stat-row"><span class="stat-label">Autoloads</span><span class="stat-value">6</span></div>
+    <div class="stat-row"><span class="stat-label">Resource Classes</span><span class="stat-value">3 (MonsterData, SkillData, MonsterInstance)</span></div>
+    <div class="stat-row"><span class="stat-label">Collision Layers</span><span class="stat-value">1=player, 2=env, 4=npc, 8=wild</span></div>
+    <div class="stat-row"><span class="stat-label">Renderer</span><span class="stat-value">GL Compatibility</span></div>
+    <div class="stat-row"><span class="stat-label">Resolution</span><span class="stat-value">640x360 (2x → 1280x720)</span></div>
+  </div>
+
+</div>
+
+<p class="footer">Auto-generated project dashboard &bull; Open this file in a browser to view</p>
+
+</body>
+</html>

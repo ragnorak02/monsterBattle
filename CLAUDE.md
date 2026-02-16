@@ -17,8 +17,20 @@ When `base_data` or any variable is typed as generic `Resource` (not the specifi
 
 This applies to ALL scripts that touch MonsterData or SkillData properties.
 
+## Current Repo State (Auto-Detected)
+- Phase 1 complete: 26 scripts (1,618 LOC), 15 scenes, 50 .tres resources, 64 sprites, 6 audio files
+- Gender/starter select screens exist but are bypassed — main.gd quick-starts as boy + Emberpup
+- `tileset_placeholder.png` in use — overworld tilemap is procedurally generated from placeholder
+- 2 missing audio refs in AssetRegistry: `cancel.wav` and `encounter.wav` (dead references, unused in code)
+- No test framework or automated tests present
+- No TODO/FIXME/HACK comments found in codebase
+- `_auto_test` flag in overworld.gd and `auto_battle` flag in battle_controller.gd exist for dev testing
+- 6 autoloads registered (GameManager, SceneManager, MonsterDB, AudioManager, AssetRegistry, ThemeManager)
+- Battle system fully functional: state machine, damage calc, HP bars, win/lose/run
+- No secrets, .env files, or credentials detected
+
 ## Architecture
-- 4 Autoloads: GameManager, SceneManager, MonsterDB, AudioManager
+- 6 Autoloads: GameManager, SceneManager, MonsterDB, AudioManager, AssetRegistry, ThemeManager
 - 3 Resource classes: MonsterData, SkillData, MonsterInstance (in `scripts/resources/`)
 - Scene flow: main.tscn → (skips gender/starter) → overworld ↔ battle/party_menu/dialogue
 - All monster/skill data is data-driven via .tres files in `data/` folder
