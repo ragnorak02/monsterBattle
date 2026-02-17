@@ -4,6 +4,7 @@ signal monster_chosen(party_index: int)
 signal cancelled
 
 var _wild_monster_data: Resource  # MonsterData
+var _wild_level: int = 5
 
 @onready var message_label: Label = $HBox/LeftPanel/Message
 @onready var enemy_sprite: TextureRect = $HBox/LeftPanel/EnemySprite
@@ -15,15 +16,16 @@ func _ready() -> void:
 	GameManager.is_in_dialogue = true
 	_build_ui()
 
-func setup(wild_data: Resource) -> void:
+func setup(wild_data: Resource, wild_level: int = 5) -> void:
 	_wild_monster_data = wild_data
+	_wild_level = wild_level
 
 func _build_ui() -> void:
 	if not _wild_monster_data:
 		return
 
 	var wild_name: String = str(_wild_monster_data.get("monster_name"))
-	message_label.text = "A wild %s appeared!\nChoose your monster:" % wild_name
+	message_label.text = "A wild %s (Lv.%d) appeared!\nChoose your monster:" % [wild_name, _wild_level]
 
 	var front_tex = _wild_monster_data.get("front_sprite")
 	if front_tex:

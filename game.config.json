@@ -1,0 +1,16 @@
+{
+	"id": "monsterbattle",
+	"title": "Monster Catcher",
+	"engine": "godot",
+	"engineVersion": "4.6",
+	"genre": "Monster RPG",
+	"entryPoint": "project.godot",
+	"launchCommand": "godot --path .",
+	"testCommand": "tests/run-tests.bat",
+	"metadata": {
+		"lastGameplayUpdate": "2026-02-16",
+		"lastArtUpdate": "2026-02-16",
+		"buildVersion": "0.2.0",
+		"progressPercent": 30
+	}
+}

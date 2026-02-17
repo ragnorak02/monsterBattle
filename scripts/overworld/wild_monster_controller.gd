@@ -2,8 +2,11 @@ extends CharacterBody2D
 
 @export var monster_data_id: int = 1
 @export var overworld_id: int = 0
+@export var level_min: int = 3
+@export var level_max: int = 7
 
 var _monster_data: Resource  # MonsterData
+var _battle_level: int = 5
 var _cooldown_timer: float = 0.0
 var _is_on_cooldown: bool = false
 var _wander_timer: float = 0.0
@@ -20,6 +23,7 @@ const WANDER_RADIUS := 40.0
 
 func _ready() -> void:
 	_origin_position = position
+	_battle_level = randi_range(level_min, level_max)
 	_monster_data = MonsterDB.get_monster(monster_data_id)
 	if _monster_data and _monster_data.get("front_sprite"):
 		sprite.texture = _monster_data.get("front_sprite")
@@ -67,7 +71,7 @@ func _start_encounter() -> void:
 	# Show encounter UI instead of jumping straight to battle
 	var overworld := _get_overworld()
 	if overworld and overworld.has_method("show_encounter"):
-		overworld.show_encounter(_monster_data, overworld_id)
+		overworld.show_encounter(_monster_data, overworld_id, _battle_level)
 
 func on_battle_ended(was_defeated: bool) -> void:
 	if was_defeated:

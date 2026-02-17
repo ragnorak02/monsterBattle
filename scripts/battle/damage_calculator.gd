@@ -19,3 +19,11 @@ static func get_first_attacker(monster_a: MonsterInstance, monster_b: MonsterIns
 	if monster_a.get_agility() >= monster_b.get_agility():
 		return 0
 	return 1
+
+static func calculate_catch_rate(enemy: MonsterInstance) -> float:
+	# Full HP ~15%, half HP ~52%, near-death ~90%
+	var hp_percent := float(enemy.current_hp) / float(enemy.get_max_hp())
+	return clampf(0.15 + (1.0 - hp_percent) * 0.75, 0.1, 0.95)
+
+static func check_catch_success(enemy: MonsterInstance) -> bool:
+	return randf() <= calculate_catch_rate(enemy)

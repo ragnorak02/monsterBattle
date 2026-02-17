@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Monster Catcher — Project Status</title>
 <style>
-  :root { --bg: #1a1a2e; --card: #16213e; --accent: #0f3460; --green: #4ecca3; --yellow: #f0c040; --red: #e74c3c; --text: #eee; --muted: #888; }
+  :root { --bg: #1a1a2e; --card: #16213e; --accent: #0f3460; --green: #4ecca3; --yellow: #f0c040; --red: #e74c3c; --text: #eee; --muted: #888; --blue: #3498db; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); padding: 2rem; }
   h1 { text-align: center; margin-bottom: .25rem; font-size: 1.8rem; }
@@ -13,6 +13,7 @@
   .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; max-width: 1100px; margin: 0 auto; }
   .card { background: var(--card); border-radius: 10px; padding: 1.25rem; border-left: 4px solid var(--accent); }
   .card h2 { font-size: 1.1rem; margin-bottom: .75rem; }
+  .card h3 { font-size: .95rem; margin: .75rem 0 .4rem; color: var(--yellow); }
   .stat-row { display: flex; justify-content: space-between; padding: .35rem 0; border-bottom: 1px solid #ffffff10; }
   .stat-row:last-child { border-bottom: none; }
   .stat-label { color: var(--muted); }
@@ -21,8 +22,10 @@
   .done { background: var(--green); color: #111; }
   .wip { background: var(--yellow); color: #111; }
   .todo { background: var(--red); color: #fff; }
+  .info { background: var(--blue); color: #fff; }
   .progress-bar { background: #ffffff15; border-radius: 6px; height: 10px; margin-top: .5rem; overflow: hidden; }
   .progress-fill { height: 100%; border-radius: 6px; background: linear-gradient(90deg, var(--green), #2ecc71); }
+  .progress-fill.yellow { background: linear-gradient(90deg, var(--yellow), #f1c40f); }
   ul { list-style: none; padding: 0; }
   ul li { padding: .3rem 0; border-bottom: 1px solid #ffffff08; }
   ul li:last-child { border-bottom: none; }
@@ -30,13 +33,23 @@
   li.done::before { background: var(--green); }
   li.wip::before { background: var(--yellow); }
   li.todo::before { background: var(--red); }
+  .milestone { display: flex; align-items: center; padding: .4rem 0; border-bottom: 1px solid #ffffff08; }
+  .milestone:last-child { border-bottom: none; }
+  .milestone-dot { width: 12px; height: 12px; border-radius: 50%; margin-right: .75rem; flex-shrink: 0; }
+  .milestone-line { border-left: 2px solid #ffffff20; margin-left: 5px; padding-left: 1rem; }
+  .suggestion-category { font-size: .85rem; color: var(--yellow); margin-top: .75rem; margin-bottom: .25rem; font-weight: 600; }
+  .suggestion-category:first-of-type { margin-top: 0; }
+  .suggestion-item { font-size: .85rem; padding: .2rem 0; color: var(--muted); }
+  .suggestion-item span { color: var(--text); }
+  code { background: #ffffff15; padding: 2px 6px; border-radius: 3px; font-size: .85rem; }
+  .test-pass { color: var(--green); font-weight: 600; }
   .footer { text-align: center; color: var(--muted); margin-top: 2rem; font-size: .8rem; }
 </style>
 </head>
 <body>
 
 <h1>Monster Catcher</h1>
-<p class="subtitle">Godot 4.6 &bull; 640x360 &bull; GL Compatibility</p>
+<p class="subtitle">Godot 4.6 &bull; 640x360 &bull; GL Compatibility &bull; v0.2.0</p>
 
 <div class="grid">
 
@@ -57,15 +70,16 @@
   </div>
 
   <div class="card">
-    <h2>Phase 2 — Catching &amp; Progression <span class="badge todo">TODO</span></h2>
+    <h2>Phase 2 — Catching &amp; Progression <span class="badge wip">WIP</span></h2>
     <ul>
-      <li class="todo">Monster catching mechanic</li>
-      <li class="todo">XP &amp; leveling system</li>
-      <li class="todo">Evolution system</li>
-      <li class="todo">Expanded overworld areas</li>
+      <li class="done">Monster catching mechanic</li>
+      <li class="done">XP &amp; leveling system</li>
+      <li class="done">Evolution system</li>
+      <li class="done">Skill learning on level-up</li>
       <li class="todo">Gender &amp; starter selection flow</li>
+      <li class="todo">Expanded overworld areas</li>
     </ul>
-    <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
+    <div class="progress-bar"><div class="progress-fill yellow" style="width:60%"></div></div>
   </div>
 
   <div class="card">
@@ -75,7 +89,22 @@
       <li class="todo">Quest system</li>
       <li class="todo">Gym / boss battles</li>
       <li class="todo">Save &amp; load</li>
+      <li class="todo">Trainer battles with AI</li>
+      <li class="todo">Pokedex / monster registry</li>
+      <li class="todo">Status effects (poison, paralysis, burn)</li>
       <li class="todo">Audio polish</li>
+    </ul>
+    <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
+  </div>
+
+  <div class="card">
+    <h2>Phase 4 — Content &amp; Release <span class="badge todo">TODO</span></h2>
+    <ul>
+      <li class="todo">Full monster roster balancing</li>
+      <li class="todo">Multiple overworld areas / routes</li>
+      <li class="todo">Final art pass (replace placeholder tileset)</li>
+      <li class="todo">Critical hits, STAB bonus, stat stages</li>
+      <li class="todo">Playtesting &amp; bug fixes</li>
     </ul>
     <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
   </div>
@@ -85,11 +114,21 @@
     <div class="stat-row"><span class="stat-label">Monsters</span><span class="stat-value">30</span></div>
     <div class="stat-row"><span class="stat-label">Skills</span><span class="stat-value">20</span></div>
     <div class="stat-row"><span class="stat-label">Starters</span><span class="stat-value">3 (Emberpup, Aqualing, Thornlet)</span></div>
-    <div class="stat-row"><span class="stat-label">Scenes</span><span class="stat-value">15</span></div>
-    <div class="stat-row"><span class="stat-label">Scripts</span><span class="stat-value">26 (1,618 LOC)</span></div>
-    <div class="stat-row"><span class="stat-label">Sprites</span><span class="stat-value">64</span></div>
+    <div class="stat-row"><span class="stat-label">Scenes</span><span class="stat-value">16</span></div>
+    <div class="stat-row"><span class="stat-label">Scripts</span><span class="stat-value">27 (2,312 LOC)</span></div>
+    <div class="stat-row"><span class="stat-label">Sprites</span><span class="stat-value">132</span></div>
     <div class="stat-row"><span class="stat-label">Audio Files</span><span class="stat-value">6</span></div>
     <div class="stat-row"><span class="stat-label">.tres Resources</span><span class="stat-value">50</span></div>
+    <div class="stat-row"><span class="stat-label">Tests</span><span class="stat-value"><span class="test-pass">47 passing</span></span></div>
+  </div>
+
+  <div class="card">
+    <h2>Test Suite <span class="badge done">PASSING</span></h2>
+    <div class="stat-row"><span class="stat-label">Total Tests</span><span class="stat-value">47</span></div>
+    <div class="stat-row"><span class="stat-label">Test Groups</span><span class="stat-value">6</span></div>
+    <div class="stat-row"><span class="stat-label">Status</span><span class="stat-value"><span class="test-pass">All Passing</span></span></div>
+    <div class="stat-row"><span class="stat-label">Runner</span><span class="stat-value"><code>tests/run-tests.bat</code></span></div>
+    <div class="stat-row"><span class="stat-label">Mode</span><span class="stat-value">Headless (--headless)</span></div>
   </div>
 
   <div class="card">
@@ -97,7 +136,6 @@
     <div class="stat-row"><span class="stat-label">Placeholder tileset</span><span class="stat-value"><span class="badge wip">WIP</span></span></div>
     <div class="stat-row"><span class="stat-label">Dead audio refs (cancel.wav, encounter.wav)</span><span class="stat-value"><span class="badge wip">Minor</span></span></div>
     <div class="stat-row"><span class="stat-label">Gender/starter select bypassed</span><span class="stat-value"><span class="badge wip">Skipped</span></span></div>
-    <div class="stat-row"><span class="stat-label">No automated tests</span><span class="stat-value"><span class="badge todo">TODO</span></span></div>
   </div>
 
   <div class="card">
@@ -106,7 +144,55 @@
     <div class="stat-row"><span class="stat-label">Resource Classes</span><span class="stat-value">3 (MonsterData, SkillData, MonsterInstance)</span></div>
     <div class="stat-row"><span class="stat-label">Collision Layers</span><span class="stat-value">1=player, 2=env, 4=npc, 8=wild</span></div>
     <div class="stat-row"><span class="stat-label">Renderer</span><span class="stat-value">GL Compatibility</span></div>
-    <div class="stat-row"><span class="stat-label">Resolution</span><span class="stat-value">640x360 (2x → 1280x720)</span></div>
+    <div class="stat-row"><span class="stat-label">Resolution</span><span class="stat-value">640x360 (2x &rarr; 1280x720)</span></div>
+  </div>
+
+  <div class="card" style="grid-column: 1 / -1;">
+    <h2>Development Milestones</h2>
+    <div class="milestone">
+      <div class="milestone-dot" style="background: var(--green);"></div>
+      <div><strong>Phase 1 — Core Loop</strong> <span class="badge done">COMPLETE</span></div>
+    </div>
+    <div class="milestone">
+      <div class="milestone-dot" style="background: var(--yellow);"></div>
+      <div><strong>Phase 2 — Catching &amp; Progression</strong> <span class="badge wip">60%</span></div>
+    </div>
+    <div class="milestone">
+      <div class="milestone-dot" style="background: var(--red);"></div>
+      <div><strong>Phase 3 — Story &amp; Polish</strong> <span class="badge todo">TODO</span></div>
+    </div>
+    <div class="milestone">
+      <div class="milestone-dot" style="background: var(--red);"></div>
+      <div><strong>Phase 4 — Content &amp; Release</strong> <span class="badge todo">TODO</span></div>
+    </div>
+    <div style="margin-top: .75rem; text-align: center; color: var(--muted);">
+      Overall Progress: <strong style="color: var(--yellow);">~30%</strong>
+    </div>
+    <div class="progress-bar"><div class="progress-fill yellow" style="width:30%"></div></div>
+  </div>
+
+  <div class="card" style="grid-column: 1 / -1;">
+    <h2>Gameplay Improvement Suggestions</h2>
+
+    <div class="suggestion-category">Quick Wins (1-2 sessions each)</div>
+    <div class="suggestion-item">&bull; <span>Type effectiveness system</span> — Fire &gt; Grass &gt; Water &gt; Fire triangle + more</div>
+    <div class="suggestion-item">&bull; <span>Critical hits</span> — 12.5% chance, 1.5x damage multiplier</div>
+    <div class="suggestion-item">&bull; <span>Status effects</span> — Poison (DOT), Paralysis (skip turn chance), Burn (half attack)</div>
+    <div class="suggestion-item">&bull; <span>STAB bonus</span> — Same Type Attack Bonus, 1.5x if monster type matches skill type</div>
+
+    <div class="suggestion-category">Medium Features (3-5 sessions)</div>
+    <div class="suggestion-item">&bull; <span>Item / inventory system</span> — Potions, Capture Balls, Antidotes</div>
+    <div class="suggestion-item">&bull; <span>Pokedex / Monster Registry</span> — Seen/caught tracking with UI</div>
+    <div class="suggestion-item">&bull; <span>Save / Load system</span> — JSON or Godot ResourceSaver</div>
+    <div class="suggestion-item">&bull; <span>Wild encounter zones</span> — Tall grass areas with level-scaled spawns</div>
+    <div class="suggestion-item">&bull; <span>PC / Storage box system</span> — Store monsters beyond party of 6</div>
+
+    <div class="suggestion-category">Major Features (full phase)</div>
+    <div class="suggestion-item">&bull; <span>Trainer battles with AI</span> — Switch strategy, type coverage, item use</div>
+    <div class="suggestion-item">&bull; <span>Multiple routes / towns</span> — Transition system between areas</div>
+    <div class="suggestion-item">&bull; <span>Gym leaders</span> — Themed teams with badges</div>
+    <div class="suggestion-item">&bull; <span>Quest / story system</span> — Branching NPC dialogue</div>
+    <div class="suggestion-item">&bull; <span>Breeding / egg system</span></div>
   </div>
 
 </div>

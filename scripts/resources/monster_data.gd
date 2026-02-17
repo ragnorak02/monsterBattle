@@ -11,3 +11,6 @@ extends Resource
 @export var defense: int
 @export var agility: int
 @export var starting_skills: Array[Resource] = []
+@export var evolves_into_id: int = 0
+@export var evolution_level: int = 0
+@export var learnable_skills: Dictionary = {}  # { int_level: SkillData resource }

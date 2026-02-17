@@ -5,7 +5,18 @@
       "Bash(\"/c/Users/nick/Downloads/Godot_v4.6-stable_win64.exe/Godot_v4.6-stable_win64_console.exe\" --path \"Z:/Development/Games/monsterBattle\")",
       "Bash(taskkill:*)",
       "Bash(git init:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git remote add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(wc:*)",
+      "Bash(find:*)",
+      "Bash(test:*)",
+      "Bash(ls -la \"Z:\\\\Development\\\\Games\\\\monsterBattle\"\" | grep -E \".json)",
+      "Bash(test)",
+      "Bash(.tres \")",
+      "Bash(\"/c/Users/nick/Downloads/Godot_v4.6-stable_win64.exe/Godot_v4.6-stable_win64_console.exe\" --path . --headless res://scenes/tests/test_runner.tscn)",
+      "Bash(ls:*)"
     ]
   }
 }

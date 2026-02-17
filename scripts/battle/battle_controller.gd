@@ -11,11 +11,16 @@ enum BattleState {
 	WIN,
 	LOSE,
 	RUN,
+	CATCH_ATTEMPT,
+	XP_REWARD,
+	LEARN_SKILL,
+	EVOLUTION,
 	OUTRO
 }
 
 var wild_monster_data: Resource  # MonsterData
 var wild_overworld_id: int = -1
+var wild_monster_level: int = 5
 var auto_battle: bool = false  # Auto-pick skills for testing
 
 var _state: BattleState = BattleState.INTRO
@@ -24,6 +29,8 @@ var _enemy_monster: MonsterInstance
 var _player_skill: Resource
 var _enemy_skill: Resource
 var _player_goes_first: bool = true
+var _caught: bool = false
+var _pending_skills: Array = []
 
 @onready var player_display: Control = $BattleUI/HBox/PlayerSide/PlayerDisplay
 @onready var enemy_display: Control = $BattleUI/HBox/EnemySide/EnemyDisplay
@@ -46,8 +53,8 @@ func _ready() -> void:
 		return
 
 	print("[BATTLE] Player monster: %s (HP:%d/%d)" % [_get_name(_player_monster), _player_monster.current_hp, _player_monster.get_max_hp()])
-	_enemy_monster = MonsterInstance.new(wild_monster_data, 5)
-	print("[BATTLE] Enemy monster: %s (HP:%d/%d)" % [_get_name(_enemy_monster), _enemy_monster.current_hp, _enemy_monster.get_max_hp()])
+	_enemy_monster = MonsterInstance.new(wild_monster_data, wild_monster_level)
+	print("[BATTLE] Enemy monster: %s Lv.%d (HP:%d/%d)" % [_get_name(_enemy_monster), wild_monster_level, _enemy_monster.current_hp, _enemy_monster.get_max_hp()])
 
 	print("[BATTLE] Setting up displays...")
 	player_display.setup(_player_monster, true)
@@ -56,6 +63,7 @@ func _ready() -> void:
 	print("[BATTLE] Setting up action menu with %d skills..." % _player_monster.skills.size())
 	action_menu.setup_skills(_player_monster.skills)
 	action_menu.skill_selected.connect(_on_skill_selected)
+	action_menu.catch_selected.connect(_on_catch_selected)
 	action_menu.run_selected.connect(_on_run_selected)
 	action_menu.set_enabled(false)
 
@@ -65,7 +73,7 @@ func _ready() -> void:
 func _start_intro() -> void:
 	_state = BattleState.INTRO
 	action_menu.set_enabled(false)
-	var msg := "A wild %s appeared!" % _get_name(_enemy_monster)
+	var msg := "A wild %s (Lv.%d) appeared!" % [_get_name(_enemy_monster), _enemy_monster.level]
 	print("[BATTLE] %s" % msg)
 	_show_message(msg)
 	await get_tree().create_timer(1.5).timeout
@@ -99,6 +107,40 @@ func _on_skill_selected(skill: Resource) -> void:
 	print("[BATTLE] Enemy will use: %s" % (_get_skill_name(_enemy_skill) if _enemy_skill else "nothing"))
 	action_menu.set_enabled(false)
 	_resolve_turn()
+
+func _on_catch_selected() -> void:
+	if _state != BattleState.PLAYER_TURN:
+		return
+	action_menu.set_enabled(false)
+	_state = BattleState.CATCH_ATTEMPT
+
+	var catch_rate := DamageCalculator.calculate_catch_rate(_enemy_monster)
+	print("[BATTLE] Attempting catch (rate: %.0f%%)" % (catch_rate * 100))
+	_show_message("You threw a capture device...")
+	await get_tree().create_timer(1.0).timeout
+
+	if DamageCalculator.check_catch_success(_enemy_monster):
+		_caught = true
+		var enemy_name: String = _get_name(_enemy_monster)
+		print("[BATTLE] Catch success!")
+		if GameManager.player_party.size() < 6:
+			var caught_instance := MonsterInstance.new(wild_monster_data, _enemy_monster.level)
+			caught_instance.current_hp = _enemy_monster.current_hp
+			caught_instance.skills = _enemy_monster.skills.duplicate()
+			caught_instance.experience = _enemy_monster.experience
+			GameManager.add_to_party(caught_instance)
+			_show_message("Gotcha! %s was caught!" % enemy_name)
+		else:
+			_show_message("%s was caught but your party is full! It was released." % enemy_name)
+		await get_tree().create_timer(1.5).timeout
+		await _grant_xp()
+	else:
+		print("[BATTLE] Catch failed!")
+		_show_message("It broke free!")
+		await get_tree().create_timer(0.8).timeout
+		_enemy_skill = _pick_enemy_skill()
+		await _execute_attack(_enemy_monster, _player_monster, _enemy_skill, false)
+		await _check_faint()
 
 func _on_run_selected() -> void:
 	if _state != BattleState.PLAYER_TURN:
@@ -191,7 +233,7 @@ func _check_faint() -> bool:
 		_show_message("You win!")
 		_state = BattleState.WIN
 		await get_tree().create_timer(1.0).timeout
-		_end_battle("win")
+		await _grant_xp()
 		return true
 
 	if _player_monster.is_fainted():
@@ -220,6 +262,83 @@ func _check_faint() -> bool:
 
 	_start_player_turn()
 	return false
+
+func _grant_xp() -> void:
+	_state = BattleState.XP_REWARD
+	var xp_amount: int = _enemy_monster.level * 10
+	var p_name: String = _get_name(_player_monster)
+	print("[BATTLE] %s gained %d XP" % [p_name, xp_amount])
+	_show_message("%s gained %d XP!" % [p_name, xp_amount])
+	await get_tree().create_timer(1.2).timeout
+
+	var result: Dictionary = _player_monster.add_experience(xp_amount)
+
+	if result["leveled_up"]:
+		var new_level: int = result["new_level"]
+		print("[BATTLE] %s leveled up to Lv.%d!" % [p_name, new_level])
+		_show_message("%s grew to Lv.%d!" % [p_name, new_level])
+		player_display.setup(_player_monster, true)
+		await get_tree().create_timer(1.5).timeout
+
+		# Handle new skills
+		var new_skills: Array = result["new_skills"]
+		for skill in new_skills:
+			await _handle_learn_skill(skill)
+
+		# Handle evolution
+		if result["can_evolve"]:
+			var evo_id: int = result["evolves_into_id"]
+			await _handle_evolution(evo_id)
+
+	var battle_result: String = "catch" if _caught else "win"
+	_end_battle(battle_result)
+
+func _handle_learn_skill(skill: Resource) -> void:
+	_state = BattleState.LEARN_SKILL
+	var skill_name: String = str(skill.get("skill_name"))
+	var p_name: String = _get_name(_player_monster)
+
+	if _player_monster.skills.size() < 4:
+		_player_monster.learn_skill(skill)
+		print("[BATTLE] %s learned %s!" % [p_name, skill_name])
+		_show_message("%s learned %s!" % [p_name, skill_name])
+		await get_tree().create_timer(1.5).timeout
+	else:
+		_show_message("%s wants to learn %s, but already knows 4 skills!" % [p_name, skill_name])
+		await get_tree().create_timer(1.5).timeout
+		_show_message("Choose a skill to forget, or don't learn it.")
+		await get_tree().create_timer(1.0).timeout
+		action_menu.setup_skill_replace(_player_monster.skills, skill)
+		var chosen_index: int = await action_menu.replace_skill_chosen
+		if chosen_index >= 0:
+			var old_skill_name: String = str(_player_monster.skills[chosen_index].get("skill_name"))
+			_player_monster.learn_skill(skill, chosen_index)
+			print("[BATTLE] %s forgot %s and learned %s!" % [p_name, old_skill_name, skill_name])
+			_show_message("%s forgot %s and learned %s!" % [p_name, old_skill_name, skill_name])
+		else:
+			print("[BATTLE] %s did not learn %s" % [p_name, skill_name])
+			_show_message("%s did not learn %s." % [p_name, skill_name])
+		await get_tree().create_timer(1.5).timeout
+		# Restore normal skill buttons
+		action_menu.setup_skills(_player_monster.skills)
+
+func _handle_evolution(evolves_into_id: int) -> void:
+	_state = BattleState.EVOLUTION
+	var old_name: String = _get_name(_player_monster)
+	var new_data: Resource = MonsterDB.get_monster(evolves_into_id)
+	if not new_data:
+		print("[BATTLE] ERROR: Could not find evolution data for id %d" % evolves_into_id)
+		return
+
+	var new_name: String = str(new_data.get("monster_name"))
+	print("[BATTLE] %s is evolving into %s!" % [old_name, new_name])
+	_show_message("What? %s is evolving!" % old_name)
+	await get_tree().create_timer(2.0).timeout
+
+	_player_monster.evolve(new_data)
+	_show_message("%s evolved into %s!" % [old_name, new_name])
+	player_display.setup(_player_monster, true)
+	await get_tree().create_timer(2.0).timeout
 
 func _show_message(text: String) -> void:
 	if message_label:

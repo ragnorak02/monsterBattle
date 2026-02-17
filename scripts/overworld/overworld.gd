@@ -2,6 +2,7 @@ extends Node2D
 
 var _current_encounter_monster: Resource = null
 var _current_encounter_overworld_id: int = -1
+var _current_encounter_level: int = 5
 
 @onready var tile_map: TileMapLayer = $TileMapLayer
 @onready var player: CharacterBody2D = $Player
@@ -84,14 +85,14 @@ func _spawn_wild_monsters() -> void:
 
 	# Place wild monsters - some nearby for easy testing
 	var wild_configs := [
-		{"pos": Vector2(200, 160), "monster_id": 4},
-		{"pos": Vector2(120, 100), "monster_id": 7},
-		{"pos": Vector2(220, 220), "monster_id": 9},
-		{"pos": Vector2(60, 200), "monster_id": 11},
-		{"pos": Vector2(100, 50), "monster_id": 15},
-		{"pos": Vector2(280, 100), "monster_id": 8},
-		{"pos": Vector2(300, 250), "monster_id": 12},
-		{"pos": Vector2(50, 300), "monster_id": 22},
+		{"pos": Vector2(200, 160), "monster_id": 4, "level_min": 3, "level_max": 6},
+		{"pos": Vector2(120, 100), "monster_id": 7, "level_min": 3, "level_max": 5},
+		{"pos": Vector2(220, 220), "monster_id": 9, "level_min": 4, "level_max": 7},
+		{"pos": Vector2(60, 200), "monster_id": 11, "level_min": 3, "level_max": 6},
+		{"pos": Vector2(100, 50), "monster_id": 15, "level_min": 5, "level_max": 8},
+		{"pos": Vector2(280, 100), "monster_id": 8, "level_min": 4, "level_max": 7},
+		{"pos": Vector2(300, 250), "monster_id": 12, "level_min": 4, "level_max": 6},
+		{"pos": Vector2(50, 300), "monster_id": 22, "level_min": 5, "level_max": 9},
 	]
 
 	for i in wild_configs.size():
@@ -102,6 +103,8 @@ func _spawn_wild_monsters() -> void:
 		wild.position = config["pos"]
 		wild.monster_data_id = config["monster_id"]
 		wild.overworld_id = i + 1
+		wild.level_min = config["level_min"]
+		wild.level_max = config["level_max"]
 		wild_monsters_container.add_child(wild)
 
 func _update_player_sprite() -> void:
@@ -114,17 +117,18 @@ func _update_player_sprite() -> void:
 
 # --- Encounter flow: interact → pick monster → battle ---
 
-func show_encounter(monster_data: Resource, overworld_id: int) -> void:
+func show_encounter(monster_data: Resource, overworld_id: int, monster_level: int = 5) -> void:
 	if GameManager.is_in_battle or GameManager.is_in_dialogue:
 		return
-	print("Encounter: ", str(monster_data.get("monster_name")))
+	print("Encounter: ", str(monster_data.get("monster_name")), " Lv.", monster_level)
 	_current_encounter_monster = monster_data
 	_current_encounter_overworld_id = overworld_id
+	_current_encounter_level = monster_level
 
 	var encounter_scene := load("res://scenes/ui/encounter_ui.tscn") as PackedScene
 	if encounter_scene:
 		var encounter := encounter_scene.instantiate()
-		encounter.setup(monster_data)
+		encounter.setup(monster_data, monster_level)
 		encounter.monster_chosen.connect(_on_encounter_monster_chosen)
 		encounter.cancelled.connect(_on_encounter_cancelled)
 		ui_layer.add_child(encounter)
@@ -136,25 +140,27 @@ func _on_encounter_monster_chosen(party_index: int) -> void:
 		GameManager.player_party.remove_at(party_index)
 		GameManager.player_party.insert(0, chosen)
 
-	start_battle(_current_encounter_monster, _current_encounter_overworld_id)
+	start_battle(_current_encounter_monster, _current_encounter_overworld_id, _current_encounter_level)
 
 func _on_encounter_cancelled() -> void:
 	_current_encounter_monster = null
 	_current_encounter_overworld_id = -1
+	_current_encounter_level = 5
 
 # --- Battle ---
 
-func start_battle(monster_data: Resource, overworld_id: int) -> void:
+func start_battle(monster_data: Resource, overworld_id: int, monster_level: int = 5) -> void:
 	if GameManager.is_in_battle:
 		return
 	GameManager.is_in_battle = true
-	print("Starting battle with: ", str(monster_data.get("monster_name")))
+	print("Starting battle with: ", str(monster_data.get("monster_name")), " Lv.", monster_level)
 
 	var battle_scene := load("res://scenes/battle/battle_scene.tscn") as PackedScene
 	if battle_scene:
 		var battle := battle_scene.instantiate()
 		battle.wild_monster_data = monster_data
 		battle.wild_overworld_id = overworld_id
+		battle.wild_monster_level = monster_level
 		battle.battle_ended.connect(_on_battle_ended)
 		battle_layer.add_child(battle)
 	else:
@@ -163,15 +169,15 @@ func start_battle(monster_data: Resource, overworld_id: int) -> void:
 
 func _on_battle_ended(result: String, overworld_id: int) -> void:
 	GameManager.is_in_battle = false
-	var defeated := (result == "win")
-	if defeated:
+	var removed := (result == "win" or result == "catch")
+	if removed:
 		GameManager.mark_monster_defeated(overworld_id)
 
 	# Notify the wild monster
 	for child in wild_monsters_container.get_children():
 		if child.has_method("get_overworld_id") and child.get_overworld_id() == overworld_id:
 			if child.has_method("on_battle_ended"):
-				child.on_battle_ended(defeated)
+				child.on_battle_ended(removed)
 			break
 
 func _show_dialogue(lines: Array) -> void:
