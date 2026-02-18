@@ -9,6 +9,7 @@ func _ready() -> void:
 	var tex := load("res://assets/sprites/npcs/npc_default.png") as Texture2D
 	if tex and sprite:
 		sprite.texture = tex
+		sprite.hframes = 3
 
 func interact() -> void:
 	# Find the dialogue box in the UI layer

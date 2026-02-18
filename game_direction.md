@@ -89,3 +89,17 @@ turn-based battles, overworld exploration, and a roster of 30 collectible monste
 - Godot 4.6 stable — GL Compatibility renderer only
 - Must use `resource.get("property")` pattern for generic Resource access (see CLAUDE.md)
 - All .tscn sub_resources must appear before referencing nodes
+
+## Development Log
+
+### Graphics Pass V1 — 2026-02-18
+- Replaced 6 primitive/placeholder visuals with improved pixel art assets
+- Tileset: replaced 3-tile placeholder with detailed grass/path/water tiles
+- Battle background: replaced solid ColorRect with illustrated sky+grass scene
+- Menu backgrounds: replaced solid ColorRects with starry night (gender) and dark forest (starter) scenes
+- Added animation cycles for: Player (4-dir walk + idle), NPC (idle bob + blink)
+- Player sprites: 128x128 sprite sheet (4x4 grid), AnimationPlayer with 8 animations
+- NPC sprite: 48x16 sheet (3 frames), idle animation with bob and blink
+- Techniques used: PNG sprite sheets, AnimationPlayer, AnimationLibrary
+- Asset stage: placeholder_v1 (swap-ready for final art)
+- Tests: 47/47 passing, zero regressions

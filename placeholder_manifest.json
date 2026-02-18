@@ -1,0 +1,48 @@
+{
+	"pass": "graphics_v1",
+	"date": "2026-02-18",
+	"assets": [
+		{
+			"file": "assets/sprites/overworld/tileset_placeholder.png",
+			"replaces": "3-tile primitive sprite (solid-color grass/path/water)",
+			"swap_target": "Final detailed tileset with terrain variety",
+			"dimensions": "48x16"
+		},
+		{
+			"file": "assets/sprites/backgrounds/battle_bg.png",
+			"replaces": "ColorRect (0.2, 0.25, 0.3) in battle_scene.tscn",
+			"swap_target": "Final battle background art (grass field, sky, clouds)",
+			"dimensions": "640x360"
+		},
+		{
+			"file": "assets/sprites/backgrounds/gender_select_bg.png",
+			"replaces": "ColorRect (0.15, 0.15, 0.25) in gender_select.tscn",
+			"swap_target": "Final gender selection menu background",
+			"dimensions": "640x360"
+		},
+		{
+			"file": "assets/sprites/backgrounds/starter_select_bg.png",
+			"replaces": "ColorRect (0.12, 0.18, 0.12) in starter_select.tscn",
+			"swap_target": "Final starter selection menu background",
+			"dimensions": "640x360"
+		},
+		{
+			"file": "assets/sprites/player/player_boy.png",
+			"replaces": "Static single-frame 32x32 sprite",
+			"swap_target": "Final boy character sprite sheet with walk cycle",
+			"dimensions": "128x128 (4x4 grid of 32x32 frames)"
+		},
+		{
+			"file": "assets/sprites/player/player_girl.png",
+			"replaces": "Static single-frame 32x32 sprite",
+			"swap_target": "Final girl character sprite sheet with walk cycle",
+			"dimensions": "128x128 (4x4 grid of 32x32 frames)"
+		},
+		{
+			"file": "assets/sprites/npcs/npc_default.png",
+			"replaces": "Static single-frame 16x16 sprite",
+			"swap_target": "Final NPC sprite sheet with idle animation",
+			"dimensions": "48x16 (3 frames of 16x16)"
+		}
+	]
+}
