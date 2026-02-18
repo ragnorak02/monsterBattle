@@ -48,4 +48,6 @@ func _on_starter_selected(index: int) -> void:
 	var data: Resource = _starters[index]
 	var instance := MonsterInstance.new(data, 5)
 	GameManager.add_to_party(instance)
+	GameManager.add_item("potion", 5)
+	GameManager.add_item("capture_ball", 10)
 	SceneManager.change_scene("res://scenes/overworld/overworld.tscn")

@@ -12,6 +12,7 @@ enum BattleState {
 	LOSE,
 	RUN,
 	CATCH_ATTEMPT,
+	ITEM_USE,
 	XP_REWARD,
 	LEARN_SKILL,
 	EVOLUTION,
@@ -36,7 +37,7 @@ var _pending_skills: Array = []
 @onready var enemy_display: Control = $BattleUI/HBox/EnemySide/EnemyDisplay
 @onready var action_menu: PanelContainer = $BattleUI/ActionPanel
 @onready var message_label: Label = $BattleUI/MessageLabel
-@onready var background: ColorRect = $Background
+@onready var background: TextureRect = $Background
 
 func _get_name(monster: MonsterInstance) -> String:
 	return str(monster.base_data.get("monster_name"))
@@ -65,6 +66,7 @@ func _ready() -> void:
 	action_menu.skill_selected.connect(_on_skill_selected)
 	action_menu.catch_selected.connect(_on_catch_selected)
 	action_menu.run_selected.connect(_on_run_selected)
+	action_menu.item_selected.connect(_on_item_selected)
 	action_menu.set_enabled(false)
 
 	AudioManager.play_music("res://assets/audio/music/battle_theme.wav")
@@ -161,6 +163,69 @@ func _on_run_selected() -> void:
 		await _execute_attack(_enemy_monster, _player_monster, _enemy_skill, false)
 		await _check_faint()
 
+func _on_item_selected(item_id: String) -> void:
+	if _state != BattleState.PLAYER_TURN:
+		return
+	action_menu.set_enabled(false)
+	_state = BattleState.ITEM_USE
+
+	var item_def: Dictionary = GameManager.get_item_def(item_id)
+	if item_def.is_empty():
+		_start_player_turn()
+		return
+
+	if not GameManager.remove_item(item_id):
+		_show_message("No %s left!" % item_def["name"])
+		await get_tree().create_timer(0.8).timeout
+		_start_player_turn()
+		return
+
+	var item_type: String = item_def["type"]
+	if item_type == "heal":
+		var heal_amount: int = int(item_def["value"])
+		var p_name: String = _get_name(_player_monster)
+		var old_hp: int = _player_monster.current_hp
+		_player_monster.heal(heal_amount)
+		var healed: int = _player_monster.current_hp - old_hp
+		print("[BATTLE] Used %s, healed %s for %d HP" % [item_def["name"], p_name, healed])
+		_show_message("Used %s! %s recovered %d HP!" % [item_def["name"], p_name, healed])
+		player_display.update_hp()
+		await get_tree().create_timer(1.0).timeout
+		# Enemy gets a free attack
+		_enemy_skill = _pick_enemy_skill()
+		await _execute_attack(_enemy_monster, _player_monster, _enemy_skill, false)
+		await _check_faint()
+
+	elif item_type == "catch":
+		var ball_mult: float = float(item_def["value"])
+		var catch_rate := DamageCalculator.calculate_catch_rate_with_ball(_enemy_monster, ball_mult)
+		print("[BATTLE] Used %s (%.1fx), catch rate: %.0f%%" % [item_def["name"], ball_mult, catch_rate * 100])
+		_show_message("You threw a %s..." % item_def["name"])
+		await get_tree().create_timer(1.0).timeout
+
+		if randf() <= catch_rate:
+			_caught = true
+			var enemy_name: String = _get_name(_enemy_monster)
+			print("[BATTLE] Catch success!")
+			if GameManager.player_party.size() < 6:
+				var caught_instance := MonsterInstance.new(wild_monster_data, _enemy_monster.level)
+				caught_instance.current_hp = _enemy_monster.current_hp
+				caught_instance.skills = _enemy_monster.skills.duplicate()
+				caught_instance.experience = _enemy_monster.experience
+				GameManager.add_to_party(caught_instance)
+				_show_message("Gotcha! %s was caught!" % enemy_name)
+			else:
+				_show_message("%s was caught but your party is full! It was released." % enemy_name)
+			await get_tree().create_timer(1.5).timeout
+			await _grant_xp()
+		else:
+			print("[BATTLE] Catch failed!")
+			_show_message("It broke free!")
+			await get_tree().create_timer(0.8).timeout
+			_enemy_skill = _pick_enemy_skill()
+			await _execute_attack(_enemy_monster, _player_monster, _enemy_skill, false)
+			await _check_faint()
+
 func _pick_enemy_skill() -> Resource:
 	var skills_arr: Array = _enemy_monster.skills
 	if skills_arr.is_empty():
@@ -207,7 +272,8 @@ func _execute_attack(attacker: MonsterInstance, defender: MonsterInstance, skill
 		await get_tree().create_timer(0.6).timeout
 		return
 
-	var damage := DamageCalculator.calculate_damage(attacker, defender, skill)
+	var result := DamageCalculator.calculate_damage_with_type(attacker, defender, skill)
+	var damage: int = result["damage"]
 	defender.take_damage(damage)
 	AudioManager.play_sfx("res://assets/audio/sfx/hit.wav")
 
@@ -220,7 +286,16 @@ func _execute_attack(attacker: MonsterInstance, defender: MonsterInstance, skill
 	else:
 		player_display.update_hp()
 
-	await get_tree().create_timer(0.8).timeout
+	await get_tree().create_timer(0.6).timeout
+
+	# Show type effectiveness message
+	var effectiveness: String = result["effectiveness"]
+	if effectiveness == "super_effective":
+		_show_message("It's super effective!")
+		await get_tree().create_timer(0.6).timeout
+	elif effectiveness == "not_very_effective":
+		_show_message("It's not very effective...")
+		await get_tree().create_timer(0.6).timeout
 
 func _check_faint() -> bool:
 	_state = BattleState.CHECK_FAINT

@@ -16,4 +16,5 @@ max_hp = 36
 attack = 15
 defense = 6
 agility = 16
+element_type = "Electric"
 starting_skills = Array[Resource]([ExtResource("4"), ExtResource("5")])

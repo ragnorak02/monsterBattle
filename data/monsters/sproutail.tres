@@ -16,4 +16,5 @@ max_hp = 42
 attack = 12
 defense = 11
 agility = 11
+element_type = "Grass"
 starting_skills = Array[Resource]([ExtResource("4"), ExtResource("5")])

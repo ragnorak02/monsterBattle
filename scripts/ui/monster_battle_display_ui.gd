@@ -18,7 +18,8 @@ func setup(monster: MonsterInstance, show_back: bool) -> void:
 	elif data.get("front_sprite"):
 		sprite.texture = data.get("front_sprite")
 
-	name_label.text = str(data.get("monster_name"))
+	var etype: String = str(data.get("element_type")) if data.get("element_type") else "Normal"
+	name_label.text = "%s [%s]" % [str(data.get("monster_name")), etype]
 	level_label.text = "Lv.%d" % monster.level
 	hp_bar.setup(monster.current_hp, monster.get_max_hp())
 

@@ -53,6 +53,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		_open_party_menu()
 		get_viewport().set_input_as_handled()
 
+	# I key - inventory
+	if event is InputEventKey and event.pressed and event.keycode == KEY_I:
+		_open_inventory()
+		get_viewport().set_input_as_handled()
+
 func _get_facing_from_input(input: Vector2) -> Vector2:
 	if abs(input.x) > abs(input.y):
 		return Vector2(sign(input.x), 0)
@@ -105,3 +110,11 @@ func _open_party_menu() -> void:
 	if menu_scene:
 		var menu := menu_scene.instantiate()
 		get_tree().current_scene.add_child(menu)
+
+func _open_inventory() -> void:
+	if GameManager.is_in_menu:
+		return
+	var inv_scene := load("res://scenes/ui/inventory_ui.tscn") as PackedScene
+	if inv_scene:
+		var inv := inv_scene.instantiate()
+		get_tree().current_scene.add_child(inv)

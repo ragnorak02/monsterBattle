@@ -7,13 +7,7 @@ func _ready() -> void:
 	var overlay := $FadeOverlay as ColorRect
 	SceneManager.setup(container, overlay)
 
-	# Quick start: boy + Emberpup, straight to overworld
-	GameManager.player_gender = "boy"
-	var starter_data: Resource = MonsterDB.get_monster(1)  # Emberpup
-	if starter_data:
-		var instance := MonsterInstance.new(starter_data, 5)
-		GameManager.add_to_party(instance)
-	SceneManager.change_scene("res://scenes/overworld/overworld.tscn", false)
+	SceneManager.change_scene("res://scenes/gender_select.tscn", false)
 
 func _print_environment_info() -> void:
 	var godot_ver: String = Engine.get_version_info().get("string", "unknown")

@@ -10,6 +10,7 @@ extends Resource
 @export var attack: int
 @export var defense: int
 @export var agility: int
+@export var element_type: String = "Normal"
 @export var starting_skills: Array[Resource] = []
 @export var evolves_into_id: int = 0
 @export var evolution_level: int = 0

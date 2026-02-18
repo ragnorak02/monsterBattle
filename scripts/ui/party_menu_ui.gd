@@ -57,11 +57,14 @@ func _show_detail(index: int) -> void:
 	if front_tex:
 		detail_sprite.texture = front_tex
 
+	var etype: String = str(data.get("element_type")) if data.get("element_type") else "Normal"
 	var skills_text := ""
 	for skill in monster.skills:
-		skills_text += "\n  - %s (Pow:%d)" % [str(skill.get("skill_name")), int(skill.get("power"))]
-	detail_info.text = "%s  Lv.%d\nHP: %d / %d\nATK: %d  DEF: %d  AGI: %d\nSkills:%s" % [
+		var stype: String = str(skill.get("skill_type")) if skill.get("skill_type") else "Normal"
+		skills_text += "\n  - %s [%s] (Pow:%d)" % [str(skill.get("skill_name")), stype, int(skill.get("power"))]
+	detail_info.text = "%s [%s]  Lv.%d\nHP: %d / %d\nATK: %d  DEF: %d  AGI: %d\nSkills:%s" % [
 		str(data.get("monster_name")),
+		etype,
 		monster.level,
 		monster.current_hp,
 		monster.get_max_hp(),

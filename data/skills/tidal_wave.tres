@@ -7,3 +7,4 @@ script = ExtResource("1")
 skill_name = "Tidal Wave"
 power = 14
 accuracy = 1.0
+skill_type = "Water"

@@ -16,4 +16,5 @@ max_hp = 44
 attack = 11
 defense = 13
 agility = 9
+element_type = "Water"
 starting_skills = Array[Resource]([ExtResource("4"), ExtResource("5")])

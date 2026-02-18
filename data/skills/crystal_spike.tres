@@ -7,3 +7,4 @@ script = ExtResource("1")
 skill_name = "Crystal Spike"
 power = 11
 accuracy = 1.0
+skill_type = "Ice"

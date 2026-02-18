@@ -16,4 +16,5 @@ max_hp = 54
 attack = 14
 defense = 14
 agility = 5
+element_type = "Rock"
 starting_skills = Array[Resource]([ExtResource("4"), ExtResource("5")])

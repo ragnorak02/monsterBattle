@@ -16,4 +16,5 @@ max_hp = 38
 attack = 14
 defense = 8
 agility = 12
+element_type = "Fire"
 starting_skills = Array[Resource]([ExtResource("4"), ExtResource("5")])

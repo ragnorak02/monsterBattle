@@ -15,8 +15,11 @@ func _ready() -> void:
 	print("=== Monster Catcher Test Runner ===")
 
 	_run_damage_calculator_tests()
+	_run_type_effectiveness_tests()
 	_run_monster_instance_tests()
 	_run_game_manager_tests()
+	_run_inventory_tests()
+	_run_area_persistence_tests()
 	_run_scene_loading_tests()
 	_run_asset_existence_tests()
 	_run_performance_tests()
@@ -120,6 +123,16 @@ func _make_monster(hp: int, atk: int, def_val: int, agi: int, lvl: int = 5) -> M
 	var data := _make_monster_data(hp, atk, def_val, agi)
 	return MonsterInstance.new(data, lvl)
 
+func _make_typed_monster(hp: int, atk: int, def_val: int, agi: int, etype: String, lvl: int = 5) -> MonsterInstance:
+	var data := _make_monster_data(hp, atk, def_val, agi)
+	data.element_type = etype
+	return MonsterInstance.new(data, lvl)
+
+func _make_typed_skill(p_name: String, p_power: int, stype: String, p_accuracy: float = 1.0) -> SkillData:
+	var skill := _make_skill(p_name, p_power, p_accuracy)
+	skill.skill_type = stype
+	return skill
+
 # ══════════════════════════════════════════════
 #  A. Damage Calculator Tests
 # ══════════════════════════════════════════════
@@ -185,6 +198,94 @@ func _run_damage_calculator_tests() -> void:
 	var equal := _make_monster(40, 10, 8, 12)
 	var equal2 := _make_monster(40, 10, 8, 12)
 	_assert_eq(DamageCalculator.get_first_attacker(equal, equal2), 0, "tie goes to first arg")
+
+# ══════════════════════════════════════════════
+#  A2. Type Effectiveness Tests
+# ══════════════════════════════════════════════
+
+func _run_type_effectiveness_tests() -> void:
+	print("\n── Type Effectiveness ──")
+
+	# Test: Super effective (Fire > Grass = 2.0x)
+	_begin("type_super_effective")
+	var mult := DamageCalculator.get_type_multiplier("Fire", "Grass")
+	_assert_true(absf(mult - 2.0) < 0.01, "Fire > Grass = 2.0x, got %.2f" % mult)
+
+	# Test: Not very effective (Fire > Water = 0.5x)
+	_begin("type_not_very_effective")
+	mult = DamageCalculator.get_type_multiplier("Fire", "Water")
+	_assert_true(absf(mult - 0.5) < 0.01, "Fire > Water = 0.5x, got %.2f" % mult)
+
+	# Test: Neutral (Fire > Dark = 1.0x)
+	_begin("type_neutral")
+	mult = DamageCalculator.get_type_multiplier("Fire", "Dark")
+	_assert_true(absf(mult - 1.0) < 0.01, "Fire > Dark = 1.0x, got %.2f" % mult)
+
+	# Test: Core triangle Fire > Grass > Water > Fire
+	_begin("type_core_triangle")
+	_assert_true(DamageCalculator.get_type_multiplier("Fire", "Grass") > 1.0, "Fire > Grass")
+	_assert_true(DamageCalculator.get_type_multiplier("Grass", "Water") > 1.0, "Grass > Water")
+	_assert_true(DamageCalculator.get_type_multiplier("Water", "Fire") > 1.0, "Water > Fire")
+
+	# Test: STAB (monster type matches skill type)
+	_begin("type_stab_bonus")
+	var fire_mon := _make_typed_monster(40, 14, 8, 12, "Fire")
+	var normal_mon := _make_typed_monster(40, 10, 8, 10, "Normal")
+	var fire_skill := _make_typed_skill("Flame", 10, "Fire")
+	var result := DamageCalculator.calculate_damage_with_type(fire_mon, normal_mon, fire_skill)
+	_assert_true(result["stab"] as bool, "STAB should be true for Fire mon + Fire skill")
+
+	# Test: No STAB for mismatched types
+	_begin("type_no_stab_mismatch")
+	var water_skill := _make_typed_skill("Splash", 10, "Water")
+	result = DamageCalculator.calculate_damage_with_type(fire_mon, normal_mon, water_skill)
+	_assert_false(result["stab"] as bool, "no STAB for Fire mon + Water skill")
+
+	# Test: No STAB for Normal type
+	_begin("type_no_stab_normal")
+	var normal_skill := _make_typed_skill("Hit", 10, "Normal")
+	result = DamageCalculator.calculate_damage_with_type(normal_mon, fire_mon, normal_skill)
+	_assert_false(result["stab"] as bool, "no STAB for Normal type skills")
+
+	# Test: Backward compatibility (untyped = same as old)
+	_begin("type_backward_compat")
+	var plain_attacker := _make_monster(40, 14, 8, 12)
+	var plain_defender := _make_monster(40, 10, 8, 10)
+	var plain_skill := _make_skill("Bonk", 10, 1.0)
+	var old_damage := DamageCalculator.calculate_damage(plain_attacker, plain_defender, plain_skill)
+	_assert_eq(old_damage, 23, "backward compatible damage = 23")
+
+	# Test: Super effective damage is higher than neutral
+	_begin("type_super_effective_damage")
+	var grass_mon := _make_typed_monster(40, 10, 8, 10, "Grass")
+	var fire_skill2 := _make_typed_skill("Burn", 10, "Fire")
+	var se_result := DamageCalculator.calculate_damage_with_type(fire_mon, grass_mon, fire_skill2)
+	var neutral_result := DamageCalculator.calculate_damage_with_type(fire_mon, normal_mon, fire_skill2)
+	_assert_gt(se_result["damage"], neutral_result["damage"], "super effective > neutral damage")
+
+	# Test: All 30 monsters have element_type set
+	_begin("all_monsters_have_element_type")
+	var type_ok := true
+	for id: int in MonsterDB.monsters:
+		var data: Resource = MonsterDB.monsters[id]
+		var etype: Variant = data.get("element_type")
+		if etype == null or str(etype) == "":
+			_fail("monster id=%d missing element_type" % id)
+			type_ok = false
+	if type_ok:
+		_pass("all 30 monsters have element_type")
+
+	# Test: All 20 skills have skill_type set
+	_begin("all_skills_have_skill_type")
+	var skill_ok := true
+	for sname: String in MonsterDB.skills:
+		var data: Resource = MonsterDB.skills[sname]
+		var stype: Variant = data.get("skill_type")
+		if stype == null or str(stype) == "":
+			_fail("skill '%s' missing skill_type" % sname)
+			skill_ok = false
+	if skill_ok:
+		_pass("all 20 skills have skill_type")
 
 # ══════════════════════════════════════════════
 #  B. Monster Instance Tests
@@ -316,6 +417,132 @@ func _run_game_manager_tests() -> void:
 	GameManager.player_party = []
 
 # ══════════════════════════════════════════════
+#  C2. Inventory Tests
+# ══════════════════════════════════════════════
+
+func _run_inventory_tests() -> void:
+	print("\n── Inventory ──")
+
+	# Reset inventory
+	GameManager.inventory = {}
+
+	# Test: add valid item
+	_begin("inventory_add_item")
+	var added := GameManager.add_item("potion", 3)
+	_assert_true(added, "add_item returns true for valid item")
+	_assert_eq(GameManager.get_item_count("potion"), 3, "potion count = 3")
+
+	# Test: stack items
+	_begin("inventory_stack_items")
+	GameManager.add_item("potion", 2)
+	_assert_eq(GameManager.get_item_count("potion"), 5, "potions stack to 5")
+
+	# Test: remove item
+	_begin("inventory_remove_item")
+	var removed := GameManager.remove_item("potion", 2)
+	_assert_true(removed, "remove_item returns true")
+	_assert_eq(GameManager.get_item_count("potion"), 3, "potion count = 3 after removing 2")
+
+	# Test: remove insufficient fails
+	_begin("inventory_remove_insufficient")
+	var failed := GameManager.remove_item("potion", 99)
+	_assert_false(failed, "remove_item fails with insufficient count")
+	_assert_eq(GameManager.get_item_count("potion"), 3, "count unchanged after failed remove")
+
+	# Test: add invalid item rejected
+	_begin("inventory_reject_invalid")
+	var invalid := GameManager.add_item("nonexistent_item", 1)
+	_assert_false(invalid, "add_item rejects unknown item_id")
+
+	# Test: get_battle_items
+	_begin("inventory_get_battle_items")
+	GameManager.inventory = {}
+	GameManager.add_item("potion", 5)
+	GameManager.add_item("capture_ball", 10)
+	var battle_items: Array = GameManager.get_battle_items()
+	_assert_eq(battle_items.size(), 2, "2 battle items")
+
+	# Test: catch rate with ball multiplier
+	_begin("inventory_catch_rate_with_ball")
+	var wild := _make_monster(40, 10, 8, 10)
+	var base_rate := DamageCalculator.calculate_catch_rate(wild)
+	var ball_rate := DamageCalculator.calculate_catch_rate_with_ball(wild, 1.5)
+	_assert_gt(ball_rate, base_rate, "ball multiplier increases catch rate")
+
+	# Test: get_item_def
+	_begin("inventory_get_item_def")
+	var potion_def := GameManager.get_item_def("potion")
+	_assert_eq(potion_def["name"], "Potion", "potion name correct")
+	_assert_eq(potion_def["type"], "heal", "potion type is heal")
+
+	# Test: remove last item erases key
+	_begin("inventory_remove_last_erases")
+	GameManager.inventory = {}
+	GameManager.add_item("potion", 1)
+	GameManager.remove_item("potion", 1)
+	_assert_eq(GameManager.get_item_count("potion"), 0, "potion count 0 after removing last")
+	_assert_false(GameManager.inventory.has("potion"), "potion key erased from inventory")
+
+	# Cleanup
+	GameManager.inventory = {}
+
+# ══════════════════════════════════════════════
+#  C3. Area Persistence Tests
+# ══════════════════════════════════════════════
+
+func _run_area_persistence_tests() -> void:
+	print("\n── Area Persistence ──")
+
+	# Reset area state
+	GameManager.current_area = "town"
+	GameManager.area_player_positions = {}
+	GameManager.area_defeated_monsters = {}
+
+	# Test: position persistence per area
+	_begin("area_position_persistence")
+	GameManager.set_area_player_position("town", Vector2(100, 200))
+	GameManager.set_area_player_position("route1", Vector2(300, 50))
+	var town_pos: Variant = GameManager.get_area_player_position("town")
+	var route_pos: Variant = GameManager.get_area_player_position("route1")
+	_assert_eq(town_pos, Vector2(100, 200), "town position saved")
+	_assert_eq(route_pos, Vector2(300, 50), "route1 position saved")
+
+	# Test: defeated monsters separate per area
+	_begin("area_defeated_separate")
+	GameManager.mark_area_monster_defeated("town", 1)
+	GameManager.mark_area_monster_defeated("town", 3)
+	GameManager.mark_area_monster_defeated("route1", 2)
+	_assert_true(GameManager.is_area_monster_defeated("town", 1), "town monster 1 defeated")
+	_assert_true(GameManager.is_area_monster_defeated("town", 3), "town monster 3 defeated")
+	_assert_false(GameManager.is_area_monster_defeated("town", 2), "town monster 2 not defeated")
+	_assert_true(GameManager.is_area_monster_defeated("route1", 2), "route1 monster 2 defeated")
+	_assert_false(GameManager.is_area_monster_defeated("route1", 1), "route1 monster 1 not defeated")
+
+	# Test: unvisited area returns null position
+	_begin("area_unvisited_returns_null")
+	var unknown_pos: Variant = GameManager.get_area_player_position("unknown_area")
+	_assert_eq(unknown_pos, null, "unvisited area returns null")
+
+	# Test: unvisited area has no defeated monsters
+	_begin("area_unvisited_no_defeated")
+	_assert_false(GameManager.is_area_monster_defeated("unknown_area", 1), "unvisited area has no defeated")
+	var defeated: Array = GameManager.get_area_defeated("unknown_area")
+	_assert_eq(defeated.size(), 0, "unvisited area defeated list empty")
+
+	# Test: duplicate defeated not added twice
+	_begin("area_no_duplicate_defeated")
+	GameManager.area_defeated_monsters = {}
+	GameManager.mark_area_monster_defeated("town", 5)
+	GameManager.mark_area_monster_defeated("town", 5)
+	var town_defeated: Array = GameManager.get_area_defeated("town")
+	_assert_eq(town_defeated.size(), 1, "no duplicate defeated monsters")
+
+	# Cleanup
+	GameManager.current_area = "town"
+	GameManager.area_player_positions = {}
+	GameManager.area_defeated_monsters = {}
+
+# ══════════════════════════════════════════════
 #  D. Scene Loading Tests
 # ══════════════════════════════════════════════
 
@@ -329,6 +556,9 @@ func _run_scene_loading_tests() -> void:
 		"encounter_ui.tscn": "res://scenes/ui/encounter_ui.tscn",
 		"party_menu.tscn": "res://scenes/ui/party_menu.tscn",
 		"player.tscn": "res://scenes/overworld/player.tscn",
+		"gender_select.tscn": "res://scenes/gender_select.tscn",
+		"starter_select.tscn": "res://scenes/starter_select.tscn",
+		"inventory_ui.tscn": "res://scenes/ui/inventory_ui.tscn",
 	}
 
 	for scene_name: String in scenes:
