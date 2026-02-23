@@ -7,9 +7,11 @@ var _current_encounter_level: int = 5
 @onready var tile_map: TileMapLayer = $TileMapLayer
 @onready var player: CharacterBody2D = $Player
 @onready var npcs_container: Node2D = $NPCs
+@onready var follower: Node2D = $Follower
 @onready var wild_monsters_container: Node2D = $WildMonsters
 @onready var ui_layer: CanvasLayer = $UILayer
 @onready var battle_layer: CanvasLayer = $BattleLayer
+@onready var hint_bar: PanelContainer = $UILayer/ControllerHintBar
 
 var _auto_test: bool = false  # Set to true to enable auto-test
 var _area_name_label: Label = null
@@ -70,8 +72,16 @@ func _ready() -> void:
 	_spawn_transition_zones(area_config)
 	_update_player_sprite()
 	_restore_player_position()
+	_setup_follower()
 	_show_area_name()
 	AudioManager.play_music(area_config["music"], false)
+	if hint_bar:
+		hint_bar.set_hints([
+			{"icon": "lstick", "label": "Move"},
+			{"icon": "btn_a", "label": "Interact"},
+			{"icon": "btn_b", "label": "Back"},
+			{"icon": "btn_start", "label": "Party"},
+		])
 	if _auto_test:
 		_run_auto_test()
 
@@ -85,6 +95,10 @@ func _restore_player_position() -> void:
 	var saved_pos: Variant = GameManager.get_area_player_position(GameManager.current_area)
 	if saved_pos != null:
 		player.position = saved_pos as Vector2
+
+func _setup_follower() -> void:
+	if follower and follower.has_method("setup"):
+		follower.setup(player)
 
 func _setup_tilemap(area_config: Dictionary) -> void:
 	var tile_set := TileSet.new()

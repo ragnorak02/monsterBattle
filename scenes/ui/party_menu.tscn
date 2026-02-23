@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/party_menu_ui.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/ui/controller_hint_bar.tscn" id="2"]
 
 [node name="PartyMenu" type="CanvasLayer"]
 layer = 15
@@ -65,3 +66,5 @@ expand_mode = 1
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Select a monster"
+
+[node name="ControllerHintBar" parent="." instance=ExtResource("2")]

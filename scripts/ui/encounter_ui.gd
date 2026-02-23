@@ -9,6 +9,7 @@ var _wild_level: int = 5
 @onready var message_label: Label = $HBox/LeftPanel/Message
 @onready var enemy_sprite: TextureRect = $HBox/LeftPanel/EnemySprite
 @onready var party_list: VBoxContainer = $HBox/RightPanel/MarginContainer/VBox/PartyList
+@onready var hint_bar: PanelContainer = $ControllerHintBar
 
 var _buttons: Array[Button] = []
 
@@ -58,6 +59,13 @@ func _build_ui() -> void:
 		if not btn.disabled:
 			btn.call_deferred("grab_focus")
 			break
+
+	if hint_bar:
+		hint_bar.set_hints([
+			{"icon": "btn_a", "label": "Select"},
+			{"icon": "btn_b", "label": "Run"},
+			{"icon": "dpad", "label": "Navigate"},
+		])
 
 func _on_monster_picked(index: int) -> void:
 	GameManager.is_in_dialogue = false

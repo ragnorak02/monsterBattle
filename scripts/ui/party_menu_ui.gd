@@ -5,6 +5,7 @@ extends CanvasLayer
 @onready var detail_panel: PanelContainer = $Panel/MarginContainer/VBox/DetailPanel
 @onready var detail_sprite: TextureRect = $Panel/MarginContainer/VBox/DetailPanel/HBox/Sprite
 @onready var detail_info: Label = $Panel/MarginContainer/VBox/DetailPanel/HBox/Info
+@onready var hint_bar: PanelContainer = $ControllerHintBar
 
 var _selected_index: int = 0
 var _slot_buttons: Array[Button] = []
@@ -12,6 +13,12 @@ var _slot_buttons: Array[Button] = []
 func _ready() -> void:
 	GameManager.is_in_menu = true
 	_build_party_list()
+	if hint_bar:
+		hint_bar.set_hints([
+			{"icon": "btn_a", "label": "View"},
+			{"icon": "btn_b", "label": "Close"},
+			{"icon": "dpad", "label": "Navigate"},
+		])
 
 func _build_party_list() -> void:
 	for btn in _slot_buttons:

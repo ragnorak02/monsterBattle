@@ -2,12 +2,19 @@ extends CanvasLayer
 
 @onready var item_list: VBoxContainer = $Panel/MarginContainer/VBox/ItemList
 @onready var detail_label: Label = $Panel/MarginContainer/VBox/DetailLabel
+@onready var hint_bar: PanelContainer = $ControllerHintBar
 
 var _item_buttons: Array[Button] = []
 
 func _ready() -> void:
 	GameManager.is_in_menu = true
 	_build_item_list()
+	if hint_bar:
+		hint_bar.set_hints([
+			{"icon": "btn_a", "label": "Use"},
+			{"icon": "btn_b", "label": "Close"},
+			{"icon": "dpad", "label": "Navigate"},
+		])
 
 func _build_item_list() -> void:
 	for btn in _item_buttons:
@@ -48,6 +55,8 @@ func _on_item_selected(item_id: String) -> void:
 	var item_type: String = item_def["type"]
 	if item_type == "heal":
 		_use_heal_item(item_id, item_def)
+	elif item_type == "cure":
+		_use_cure_item(item_id, item_def)
 	else:
 		detail_label.text = "%s can only be used in battle." % item_def["name"]
 
@@ -74,6 +83,26 @@ func _use_heal_item(item_id: String, item_def: Dictionary) -> void:
 	detail_label.text = "%s healed %s for %d HP!" % [item_def["name"], name_str, healed]
 	_build_item_list()
 
+func _use_cure_item(item_id: String, item_def: Dictionary) -> void:
+	var target_status: String = str(item_def["value"])
+	var target: MonsterInstance = null
+	for monster in GameManager.player_party:
+		if not monster.is_fainted() and monster.status == target_status:
+			target = monster
+			break
+
+	if not target:
+		detail_label.text = "No one needs that!"
+		return
+
+	if not GameManager.remove_item(item_id):
+		return
+
+	var name_str: String = str(target.base_data.get("monster_name"))
+	target.clear_status()
+	detail_label.text = "%s cured %s of %s!" % [item_def["name"], name_str, target_status]
+	_build_item_list()
+
 func _show_item_detail_by_id(item_id: String) -> void:
 	var item_def: Dictionary = GameManager.get_item_def(item_id)
 	if item_def.is_empty():
@@ -85,6 +114,8 @@ func _show_item_detail_by_id(item_id: String) -> void:
 			desc = "Restores %d HP." % int(item_def["value"])
 		"catch":
 			desc = "Catch rate x%.1f." % float(item_def["value"])
+		"cure":
+			desc = "Cures %s." % str(item_def["value"])
 		_:
 			desc = "An item."
 	detail_label.text = "%s (x%d)\n%s" % [item_def["name"], count, desc]

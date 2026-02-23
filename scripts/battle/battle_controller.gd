@@ -38,6 +38,7 @@ var _pending_skills: Array = []
 @onready var action_menu: PanelContainer = $BattleUI/ActionPanel
 @onready var message_label: Label = $BattleUI/MessagePanel/MessageLabel
 @onready var background: TextureRect = $Background
+@onready var hint_bar: PanelContainer = $BattleUI/ControllerHintBar
 
 func _get_name(monster: MonsterInstance) -> String:
 	return str(monster.base_data.get("monster_name"))
@@ -72,9 +73,24 @@ func _ready() -> void:
 	AudioManager.play_music("res://assets/audio/music/battle_theme.wav")
 	_start_intro()
 
+func _update_hints_for_state() -> void:
+	if not hint_bar:
+		return
+	if _state == BattleState.PLAYER_TURN:
+		hint_bar.set_hints([
+			{"icon": "btn_a", "label": "Select"},
+			{"icon": "btn_b", "label": "Back"},
+			{"icon": "dpad", "label": "Navigate"},
+		])
+	else:
+		hint_bar.set_hints([
+			{"icon": "btn_a", "label": "Continue"},
+		])
+
 func _start_intro() -> void:
 	_state = BattleState.INTRO
 	action_menu.set_enabled(false)
+	_update_hints_for_state()
 	var msg := "A wild %s (Lv.%d) appeared!" % [_get_name(_enemy_monster), _enemy_monster.level]
 	print("[BATTLE] %s" % msg)
 	_show_message(msg)
@@ -103,6 +119,7 @@ func _trigger_entry_ability(owner: MonsterInstance, opponent: MonsterInstance) -
 
 func _start_player_turn() -> void:
 	_state = BattleState.PLAYER_TURN
+	_update_hints_for_state()
 	var msg := "What will %s do?" % _get_name(_player_monster)
 	print("[BATTLE] %s" % msg)
 	_show_message(msg)
@@ -211,6 +228,31 @@ func _on_item_selected(item_id: String) -> void:
 		var healed: int = _player_monster.current_hp - old_hp
 		print("[BATTLE] Used %s, healed %s for %d HP" % [item_def["name"], p_name, healed])
 		_show_message("Used %s! %s recovered %d HP!" % [item_def["name"], p_name, healed])
+		player_display.update_hp()
+		await get_tree().create_timer(1.0).timeout
+		# Enemy gets a free attack
+		_enemy_skill = _pick_enemy_skill()
+		await _execute_attack(_enemy_monster, _player_monster, _enemy_skill, false)
+		if await _check_faint():
+			return
+		await _process_end_of_turn_status()
+		await _check_faint()
+
+	elif item_type == "cure":
+		var target_status: String = str(item_def["value"])
+		var p_name: String = _get_name(_player_monster)
+		if _player_monster.status != target_status:
+			# Refund the item — it won't work
+			GameManager.add_item(item_id)
+			print("[BATTLE] %s doesn't have %s!" % [p_name, target_status])
+			_show_message("It won't have any effect!")
+			await get_tree().create_timer(0.8).timeout
+			_start_player_turn()
+			return
+		_player_monster.clear_status()
+		print("[BATTLE] Used %s! %s was cured of %s!" % [item_def["name"], p_name, target_status])
+		_show_message("Used %s! %s was cured of %s!" % [item_def["name"], p_name, target_status])
+		_update_status_displays()
 		player_display.update_hp()
 		await get_tree().create_timer(1.0).timeout
 		# Enemy gets a free attack

@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/inventory_ui.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/ui/controller_hint_bar.tscn" id="2"]
 
 [node name="InventoryUI" type="CanvasLayer"]
 layer = 15
@@ -52,3 +53,5 @@ layout_mode = 2
 custom_minimum_size = Vector2(0, 40)
 text = "Select an item"
 autowrap_mode = 2
+
+[node name="ControllerHintBar" parent="." instance=ExtResource("2")]

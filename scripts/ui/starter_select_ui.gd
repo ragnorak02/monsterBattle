@@ -3,6 +3,8 @@ extends Control
 var _starters: Array = []
 var _cards: Array[PanelContainer] = []
 
+@onready var hint_bar: PanelContainer = $ControllerHintBar
+
 func _ready() -> void:
 	_starters = MonsterDB.get_starter_monsters()
 	print("StarterSelect: Got %d starters" % _starters.size())
@@ -24,6 +26,12 @@ func _ready() -> void:
 	var first_btn := _cards[0].get_node("VBox/SelectButton") as Button
 	if first_btn:
 		first_btn.grab_focus()
+
+	if hint_bar:
+		hint_bar.set_hints([
+			{"icon": "btn_a", "label": "Choose"},
+			{"icon": "dpad", "label": "Navigate"},
+		])
 
 func _setup_card(index: int, monster_data: Resource) -> void:
 	if not monster_data:
@@ -49,5 +57,6 @@ func _on_starter_selected(index: int) -> void:
 	var instance := MonsterInstance.new(data, 5)
 	GameManager.add_to_party(instance)
 	GameManager.add_item("potion", 5)
+	GameManager.add_item("antidote", 3)
 	GameManager.add_item("capture_ball", 10)
 	SceneManager.change_scene("res://scenes/overworld/overworld.tscn")

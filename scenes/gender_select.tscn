@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/gender_select_ui.gd" id="1"]
 [ext_resource type="Texture2D" path="res://assets/sprites/backgrounds/gender_select_bg.png" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/ui/controller_hint_bar.tscn" id="3"]
 
 [node name="GenderSelect" type="Control"]
 layout_mode = 3
@@ -75,3 +76,6 @@ stretch_mode = 5
 layout_mode = 2
 custom_minimum_size = Vector2(100, 40)
 text = "Girl"
+
+[node name="ControllerHintBar" parent="." instance=ExtResource("3")]
+layout_mode = 1
