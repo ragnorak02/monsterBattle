@@ -7,6 +7,8 @@ extends Resource
 @export var skills: Array[Resource] = []  # Array of SkillData
 @export var experience: int = 0
 
+var status: String = ""  # "poison", "burn", "paralysis", or ""
+
 func _init(p_base: Resource = null, p_level: int = 5) -> void:
 	if p_base:
 		base_data = p_base
@@ -47,6 +49,29 @@ func heal(amount: int) -> void:
 
 func heal_full() -> void:
 	current_hp = get_max_hp()
+	clear_status()
+
+func apply_status(s: String) -> bool:
+	if status != "":
+		return false
+	status = s
+	return true
+
+func clear_status() -> void:
+	status = ""
+
+func has_status() -> bool:
+	return status != ""
+
+func get_effective_attack() -> int:
+	if status == "burn":
+		return get_attack() / 2
+	return get_attack()
+
+func get_effective_agility() -> int:
+	if status == "paralysis":
+		return get_agility() / 2
+	return get_agility()
 
 func get_xp_threshold() -> int:
 	return level * level * 10

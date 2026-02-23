@@ -24,7 +24,8 @@ static func get_type_multiplier(attack_type: String, defend_type: String) -> flo
 			return matchups[defend_type]
 	return 1.0
 
-static func calculate_damage_with_type(attacker: MonsterInstance, defender: MonsterInstance, skill: Resource) -> Dictionary:
+# force_crit: 0 = no crit (default, backward compat), 1 = force crit, -1 = random roll
+static func calculate_damage_with_type(attacker: MonsterInstance, defender: MonsterInstance, skill: Resource, force_crit: int = 0) -> Dictionary:
 	var base_damage := _base_damage(attacker, defender, skill)
 
 	var skill_type: String = str(skill.get("skill_type")) if skill.get("skill_type") else "Normal"
@@ -38,7 +39,15 @@ static func calculate_damage_with_type(attacker: MonsterInstance, defender: Mons
 
 	var type_mult: float = get_type_multiplier(skill_type, defender_type)
 
-	var final_damage := maxi(1, int(float(base_damage) * stab * type_mult))
+	# Critical hit
+	var is_crit: bool = false
+	if force_crit == 1:
+		is_crit = true
+	elif force_crit == -1:
+		is_crit = check_critical()
+	var crit_mult: float = 1.5 if is_crit else 1.0
+
+	var final_damage := maxi(1, int(float(base_damage) * stab * type_mult * crit_mult))
 
 	var effectiveness: String = "neutral"
 	if type_mult > 1.0:
@@ -51,10 +60,11 @@ static func calculate_damage_with_type(attacker: MonsterInstance, defender: Mons
 		"effectiveness": effectiveness,
 		"multiplier": type_mult,
 		"stab": stab > 1.0,
+		"critical": is_crit,
 	}
 
 static func _base_damage(attacker: MonsterInstance, defender: MonsterInstance, skill: Resource) -> int:
-	var attack_value := attacker.get_attack() + int(skill.get("power"))
+	var attack_value := attacker.get_effective_attack() + int(skill.get("power"))
 	var defense_value := defender.get_defense() / 2
 	return maxi(1, attack_value - defense_value)
 
@@ -66,14 +76,17 @@ static func calculate_damage(attacker: MonsterInstance, defender: MonsterInstanc
 static func check_accuracy(skill: Resource) -> bool:
 	return randf() <= float(skill.get("accuracy"))
 
+static func check_critical() -> bool:
+	return randf() < 0.125  # 12.5% chance
+
 static func check_run_success() -> bool:
 	# 60% success rate
 	return randf() <= 0.6
 
 static func get_first_attacker(monster_a: MonsterInstance, monster_b: MonsterInstance) -> int:
 	# Returns 0 if a goes first, 1 if b goes first
-	# Higher agility goes first. Ties: first arg (player) goes first.
-	if monster_a.get_agility() >= monster_b.get_agility():
+	# Higher effective agility goes first. Ties: first arg (player) goes first.
+	if monster_a.get_effective_agility() >= monster_b.get_effective_agility():
 		return 0
 	return 1
 
@@ -88,3 +101,30 @@ static func calculate_catch_rate_with_ball(enemy: MonsterInstance, ball_multipli
 
 static func check_catch_success(enemy: MonsterInstance) -> bool:
 	return randf() <= calculate_catch_rate(enemy)
+
+# ── Status Effect Functions ──
+
+static func try_apply_status(skill: Resource, target: MonsterInstance) -> String:
+	var effect: String = str(skill.get("status_effect")) if skill.get("status_effect") else ""
+	if effect == "":
+		return ""
+	var chance: float = float(skill.get("status_chance")) if skill.get("status_chance") else 0.0
+	if chance <= 0.0:
+		return ""
+	if randf() > chance:
+		return ""
+	if target.apply_status(effect):
+		return effect
+	return ""
+
+static func process_end_of_turn_status(monster: MonsterInstance) -> Dictionary:
+	# Returns { "damage": int, "status": String } or empty if no effect
+	if monster.status == "poison" or monster.status == "burn":
+		var dmg := maxi(1, monster.get_max_hp() / 8)
+		monster.take_damage(dmg)
+		return {"damage": dmg, "status": monster.status}
+	return {}
+
+static func check_paralysis_skip() -> bool:
+	# 25% chance paralyzed monster can't move
+	return randf() < 0.25

@@ -8,3 +8,5 @@ skill_name = "Zap Bolt"
 power = 12
 accuracy = 1.0
 skill_type = "Electric"
+status_effect = "paralysis"
+status_chance = 0.3

@@ -8,3 +8,5 @@ skill_name = "Flame Bite"
 power = 10
 accuracy = 1.0
 skill_type = "Fire"
+status_effect = "burn"
+status_chance = 0.2

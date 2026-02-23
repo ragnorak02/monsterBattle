@@ -16,6 +16,8 @@ func _ready() -> void:
 
 	_run_damage_calculator_tests()
 	_run_type_effectiveness_tests()
+	_run_critical_hit_tests()
+	_run_status_effect_tests()
 	_run_monster_instance_tests()
 	_run_game_manager_tests()
 	_run_inventory_tests()
@@ -131,6 +133,12 @@ func _make_typed_monster(hp: int, atk: int, def_val: int, agi: int, etype: Strin
 func _make_typed_skill(p_name: String, p_power: int, stype: String, p_accuracy: float = 1.0) -> SkillData:
 	var skill := _make_skill(p_name, p_power, p_accuracy)
 	skill.skill_type = stype
+	return skill
+
+func _make_status_skill(p_name: String, p_power: int, stype: String, effect: String, chance: float) -> SkillData:
+	var skill := _make_typed_skill(p_name, p_power, stype)
+	skill.status_effect = effect
+	skill.status_chance = chance
 	return skill
 
 # ══════════════════════════════════════════════
@@ -286,6 +294,133 @@ func _run_type_effectiveness_tests() -> void:
 			skill_ok = false
 	if skill_ok:
 		_pass("all 20 skills have skill_type")
+
+# ══════════════════════════════════════════════
+#  A3. Critical Hit Tests
+# ══════════════════════════════════════════════
+
+func _run_critical_hit_tests() -> void:
+	print("\n── Critical Hits ──")
+
+	var attacker := _make_monster(40, 14, 8, 12)
+	var defender := _make_monster(40, 10, 8, 10)
+	var skill := _make_skill("TestSlash", 10, 1.0)
+
+	# Test: forced crit deals 1.5x damage
+	_begin("crit_forced_damage")
+	var crit_result := DamageCalculator.calculate_damage_with_type(attacker, defender, skill, 1)
+	var no_crit_result := DamageCalculator.calculate_damage_with_type(attacker, defender, skill, 0)
+	# crit damage = floor(23 * 1.5) = 34
+	_assert_eq(crit_result["damage"], 34, "crit damage = base * 1.5 = 34")
+	_assert_eq(no_crit_result["damage"], 23, "no crit damage unchanged = 23")
+
+	# Test: forced crit flag is true
+	_begin("crit_flag_true")
+	_assert_true(crit_result["critical"] as bool, "critical flag true on forced crit")
+
+	# Test: no-crit flag is false
+	_begin("crit_flag_false")
+	_assert_false(no_crit_result["critical"] as bool, "critical flag false on force_crit=0")
+
+	# Test: default (force_crit=0) backward compat — same damage as before
+	_begin("crit_backward_compat")
+	var default_result := DamageCalculator.calculate_damage_with_type(attacker, defender, skill)
+	_assert_eq(default_result["damage"], 23, "default force_crit=0 backward compat")
+	_assert_false(default_result["critical"] as bool, "default has no crit")
+
+# ══════════════════════════════════════════════
+#  A4. Status Effect Tests
+# ══════════════════════════════════════════════
+
+func _run_status_effect_tests() -> void:
+	print("\n── Status Effects ──")
+
+	# Test: apply status to clean monster
+	_begin("status_apply_clean")
+	var mon := _make_monster(40, 14, 8, 12)
+	var applied := mon.apply_status("poison")
+	_assert_true(applied, "apply_status returns true on clean monster")
+	_assert_eq(mon.status, "poison", "status is poison")
+
+	# Test: reject second status
+	_begin("status_reject_second")
+	var rejected := mon.apply_status("burn")
+	_assert_false(rejected, "apply_status returns false when already poisoned")
+	_assert_eq(mon.status, "poison", "status still poison after rejection")
+
+	# Test: clear status
+	_begin("status_clear")
+	mon.clear_status()
+	_assert_eq(mon.status, "", "status empty after clear")
+	_assert_false(mon.has_status(), "has_status false after clear")
+
+	# Test: heal_full clears status
+	_begin("status_heal_full_clears")
+	var mon2 := _make_monster(40, 10, 8, 10)
+	mon2.apply_status("burn")
+	mon2.take_damage(10)
+	mon2.heal_full()
+	_assert_eq(mon2.status, "", "heal_full clears status")
+	_assert_eq(mon2.current_hp, mon2.get_max_hp(), "heal_full restores HP")
+
+	# Test: poison EOT damage = max(1, max_hp/8)
+	_begin("status_poison_eot_damage")
+	var poisoned := _make_monster(80, 10, 8, 10)  # max_hp = 80 + 5*2 = 90
+	poisoned.apply_status("poison")
+	var old_hp := poisoned.current_hp
+	var eot := DamageCalculator.process_end_of_turn_status(poisoned)
+	var expected_dmg := maxi(1, poisoned.get_max_hp() / 8)  # 90/8 = 11
+	_assert_eq(eot["damage"], expected_dmg, "poison EOT damage = max_hp/8 = %d" % expected_dmg)
+	_assert_eq(poisoned.current_hp, old_hp - expected_dmg, "HP reduced by poison damage")
+
+	# Test: burn EOT damage = max(1, max_hp/8)
+	_begin("status_burn_eot_damage")
+	var burned := _make_monster(80, 10, 8, 10)  # max_hp = 90
+	burned.apply_status("burn")
+	var burn_old_hp := burned.current_hp
+	var burn_eot := DamageCalculator.process_end_of_turn_status(burned)
+	_assert_eq(burn_eot["damage"], expected_dmg, "burn EOT damage = max_hp/8 = %d" % expected_dmg)
+	_assert_eq(burned.current_hp, burn_old_hp - expected_dmg, "HP reduced by burn damage")
+
+	# Test: burn halves attack
+	_begin("status_burn_halves_attack")
+	var burned_mon := _make_monster(40, 14, 8, 12)  # get_attack() = 19
+	_assert_eq(burned_mon.get_effective_attack(), 19, "normal effective attack = 19")
+	burned_mon.apply_status("burn")
+	_assert_eq(burned_mon.get_effective_attack(), 9, "burned effective attack = 19/2 = 9")
+
+	# Test: paralysis halves agility
+	_begin("status_paralysis_halves_agility")
+	var para_mon := _make_monster(40, 10, 8, 20)  # get_agility() = 25
+	_assert_eq(para_mon.get_effective_agility(), 25, "normal effective agility = 25")
+	para_mon.apply_status("paralysis")
+	_assert_eq(para_mon.get_effective_agility(), 12, "paralyzed effective agility = 25/2 = 12")
+
+	# Test: paralysis affects turn order
+	_begin("status_paralysis_turn_order")
+	var fast := _make_monster(40, 10, 8, 20)   # agi=20, eff_agi=25
+	var slow := _make_monster(40, 10, 8, 12)   # agi=12, eff_agi=17
+	_assert_eq(DamageCalculator.get_first_attacker(fast, slow), 0, "fast goes first normally")
+	fast.apply_status("paralysis")  # eff_agi = 25/2 = 12
+	# fast eff_agi=12, slow eff_agi=17 → slow goes first
+	_assert_eq(DamageCalculator.get_first_attacker(fast, slow), 1, "paralyzed fast goes second")
+
+	# Test: paralysis has no EOT damage
+	_begin("status_paralysis_no_eot")
+	var para := _make_monster(40, 10, 8, 10)
+	para.apply_status("paralysis")
+	var para_hp := para.current_hp
+	var para_eot := DamageCalculator.process_end_of_turn_status(para)
+	_assert_true(para_eot.is_empty(), "paralysis has no EOT effect")
+	_assert_eq(para.current_hp, para_hp, "HP unchanged by paralysis EOT")
+
+	# Test: zero-chance skill doesn't apply status
+	_begin("status_zero_chance_no_apply")
+	var no_status_skill := _make_status_skill("Bonk", 10, "Normal", "poison", 0.0)
+	var target := _make_monster(40, 10, 8, 10)
+	var status_applied := DamageCalculator.try_apply_status(no_status_skill, target)
+	_assert_eq(status_applied, "", "zero chance skill doesn't apply status")
+	_assert_eq(target.status, "", "target has no status")
 
 # ══════════════════════════════════════════════
 #  B. Monster Instance Tests

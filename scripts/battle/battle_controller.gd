@@ -142,6 +142,9 @@ func _on_catch_selected() -> void:
 		await get_tree().create_timer(0.8).timeout
 		_enemy_skill = _pick_enemy_skill()
 		await _execute_attack(_enemy_monster, _player_monster, _enemy_skill, false)
+		if await _check_faint():
+			return
+		await _process_end_of_turn_status()
 		await _check_faint()
 
 func _on_run_selected() -> void:
@@ -161,6 +164,9 @@ func _on_run_selected() -> void:
 		_enemy_skill = _pick_enemy_skill()
 		await get_tree().create_timer(0.8).timeout
 		await _execute_attack(_enemy_monster, _player_monster, _enemy_skill, false)
+		if await _check_faint():
+			return
+		await _process_end_of_turn_status()
 		await _check_faint()
 
 func _on_item_selected(item_id: String) -> void:
@@ -194,6 +200,9 @@ func _on_item_selected(item_id: String) -> void:
 		# Enemy gets a free attack
 		_enemy_skill = _pick_enemy_skill()
 		await _execute_attack(_enemy_monster, _player_monster, _enemy_skill, false)
+		if await _check_faint():
+			return
+		await _process_end_of_turn_status()
 		await _check_faint()
 
 	elif item_type == "catch":
@@ -224,6 +233,9 @@ func _on_item_selected(item_id: String) -> void:
 			await get_tree().create_timer(0.8).timeout
 			_enemy_skill = _pick_enemy_skill()
 			await _execute_attack(_enemy_monster, _player_monster, _enemy_skill, false)
+			if await _check_faint():
+				return
+			await _process_end_of_turn_status()
 			await _check_faint()
 
 func _pick_enemy_skill() -> Resource:
@@ -244,7 +256,8 @@ func _resolve_turn() -> void:
 			return
 		_state = BattleState.EXECUTE_SECOND
 		await _execute_attack(_enemy_monster, _player_monster, _enemy_skill, false)
-		await _check_faint()
+		if await _check_faint():
+			return
 	else:
 		_state = BattleState.EXECUTE_FIRST
 		await _execute_attack(_enemy_monster, _player_monster, _enemy_skill, false)
@@ -252,7 +265,12 @@ func _resolve_turn() -> void:
 			return
 		_state = BattleState.EXECUTE_SECOND
 		await _execute_attack(_player_monster, _enemy_monster, _player_skill, true)
-		await _check_faint()
+		if await _check_faint():
+			return
+
+	# End-of-turn status damage (poison/burn)
+	await _process_end_of_turn_status()
+	await _check_faint()
 
 func _execute_attack(attacker: MonsterInstance, defender: MonsterInstance, skill: Resource, is_player_attacking: bool) -> void:
 	if not skill:
@@ -261,6 +279,14 @@ func _execute_attack(attacker: MonsterInstance, defender: MonsterInstance, skill
 
 	var a_name: String = _get_name(attacker)
 	var s_name: String = _get_skill_name(skill)
+
+	# Paralysis check: 25% chance to skip turn
+	if attacker.status == "paralysis" and DamageCalculator.check_paralysis_skip():
+		print("[BATTLE] %s is paralyzed! It can't move!" % a_name)
+		_show_message("%s is paralyzed! It can't move!" % a_name)
+		await get_tree().create_timer(0.8).timeout
+		return
+
 	var msg := "%s used %s!" % [a_name, s_name]
 	print("[BATTLE] %s" % msg)
 	_show_message(msg)
@@ -272,7 +298,7 @@ func _execute_attack(attacker: MonsterInstance, defender: MonsterInstance, skill
 		await get_tree().create_timer(0.6).timeout
 		return
 
-	var result := DamageCalculator.calculate_damage_with_type(attacker, defender, skill)
+	var result := DamageCalculator.calculate_damage_with_type(attacker, defender, skill, -1)
 	var damage: int = result["damage"]
 	defender.take_damage(damage)
 	AudioManager.play_sfx("res://assets/audio/sfx/hit.wav")
@@ -288,6 +314,12 @@ func _execute_attack(attacker: MonsterInstance, defender: MonsterInstance, skill
 
 	await get_tree().create_timer(0.6).timeout
 
+	# Critical hit message
+	if result["critical"] as bool:
+		print("[BATTLE] A critical hit!")
+		_show_message("A critical hit!")
+		await get_tree().create_timer(0.6).timeout
+
 	# Show type effectiveness message
 	var effectiveness: String = result["effectiveness"]
 	if effectiveness == "super_effective":
@@ -296,6 +328,53 @@ func _execute_attack(attacker: MonsterInstance, defender: MonsterInstance, skill
 	elif effectiveness == "not_very_effective":
 		_show_message("It's not very effective...")
 		await get_tree().create_timer(0.6).timeout
+
+	# Try to apply status effect
+	if not defender.is_fainted():
+		var applied_status: String = DamageCalculator.try_apply_status(skill, defender)
+		if applied_status != "":
+			var status_label: String = applied_status.capitalize() + "ed" if applied_status != "burn" else "burned"
+			if applied_status == "poison":
+				status_label = "poisoned"
+			elif applied_status == "burn":
+				status_label = "burned"
+			elif applied_status == "paralysis":
+				status_label = "paralyzed"
+			print("[BATTLE] %s was %s!" % [d_name, status_label])
+			_show_message("%s was %s!" % [d_name, status_label])
+			_update_status_displays()
+			await get_tree().create_timer(0.8).timeout
+
+func _process_end_of_turn_status() -> void:
+	# Process player monster status
+	if not _player_monster.is_fainted() and _player_monster.has_status():
+		var eot := DamageCalculator.process_end_of_turn_status(_player_monster)
+		if not eot.is_empty():
+			var p_name: String = _get_name(_player_monster)
+			var status_name: String = eot["status"]
+			var dmg: int = eot["damage"]
+			print("[BATTLE] %s took %d %s damage!" % [p_name, dmg, status_name])
+			_show_message("%s is hurt by %s! (-%d HP)" % [p_name, status_name, dmg])
+			player_display.update_hp()
+			await get_tree().create_timer(0.6).timeout
+
+	# Process enemy monster status
+	if not _enemy_monster.is_fainted() and _enemy_monster.has_status():
+		var eot := DamageCalculator.process_end_of_turn_status(_enemy_monster)
+		if not eot.is_empty():
+			var e_name: String = _get_name(_enemy_monster)
+			var status_name: String = eot["status"]
+			var dmg: int = eot["damage"]
+			print("[BATTLE] %s took %d %s damage!" % [e_name, dmg, status_name])
+			_show_message("%s is hurt by %s! (-%d HP)" % [e_name, status_name, dmg])
+			enemy_display.update_hp()
+			await get_tree().create_timer(0.6).timeout
+
+func _update_status_displays() -> void:
+	if player_display.has_method("update_status"):
+		player_display.update_status()
+	if enemy_display.has_method("update_status"):
+		enemy_display.update_status()
 
 func _check_faint() -> bool:
 	_state = BattleState.CHECK_FAINT

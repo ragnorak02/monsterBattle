@@ -5,3 +5,5 @@ extends Resource
 @export var power: int
 @export var accuracy: float = 1.0
 @export var skill_type: String = "Normal"
+@export var status_effect: String = ""  # "poison", "burn", "paralysis", or ""
+@export var status_chance: float = 0.0  # 0.0–1.0
