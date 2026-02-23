@@ -154,12 +154,12 @@ AMARIS STANDARD — 95 Checkpoints
 - [x] 22. Status effects (paralysis)
 - [x] 23. Status effect turn resolution
 - [x] 24. Status effect visual indicators
-- [ ] 25. Accuracy + evasion modifiers
-- [ ] 26. Skill category split (physical/special)
-- [ ] 27. Multi-hit skills
-- [ ] 28. Passive abilities system
-- [ ] 29. Battle UI polish pass
-- [ ] 30. AI move selection improvement
+- [x] 25. Accuracy + evasion modifiers
+- [x] 26. Skill category split (physical/special)
+- [x] 27. Multi-hit skills
+- [x] 28. Passive abilities system
+- [x] 29. Battle UI polish pass
+- [x] 30. AI move selection improvement
 
 ---
 
@@ -302,10 +302,10 @@ AMARIS dashboard depends on this.
 
 # Current Focus
 
-Current Goal: Complete Macro Phase 2 — Type System & Combat Depth
-Current Task: Critical hits, status effects, combat depth
+Current Goal: Begin Macro Phase 3 — Catching & Progression
+Current Task: Antidotes, PC storage, monster registry
 Work Mode: Feature Development
-Next Milestone: Macro Phase 2 complete (checkpoints 19–30)
+Next Milestone: Macro Phase 3 complete (checkpoints 31–45)
 
 ---
 
@@ -313,13 +313,10 @@ Next Milestone: Macro Phase 2 complete (checkpoints 19–30)
 
 - No save system
 - No achievements system
-- No critical hits system
-- No status effects (poison/burn/paralysis)
-- No physical/special split
 - No PC storage (caught monsters lost if party full)
 - No Pokedex/registry UI
 - No version display in game UI
-- AI move selection is random only
+- AI move selection is score-based (could be deeper)
 
 ---
 

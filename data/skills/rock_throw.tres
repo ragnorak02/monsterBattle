@@ -6,5 +6,6 @@
 script = ExtResource("1")
 skill_name = "Rock Throw"
 power = 11
-accuracy = 1.0
+accuracy = 0.9
 skill_type = "Rock"
+category = "physical"

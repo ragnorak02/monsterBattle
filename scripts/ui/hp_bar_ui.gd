@@ -5,12 +5,16 @@ extends Control
 
 var _target_value: float = 100.0
 var _current_display: float = 100.0
+var _cached_style: StyleBoxFlat
 const DRAIN_SPEED := 80.0  # HP per second visual drain
 
 func _ready() -> void:
+	_cached_style = StyleBoxFlat.new()
+	_cached_style.bg_color = Color(0.2, 0.8, 0.2)
 	if bar:
 		bar.max_value = 100
 		bar.value = 100
+		bar.add_theme_stylebox_override("fill", _cached_style)
 
 func setup(current_hp: int, max_hp: int) -> void:
 	if max_hp <= 0:
@@ -41,17 +45,15 @@ func _process(delta: float) -> void:
 		_update_color()
 
 func _update_color() -> void:
-	if not bar:
+	if not bar or not _cached_style:
 		return
-	var style := StyleBoxFlat.new()
 	if _current_display > 50:
-		style.bg_color = Color(0.2, 0.8, 0.2)  # Green
+		_cached_style.bg_color = Color(0.2, 0.8, 0.2)  # Green
 	elif _current_display > 25:
-		style.bg_color = Color(0.9, 0.7, 0.1)  # Yellow
+		_cached_style.bg_color = Color(0.9, 0.7, 0.1)  # Yellow
 	else:
-		style.bg_color = Color(0.9, 0.2, 0.2)  # Red
-	bar.add_theme_stylebox_override("fill", style)
+		_cached_style.bg_color = Color(0.9, 0.2, 0.2)  # Red
 
 func _update_label(current_hp: int, max_hp: int) -> void:
 	if label:
-		label.text = "%d / %d" % [current_hp, max_hp]
+		label.text = "HP %d / %d" % [current_hp, max_hp]

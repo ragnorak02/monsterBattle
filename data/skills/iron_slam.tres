@@ -6,5 +6,6 @@
 script = ExtResource("1")
 skill_name = "Iron Slam"
 power = 12
-accuracy = 1.0
+accuracy = 0.9
 skill_type = "Normal"
+category = "physical"

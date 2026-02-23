@@ -8,5 +8,6 @@ skill_name = "Ice Fang"
 power = 10
 accuracy = 1.0
 skill_type = "Ice"
+category = "physical"
 status_effect = "paralysis"
 status_chance = 0.1

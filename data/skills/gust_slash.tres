@@ -6,5 +6,6 @@
 script = ExtResource("1")
 skill_name = "Gust Slash"
 power = 9
-accuracy = 1.0
+accuracy = 0.95
 skill_type = "Wind"
+category = "special"

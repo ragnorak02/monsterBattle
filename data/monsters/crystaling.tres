@@ -16,5 +16,7 @@ max_hp = 42
 attack = 12
 defense = 14
 agility = 8
+sp_attack = 14
+sp_defense = 16
 element_type = "Ice"
 starting_skills = Array[Resource]([ExtResource("4"), ExtResource("5")])

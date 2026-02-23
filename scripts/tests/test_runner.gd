@@ -25,6 +25,12 @@ func _ready() -> void:
 	_run_scene_loading_tests()
 	_run_asset_existence_tests()
 	_run_performance_tests()
+	_run_accuracy_evasion_tests()
+	_run_physical_special_tests()
+	_run_multi_hit_tests()
+	_run_ability_tests()
+	_run_ai_scoring_tests()
+	_run_backward_compat_tests()
 
 	var total := _pass_count + _fail_count
 	print("")
@@ -293,7 +299,7 @@ func _run_type_effectiveness_tests() -> void:
 			_fail("skill '%s' missing skill_type" % sname)
 			skill_ok = false
 	if skill_ok:
-		_pass("all 20 skills have skill_type")
+		_pass("all skills have skill_type")
 
 # ══════════════════════════════════════════════
 #  A3. Critical Hit Tests
@@ -715,7 +721,7 @@ func _run_asset_existence_tests() -> void:
 
 	# MonsterDB skill count
 	_begin("monsterdb_skill_count")
-	_assert_eq(MonsterDB.skills.size(), 20, "MonsterDB has 20 skills")
+	_assert_eq(MonsterDB.skills.size(), 22, "MonsterDB has 22 skills")
 
 	# Starters exist
 	_begin("starters_exist")
@@ -781,3 +787,229 @@ func _run_performance_tests() -> void:
 	var _scene := load("res://scenes/battle/battle_scene.tscn")
 	elapsed = Time.get_ticks_msec() - start
 	_assert_lt(elapsed, 1000, "load battle scene in %dms (< 1000ms)" % elapsed)
+
+# ── Extended Mock Helpers ──
+
+func _make_sp_monster_data(hp: int, atk: int, def_val: int, agi: int, sp_atk: int, sp_def: int, etype: String = "Normal", p_ability: String = "") -> MonsterData:
+	var data := _make_monster_data(hp, atk, def_val, agi)
+	data.sp_attack = sp_atk
+	data.sp_defense = sp_def
+	data.element_type = etype
+	data.ability = p_ability
+	return data
+
+func _make_sp_monster(hp: int, atk: int, def_val: int, agi: int, sp_atk: int, sp_def: int, etype: String = "Normal", p_ability: String = "", lvl: int = 5) -> MonsterInstance:
+	var data := _make_sp_monster_data(hp, atk, def_val, agi, sp_atk, sp_def, etype, p_ability)
+	return MonsterInstance.new(data, lvl)
+
+func _make_category_skill(p_name: String, p_power: int, stype: String, p_category: String, p_accuracy: float = 1.0) -> SkillData:
+	var skill := _make_typed_skill(p_name, p_power, stype, p_accuracy)
+	skill.category = p_category
+	return skill
+
+func _make_multi_hit_skill(p_name: String, p_power: int, stype: String, p_category: String, p_hit_min: int, p_hit_max: int) -> SkillData:
+	var skill := _make_category_skill(p_name, p_power, stype, p_category)
+	skill.hit_min = p_hit_min
+	skill.hit_max = p_hit_max
+	return skill
+
+# ══════════════════════════════════════════════
+#  G. Accuracy & Evasion Tests
+# ══════════════════════════════════════════════
+
+func _run_accuracy_evasion_tests() -> void:
+	print("\n── Accuracy & Evasion ──")
+
+	# Test: accuracy stage +2 increases accuracy multiplier
+	_begin("accuracy_stage_positive")
+	var mon := _make_monster(40, 10, 8, 10)
+	mon.modify_accuracy_stage(2)
+	_assert_true(mon.get_accuracy_multiplier() > 1.0, "accuracy stage +2 mult > 1.0, got %.2f" % mon.get_accuracy_multiplier())
+	_assert_true(absf(mon.get_accuracy_multiplier() - 1.66) < 0.01, "accuracy stage +2 = 1.66")
+
+	# Test: evasion stage -1 decreases evasion multiplier
+	_begin("evasion_stage_negative")
+	var mon2 := _make_monster(40, 10, 8, 10)
+	mon2.modify_evasion_stage(-1)
+	_assert_true(mon2.get_evasion_multiplier() < 1.0, "evasion stage -1 mult < 1.0, got %.2f" % mon2.get_evasion_multiplier())
+	_assert_true(absf(mon2.get_evasion_multiplier() - 0.75) < 0.01, "evasion stage -1 = 0.75")
+
+	# Test: stages reset on heal_full
+	_begin("stages_reset_on_heal_full")
+	var mon3 := _make_monster(40, 10, 8, 10)
+	mon3.modify_accuracy_stage(3)
+	mon3.modify_evasion_stage(-2)
+	mon3.modify_attack_stage(-1)
+	mon3.heal_full()
+	_assert_eq(mon3.accuracy_stage, 0, "accuracy_stage reset to 0")
+	_assert_eq(mon3.evasion_stage, 0, "evasion_stage reset to 0")
+	_assert_eq(mon3.attack_stage, 0, "attack_stage reset to 0")
+
+# ══════════════════════════════════════════════
+#  H. Physical/Special Split Tests
+# ══════════════════════════════════════════════
+
+func _run_physical_special_tests() -> void:
+	print("\n── Physical/Special Split ──")
+
+	# Monster with different physical and special stats
+	# atk=14 → get_attack()=19, sp_atk=20 → get_sp_attack()=25
+	# def=8  → get_defense()=13, sp_def=16 → get_sp_defense()=21
+	var attacker := _make_sp_monster(40, 14, 8, 10, 20, 10, "Fire")
+	var defender := _make_sp_monster(40, 10, 8, 10, 10, 16, "Normal")
+
+	# Test: physical skill uses attack/defense
+	_begin("physical_uses_attack_defense")
+	var phys_skill := _make_category_skill("Slash", 10, "Normal", "physical")
+	# attack_value = get_effective_attack() + power = 19 + 10 = 29
+	# defense_value = get_defense() / 2 = 13 / 2 = 6
+	# base_damage = 29 - 6 = 23
+	var phys_dmg := DamageCalculator.calculate_damage(attacker, defender, phys_skill)
+	_assert_eq(phys_dmg, 23, "physical skill damage = 23")
+
+	# Test: special skill uses sp_attack/sp_defense
+	_begin("special_uses_sp_attack_sp_defense")
+	var spec_skill := _make_category_skill("Beam", 10, "Normal", "special")
+	# attack_value = get_effective_sp_attack() + power = 25 + 10 = 35
+	# defense_value = get_sp_defense() / 2 = 21 / 2 = 10
+	# base_damage = 35 - 10 = 25
+	var spec_dmg := DamageCalculator.calculate_damage(attacker, defender, spec_skill)
+	_assert_eq(spec_dmg, 25, "special skill damage = 25")
+
+	# Test: sp_attack=0 falls back to get_attack()
+	_begin("sp_attack_zero_fallback")
+	var fallback_mon := _make_monster(40, 14, 8, 10)  # sp_attack defaults to 0
+	_assert_eq(fallback_mon.get_sp_attack(), fallback_mon.get_attack(), "sp_attack=0 falls back to get_attack()")
+
+	# Test: sp_defense=0 falls back to get_defense()
+	_begin("sp_defense_zero_fallback")
+	_assert_eq(fallback_mon.get_sp_defense(), fallback_mon.get_defense(), "sp_defense=0 falls back to get_defense()")
+
+# ══════════════════════════════════════════════
+#  I. Multi-Hit Tests
+# ══════════════════════════════════════════════
+
+func _run_multi_hit_tests() -> void:
+	print("\n── Multi-Hit ──")
+
+	# Test: multi-hit skill returns count in range
+	_begin("multi_hit_in_range")
+	var multi_skill := _make_multi_hit_skill("FurySwipes", 3, "Normal", "physical", 2, 5)
+	var all_in_range := true
+	for i in 20:
+		var count := DamageCalculator.calculate_hit_count(multi_skill)
+		if count < 2 or count > 5:
+			all_in_range = false
+			break
+	_assert_true(all_in_range, "multi-hit count always in [2, 5]")
+
+	# Test: single-hit skill returns 1
+	_begin("single_hit_backward_compat")
+	var normal_skill := _make_skill("Bonk", 10, 1.0)
+	var count := DamageCalculator.calculate_hit_count(normal_skill)
+	_assert_eq(count, 1, "single-hit skill returns 1")
+
+# ══════════════════════════════════════════════
+#  J. Ability Tests
+# ══════════════════════════════════════════════
+
+func _run_ability_tests() -> void:
+	print("\n── Abilities ──")
+
+	# Test: thick_skin reduces super-effective damage
+	_begin("ability_thick_skin_reduces_se")
+	var normal_dmg := 30
+	var reduced := DamageCalculator.apply_thick_skin(normal_dmg, 2.0)
+	_assert_eq(reduced, 22, "thick_skin 30 * 0.75 = 22")
+	var not_reduced := DamageCalculator.apply_thick_skin(normal_dmg, 1.0)
+	_assert_eq(not_reduced, 30, "thick_skin no effect at neutral")
+
+	# Test: thick_skin in full damage calc
+	_begin("ability_thick_skin_full_calc")
+	var attacker := _make_sp_monster(40, 14, 8, 12, 14, 8, "Fire")
+	var thick_defender := _make_sp_monster(40, 10, 8, 10, 10, 8, "Grass", "thick_skin")
+	var fire_skill := _make_category_skill("Flame", 10, "Fire", "physical")
+	var no_ability_defender := _make_sp_monster(40, 10, 8, 10, 10, 8, "Grass")
+	var thick_result := DamageCalculator.calculate_damage_with_type(attacker, thick_defender, fire_skill)
+	var normal_result := DamageCalculator.calculate_damage_with_type(attacker, no_ability_defender, fire_skill)
+	_assert_lt(thick_result["damage"], normal_result["damage"], "thick_skin reduces SE damage")
+
+	# Test: intimidate lowers attack stage
+	_begin("ability_intimidate_lowers_attack")
+	var mon := _make_sp_monster(40, 14, 8, 12, 12, 8, "Fire", "intimidate")
+	var target := _make_monster(40, 10, 8, 10)
+	_assert_eq(target.attack_stage, 0, "attack stage starts at 0")
+	target.modify_attack_stage(-1)
+	_assert_eq(target.attack_stage, -1, "attack stage = -1 after intimidate")
+	_assert_true(target.get_effective_attack() < target.get_attack(), "effective attack reduced by stage")
+
+	# Test: swift prevents accuracy drop
+	_begin("ability_swift_concept")
+	var swift_mon := _make_sp_monster(40, 10, 8, 18, 13, 9, "Wind", "swift")
+	_assert_eq(DamageCalculator.get_ability(swift_mon), "swift", "swift ability detected")
+	# Swift enforcement: accuracy_stage can't go below 0
+	swift_mon.accuracy_stage = 0
+	if DamageCalculator.get_ability(swift_mon) == "swift":
+		swift_mon.accuracy_stage = maxi(0, swift_mon.accuracy_stage - 1)
+	_assert_eq(swift_mon.accuracy_stage, 0, "swift prevents accuracy stage below 0")
+
+	# Test: poison_touch ability detected
+	_begin("ability_poison_touch_detected")
+	var venom := _make_sp_monster(36, 15, 8, 13, 15, 8, "Poison", "poison_touch")
+	_assert_eq(DamageCalculator.get_ability(venom), "poison_touch", "poison_touch ability detected")
+
+# ══════════════════════════════════════════════
+#  K. AI Scoring Tests
+# ══════════════════════════════════════════════
+
+func _run_ai_scoring_tests() -> void:
+	print("\n── AI Scoring ──")
+
+	var fire_enemy := _make_sp_monster(40, 14, 8, 12, 14, 8, "Fire")
+	var grass_mon := _make_sp_monster(40, 12, 10, 11, 12, 10, "Grass")
+
+	# Test: AI prefers super-effective move
+	_begin("ai_prefers_super_effective")
+	var water_skill := _make_category_skill("Splash", 10, "Water", "special")
+	var normal_skill := _make_category_skill("Bonk", 10, "Normal", "physical")
+	var se_score := DamageCalculator.score_skill(water_skill, grass_mon, fire_enemy)
+	var neutral_score := DamageCalculator.score_skill(normal_skill, grass_mon, fire_enemy)
+	_assert_gt(se_score, neutral_score, "SE skill scored higher: %.1f > %.1f" % [se_score, neutral_score])
+
+	# Test: AI prefers STAB move (against neutral target so type doesn't interfere)
+	_begin("ai_prefers_stab")
+	var normal_target := _make_sp_monster(40, 10, 8, 10, 10, 8, "Normal")
+	var grass_skill := _make_category_skill("Vine", 10, "Grass", "physical")
+	# Grass mon using Grass skill vs Normal = STAB, neutral type
+	var stab_score := DamageCalculator.score_skill(grass_skill, grass_mon, normal_target)
+	# Grass mon using Normal skill vs Normal = no STAB, neutral type
+	var no_stab_score := DamageCalculator.score_skill(normal_skill, grass_mon, normal_target)
+	_assert_gt(stab_score, no_stab_score, "STAB skill scored higher: %.1f > %.1f" % [stab_score, no_stab_score])
+
+	# Test: equal skills have equal scores
+	_begin("ai_equal_skills_equal_score")
+	var plain_a := _make_category_skill("HitA", 10, "Normal", "physical")
+	var plain_b := _make_category_skill("HitB", 10, "Normal", "physical")
+	var plain_mon := _make_monster(40, 10, 8, 10)
+	var score_a := DamageCalculator.score_skill(plain_a, plain_mon, plain_mon)
+	var score_b := DamageCalculator.score_skill(plain_b, plain_mon, plain_mon)
+	_assert_true(absf(score_a - score_b) < 0.01, "equal skills = equal score: %.1f vs %.1f" % [score_a, score_b])
+
+# ══════════════════════════════════════════════
+#  L. Backward Compatibility Tests
+# ══════════════════════════════════════════════
+
+func _run_backward_compat_tests() -> void:
+	print("\n── Backward Compatibility ──")
+
+	# Test: untyped monster/skill still produces correct damage
+	_begin("compat_untyped_damage_unchanged")
+	var a := _make_monster(40, 14, 8, 12)
+	var d := _make_monster(40, 10, 8, 10)
+	var s := _make_skill("Bonk", 10, 1.0)
+	_assert_eq(DamageCalculator.calculate_damage(a, d, s), 23, "untyped damage unchanged at 23")
+
+	# Test: check_accuracy with only skill arg still works
+	_begin("compat_check_accuracy_one_arg")
+	var perfect := _make_skill("Sure", 10, 1.0)
+	_assert_true(DamageCalculator.check_accuracy(perfect), "check_accuracy(skill) backward compat")

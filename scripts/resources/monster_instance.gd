@@ -8,6 +8,15 @@ extends Resource
 @export var experience: int = 0
 
 var status: String = ""  # "poison", "burn", "paralysis", or ""
+var attack_stage: int = 0     # -6 to +6  (used by Intimidate etc.)
+var accuracy_stage: int = 0   # -6 to +6
+var evasion_stage: int = 0    # -6 to +6
+
+const STAGE_MULTIPLIERS: Dictionary = {
+	-6: 0.33, -5: 0.38, -4: 0.43, -3: 0.5, -2: 0.6, -1: 0.75,
+	0: 1.0,
+	1: 1.33, 2: 1.66, 3: 2.0, 4: 2.33, 5: 2.66, 6: 3.0,
+}
 
 func _init(p_base: Resource = null, p_level: int = 5) -> void:
 	if p_base:
@@ -50,6 +59,7 @@ func heal(amount: int) -> void:
 func heal_full() -> void:
 	current_hp = get_max_hp()
 	clear_status()
+	reset_stages()
 
 func apply_status(s: String) -> bool:
 	if status != "":
@@ -63,15 +73,62 @@ func clear_status() -> void:
 func has_status() -> bool:
 	return status != ""
 
-func get_effective_attack() -> int:
-	if status == "burn":
-		return get_attack() / 2
+func get_sp_attack() -> int:
+	if base_data:
+		var sp_atk: int = int(base_data.get("sp_attack")) if base_data.get("sp_attack") else 0
+		if sp_atk > 0:
+			return sp_atk + level
 	return get_attack()
+
+func get_sp_defense() -> int:
+	if base_data:
+		var sp_def: int = int(base_data.get("sp_defense")) if base_data.get("sp_defense") else 0
+		if sp_def > 0:
+			return sp_def + level
+	return get_defense()
+
+func get_attack_stage_multiplier() -> float:
+	var stage := clampi(attack_stage, -6, 6)
+	return STAGE_MULTIPLIERS.get(stage, 1.0)
+
+func get_effective_attack() -> int:
+	var base := get_attack()
+	if status == "burn":
+		base = base / 2
+	return maxi(1, int(float(base) * get_attack_stage_multiplier()))
+
+func get_effective_sp_attack() -> int:
+	var base := get_sp_attack()
+	if status == "burn":
+		base = base / 2
+	return maxi(1, int(float(base) * get_attack_stage_multiplier()))
 
 func get_effective_agility() -> int:
 	if status == "paralysis":
 		return get_agility() / 2
 	return get_agility()
+
+func get_accuracy_multiplier() -> float:
+	var stage := clampi(accuracy_stage, -6, 6)
+	return STAGE_MULTIPLIERS.get(stage, 1.0)
+
+func get_evasion_multiplier() -> float:
+	var stage := clampi(evasion_stage, -6, 6)
+	return STAGE_MULTIPLIERS.get(stage, 1.0)
+
+func reset_stages() -> void:
+	attack_stage = 0
+	accuracy_stage = 0
+	evasion_stage = 0
+
+func modify_attack_stage(amount: int) -> void:
+	attack_stage = clampi(attack_stage + amount, -6, 6)
+
+func modify_accuracy_stage(amount: int) -> void:
+	accuracy_stage = clampi(accuracy_stage + amount, -6, 6)
+
+func modify_evasion_stage(amount: int) -> void:
+	evasion_stage = clampi(evasion_stage + amount, -6, 6)
 
 func get_xp_threshold() -> int:
 	return level * level * 10

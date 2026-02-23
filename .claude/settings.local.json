@@ -16,7 +16,23 @@
       "Bash(test)",
       "Bash(.tres \")",
       "Bash(\"/c/Users/nick/Downloads/Godot_v4.6-stable_win64.exe/Godot_v4.6-stable_win64_console.exe\" --path . --headless res://scenes/tests/test_runner.tscn)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(python:*)",
+      "Bash(\"/c/Users/nick/Downloads/Godot_v4.6-stable_win64.exe/Godot_v4.6-stable_win64_console.exe\" --headless --import --path .)",
+      "Bash(./tests/run-tests.bat:*)",
+      "Bash(git -C /z/Development/amatris/monsterBattle status)",
+      "Bash(/c/Users/nick/Downloads/Godot_v4.6-stable_win64.exe/Godot_v4.6-stable_win64_console.exe:*)",
+      "Bash(cd \"Z:/Development/amatris/monsterBattle\" && Z:/godot/godot.exe --path . --headless --script res://tests/run_tests.gd 2>&1)",
+      "Bash(tail:*)",
+      "Bash(Z:/godot/godot.exe:*)",
+      "Bash(file:*)",
+      "WebSearch",
+      "WebFetch(domain:opengameart.org)",
+      "Bash(curl:*)",
+      "Bash(head:*)",
+      "Bash(unzip:*)",
+      "Bash(# Check no placeholder-sized files remain \\(originals were 176-178 bytes\\) DEST=\"\"Z:/Development/amatris/monsterBattle/assets/sprites/monsters\"\" echo \"\"=== Files still under 200 bytes \\(should be NONE\\) ===\"\" find \"\"$DEST\"\" -name \"\"*.png\"\" -size -200c echo \"\"\"\" echo \"\"=== Size range of new sprites ===\"\" ls -la \"\"$DEST\"\"/*.png)",
+      "Bash(cd:*)"
     ]
   }
 }

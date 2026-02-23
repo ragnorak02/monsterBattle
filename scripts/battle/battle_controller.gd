@@ -36,7 +36,7 @@ var _pending_skills: Array = []
 @onready var player_display: Control = $BattleUI/HBox/PlayerSide/PlayerDisplay
 @onready var enemy_display: Control = $BattleUI/HBox/EnemySide/EnemyDisplay
 @onready var action_menu: PanelContainer = $BattleUI/ActionPanel
-@onready var message_label: Label = $BattleUI/MessageLabel
+@onready var message_label: Label = $BattleUI/MessagePanel/MessageLabel
 @onready var background: TextureRect = $Background
 
 func _get_name(monster: MonsterInstance) -> String:
@@ -83,7 +83,23 @@ func _start_intro() -> void:
 	print("[BATTLE] %s" % msg)
 	_show_message(msg)
 	await get_tree().create_timer(1.0).timeout
+
+	# Ability triggers on entry
+	await _trigger_entry_ability(_player_monster, _enemy_monster)
+	await _trigger_entry_ability(_enemy_monster, _player_monster)
+
 	_start_player_turn()
+
+func _trigger_entry_ability(owner: MonsterInstance, opponent: MonsterInstance) -> void:
+	var ability: String = DamageCalculator.get_ability(owner)
+	if ability == "":
+		return
+	if ability == "intimidate":
+		var o_name: String = _get_name(owner)
+		print("[BATTLE] %s's Intimidate lowered the opponent's Attack!" % o_name)
+		_show_message("%s's Intimidate cuts the foe's Attack!" % o_name)
+		opponent.modify_attack_stage(-1)
+		await get_tree().create_timer(0.8).timeout
 
 func _start_player_turn() -> void:
 	_state = BattleState.PLAYER_TURN
@@ -242,7 +258,23 @@ func _pick_enemy_skill() -> Resource:
 	var skills_arr: Array = _enemy_monster.skills
 	if skills_arr.is_empty():
 		return null
-	return skills_arr[randi() % skills_arr.size()]
+	return _pick_smart_skill(skills_arr)
+
+func _pick_smart_skill(skills_arr: Array) -> Resource:
+	if skills_arr.size() == 1:
+		return skills_arr[0]
+
+	var best_score: float = -1.0
+	var best_skills: Array = []
+	for skill: Resource in skills_arr:
+		var score: float = DamageCalculator.score_skill(skill, _enemy_monster, _player_monster)
+		if score > best_score:
+			best_score = score
+			best_skills = [skill]
+		elif absf(score - best_score) < 0.01:
+			best_skills.append(skill)
+
+	return best_skills[randi() % best_skills.size()]
 
 func _resolve_turn() -> void:
 	var first_order := DamageCalculator.get_first_attacker(_player_monster, _enemy_monster)
@@ -278,6 +310,7 @@ func _execute_attack(attacker: MonsterInstance, defender: MonsterInstance, skill
 		return
 
 	var a_name: String = _get_name(attacker)
+	var d_name: String = _get_name(defender)
 	var s_name: String = _get_skill_name(skill)
 
 	# Paralysis check: 25% chance to skip turn
@@ -292,58 +325,109 @@ func _execute_attack(attacker: MonsterInstance, defender: MonsterInstance, skill
 	_show_message(msg)
 	await get_tree().create_timer(0.6).timeout
 
-	if not DamageCalculator.check_accuracy(skill):
+	if not DamageCalculator.check_accuracy(skill, attacker, defender):
 		print("[BATTLE] %s's attack missed!" % a_name)
 		_show_message("It missed!")
 		await get_tree().create_timer(0.6).timeout
 		return
 
-	var result := DamageCalculator.calculate_damage_with_type(attacker, defender, skill, -1)
-	var damage: int = result["damage"]
-	defender.take_damage(damage)
-	AudioManager.play_sfx("res://assets/audio/sfx/hit.wav")
+	# Multi-hit support
+	var hit_count: int = DamageCalculator.calculate_hit_count(skill)
+	var total_damage: int = 0
+	var last_result: Dictionary = {}
 
-	var d_name: String = _get_name(defender)
-	print("[BATTLE] %s dealt %d damage to %s (HP: %d/%d)" % [a_name, damage, d_name, defender.current_hp, defender.get_max_hp()])
-	_show_message("It dealt %d damage!" % damage)
+	for hit_i in hit_count:
+		if defender.is_fainted():
+			break
 
-	if is_player_attacking:
-		enemy_display.update_hp()
-	else:
-		player_display.update_hp()
+		var result := DamageCalculator.calculate_damage_with_type(attacker, defender, skill, -1)
+		var damage: int = result["damage"]
+		defender.take_damage(damage)
+		total_damage += damage
+		last_result = result
+		AudioManager.play_sfx("res://assets/audio/sfx/hit.wav")
 
-	await get_tree().create_timer(0.6).timeout
+		# Flash defender on hit
+		var target_display: Control = enemy_display if is_player_attacking else player_display
+		_flash_display(target_display)
 
-	# Critical hit message
-	if result["critical"] as bool:
-		print("[BATTLE] A critical hit!")
-		_show_message("A critical hit!")
+		if hit_count > 1:
+			print("[BATTLE] Hit %d! %d damage" % [hit_i + 1, damage])
+			_show_message("Hit %d! %d damage!" % [hit_i + 1, damage])
+		else:
+			print("[BATTLE] %s dealt %d damage to %s (HP: %d/%d)" % [a_name, damage, d_name, defender.current_hp, defender.get_max_hp()])
+			_show_message("It dealt %d damage!" % damage)
+
+		if is_player_attacking:
+			enemy_display.update_hp()
+		else:
+			player_display.update_hp()
+
+		if hit_count > 1:
+			await get_tree().create_timer(0.4).timeout
+		else:
+			await get_tree().create_timer(0.6).timeout
+
+		# Critical hit message (show per hit)
+		if result["critical"] as bool:
+			print("[BATTLE] A critical hit!")
+			_show_message("A critical hit!")
+			await get_tree().create_timer(0.6).timeout
+
+	# Multi-hit summary
+	if hit_count > 1:
+		var actual_hits: int = mini(hit_count, hit_count)  # all hits that landed
+		print("[BATTLE] Hit %d times for %d total damage!" % [actual_hits, total_damage])
+		_show_message("Hit %d times! %d total damage!" % [actual_hits, total_damage])
 		await get_tree().create_timer(0.6).timeout
 
-	# Show type effectiveness message
-	var effectiveness: String = result["effectiveness"]
-	if effectiveness == "super_effective":
-		_show_message("It's super effective!")
-		await get_tree().create_timer(0.6).timeout
-	elif effectiveness == "not_very_effective":
-		_show_message("It's not very effective...")
-		await get_tree().create_timer(0.6).timeout
+	# Show type effectiveness message (once, from last hit result)
+	if not last_result.is_empty():
+		var effectiveness: String = last_result["effectiveness"]
+		if effectiveness == "super_effective":
+			_show_message("It's super effective!")
+			await get_tree().create_timer(0.6).timeout
+		elif effectiveness == "not_very_effective":
+			_show_message("It's not very effective...")
+			await get_tree().create_timer(0.6).timeout
 
-	# Try to apply status effect
+	# Try to apply status effect from skill
 	if not defender.is_fainted():
 		var applied_status: String = DamageCalculator.try_apply_status(skill, defender)
 		if applied_status != "":
-			var status_label: String = applied_status.capitalize() + "ed" if applied_status != "burn" else "burned"
-			if applied_status == "poison":
-				status_label = "poisoned"
-			elif applied_status == "burn":
-				status_label = "burned"
-			elif applied_status == "paralysis":
-				status_label = "paralyzed"
-			print("[BATTLE] %s was %s!" % [d_name, status_label])
-			_show_message("%s was %s!" % [d_name, status_label])
+			_show_status_message(d_name, applied_status)
 			_update_status_displays()
 			await get_tree().create_timer(0.8).timeout
+
+	# Ability: poison_touch — 20% chance to poison attacker on physical hit received
+	if not defender.is_fainted() and not attacker.is_fainted():
+		var category: String = str(skill.get("category")) if skill.get("category") else "physical"
+		if category == "physical" and DamageCalculator.get_ability(defender) == "poison_touch":
+			if randf() < 0.2 and attacker.apply_status("poison"):
+				print("[BATTLE] %s's Poison Touch poisoned %s!" % [d_name, a_name])
+				_show_message("%s's Poison Touch poisoned %s!" % [d_name, a_name])
+				_update_status_displays()
+				await get_tree().create_timer(0.8).timeout
+
+func _show_status_message(target_name: String, applied_status: String) -> void:
+	var status_label: String
+	if applied_status == "poison":
+		status_label = "poisoned"
+	elif applied_status == "burn":
+		status_label = "burned"
+	elif applied_status == "paralysis":
+		status_label = "paralyzed"
+	else:
+		status_label = applied_status
+	print("[BATTLE] %s was %s!" % [target_name, status_label])
+	_show_message("%s was %s!" % [target_name, status_label])
+
+func _flash_display(display: Control) -> void:
+	if not display:
+		return
+	var tween := create_tween()
+	tween.tween_property(display, "modulate:a", 0.4, 0.08)
+	tween.tween_property(display, "modulate:a", 1.0, 0.08)
 
 func _process_end_of_turn_status() -> void:
 	# Process player monster status

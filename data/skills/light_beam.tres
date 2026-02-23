@@ -8,3 +8,4 @@ skill_name = "Light Beam"
 power = 10
 accuracy = 1.0
 skill_type = "Normal"
+category = "special"

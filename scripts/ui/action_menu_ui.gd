@@ -20,6 +20,19 @@ func _ready() -> void:
 	catch_button.pressed.connect(func(): catch_selected.emit())
 	run_button.pressed.connect(func(): run_selected.emit())
 
+const TYPE_COLORS: Dictionary = {
+	"Fire": Color(1.0, 0.4, 0.2),
+	"Water": Color(0.3, 0.5, 1.0),
+	"Grass": Color(0.3, 0.8, 0.3),
+	"Electric": Color(1.0, 0.85, 0.2),
+	"Wind": Color(0.6, 0.85, 0.8),
+	"Rock": Color(0.7, 0.6, 0.4),
+	"Ice": Color(0.5, 0.85, 1.0),
+	"Dark": Color(0.5, 0.3, 0.6),
+	"Poison": Color(0.7, 0.3, 0.8),
+	"Normal": Color(0.7, 0.7, 0.7),
+}
+
 func setup_skills(skills: Array) -> void:
 	_in_replace_mode = false
 	_close_items_submenu()
@@ -30,7 +43,20 @@ func setup_skills(skills: Array) -> void:
 	for skill in skills:
 		var btn := Button.new()
 		var stype: String = str(skill.get("skill_type")) if skill.get("skill_type") else "Normal"
-		btn.text = "%s [%s] (Pow: %d)" % [str(skill.get("skill_name")), stype, int(skill.get("power"))]
+		var category: String = str(skill.get("category")) if skill.get("category") else "physical"
+		var cat_tag: String = "[P]" if category == "physical" else "[S]"
+		var accuracy: float = float(skill.get("accuracy")) if skill.get("accuracy") else 1.0
+		var acc_str: String = " Acc:%d%%" % int(accuracy * 100) if accuracy < 1.0 else ""
+		btn.text = "%s %s [%s] Pow:%d%s" % [cat_tag, str(skill.get("skill_name")), stype, int(skill.get("power")), acc_str]
+		# Type color tint
+		if TYPE_COLORS.has(stype):
+			var style := StyleBoxFlat.new()
+			style.bg_color = Color(TYPE_COLORS[stype], 0.25)
+			style.set_border_width_all(1)
+			style.border_color = Color(TYPE_COLORS[stype], 0.5)
+			style.set_corner_radius_all(3)
+			style.set_content_margin_all(4)
+			btn.add_theme_stylebox_override("normal", style)
 		btn.pressed.connect(func(): skill_selected.emit(skill))
 		skill_container.add_child(btn)
 		_skill_buttons.append(btn)

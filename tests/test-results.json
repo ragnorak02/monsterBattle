@@ -1,0 +1,724 @@
+{
+	"details": [
+		{
+			"message": "basic formula",
+			"name": "damage_basic_formula",
+			"status": "pass"
+		},
+		{
+			"message": "min damage should be 1",
+			"name": "damage_minimum_one",
+			"status": "pass"
+		},
+		{
+			"message": "accuracy 1.0 always hits",
+			"name": "accuracy_1.0_always_hits",
+			"status": "pass"
+		},
+		{
+			"message": "full HP catch rate ~0.15, got 0.150",
+			"name": "catch_rate_full_hp",
+			"status": "pass"
+		},
+		{
+			"message": "half HP catch rate ~0.525, got 0.525",
+			"name": "catch_rate_half_hp",
+			"status": "pass"
+		},
+		{
+			"message": "near-death catch rate >= 0.85, got 0.885",
+			"name": "catch_rate_near_death",
+			"status": "pass"
+		},
+		{
+			"message": "near-death catch rate <= 0.95, got 0.885",
+			"name": "catch_rate_near_death",
+			"status": "pass"
+		},
+		{
+			"message": "faster monster goes first",
+			"name": "first_attacker_agility",
+			"status": "pass"
+		},
+		{
+			"message": "slower monster goes second",
+			"name": "first_attacker_agility",
+			"status": "pass"
+		},
+		{
+			"message": "tie goes to first arg",
+			"name": "first_attacker_agility",
+			"status": "pass"
+		},
+		{
+			"message": "Fire > Grass = 2.0x, got 2.00",
+			"name": "type_super_effective",
+			"status": "pass"
+		},
+		{
+			"message": "Fire > Water = 0.5x, got 0.50",
+			"name": "type_not_very_effective",
+			"status": "pass"
+		},
+		{
+			"message": "Fire > Dark = 1.0x, got 1.00",
+			"name": "type_neutral",
+			"status": "pass"
+		},
+		{
+			"message": "Fire > Grass",
+			"name": "type_core_triangle",
+			"status": "pass"
+		},
+		{
+			"message": "Grass > Water",
+			"name": "type_core_triangle",
+			"status": "pass"
+		},
+		{
+			"message": "Water > Fire",
+			"name": "type_core_triangle",
+			"status": "pass"
+		},
+		{
+			"message": "STAB should be true for Fire mon + Fire skill",
+			"name": "type_stab_bonus",
+			"status": "pass"
+		},
+		{
+			"message": "no STAB for Fire mon + Water skill",
+			"name": "type_no_stab_mismatch",
+			"status": "pass"
+		},
+		{
+			"message": "no STAB for Normal type skills",
+			"name": "type_no_stab_normal",
+			"status": "pass"
+		},
+		{
+			"message": "backward compatible damage = 23",
+			"name": "type_backward_compat",
+			"status": "pass"
+		},
+		{
+			"message": "super effective > neutral damage",
+			"name": "type_super_effective_damage",
+			"status": "pass"
+		},
+		{
+			"message": "all 30 monsters have element_type",
+			"name": "all_monsters_have_element_type",
+			"status": "pass"
+		},
+		{
+			"message": "all skills have skill_type",
+			"name": "all_skills_have_skill_type",
+			"status": "pass"
+		},
+		{
+			"message": "crit damage = base * 1.5 = 34",
+			"name": "crit_forced_damage",
+			"status": "pass"
+		},
+		{
+			"message": "no crit damage unchanged = 23",
+			"name": "crit_forced_damage",
+			"status": "pass"
+		},
+		{
+			"message": "critical flag true on forced crit",
+			"name": "crit_flag_true",
+			"status": "pass"
+		},
+		{
+			"message": "critical flag false on force_crit=0",
+			"name": "crit_flag_false",
+			"status": "pass"
+		},
+		{
+			"message": "default force_crit=0 backward compat",
+			"name": "crit_backward_compat",
+			"status": "pass"
+		},
+		{
+			"message": "default has no crit",
+			"name": "crit_backward_compat",
+			"status": "pass"
+		},
+		{
+			"message": "apply_status returns true on clean monster",
+			"name": "status_apply_clean",
+			"status": "pass"
+		},
+		{
+			"message": "status is poison",
+			"name": "status_apply_clean",
+			"status": "pass"
+		},
+		{
+			"message": "apply_status returns false when already poisoned",
+			"name": "status_reject_second",
+			"status": "pass"
+		},
+		{
+			"message": "status still poison after rejection",
+			"name": "status_reject_second",
+			"status": "pass"
+		},
+		{
+			"message": "status empty after clear",
+			"name": "status_clear",
+			"status": "pass"
+		},
+		{
+			"message": "has_status false after clear",
+			"name": "status_clear",
+			"status": "pass"
+		},
+		{
+			"message": "heal_full clears status",
+			"name": "status_heal_full_clears",
+			"status": "pass"
+		},
+		{
+			"message": "heal_full restores HP",
+			"name": "status_heal_full_clears",
+			"status": "pass"
+		},
+		{
+			"message": "poison EOT damage = max_hp/8 = 11",
+			"name": "status_poison_eot_damage",
+			"status": "pass"
+		},
+		{
+			"message": "HP reduced by poison damage",
+			"name": "status_poison_eot_damage",
+			"status": "pass"
+		},
+		{
+			"message": "burn EOT damage = max_hp/8 = 11",
+			"name": "status_burn_eot_damage",
+			"status": "pass"
+		},
+		{
+			"message": "HP reduced by burn damage",
+			"name": "status_burn_eot_damage",
+			"status": "pass"
+		},
+		{
+			"message": "normal effective attack = 19",
+			"name": "status_burn_halves_attack",
+			"status": "pass"
+		},
+		{
+			"message": "burned effective attack = 19/2 = 9",
+			"name": "status_burn_halves_attack",
+			"status": "pass"
+		},
+		{
+			"message": "normal effective agility = 25",
+			"name": "status_paralysis_halves_agility",
+			"status": "pass"
+		},
+		{
+			"message": "paralyzed effective agility = 25/2 = 12",
+			"name": "status_paralysis_halves_agility",
+			"status": "pass"
+		},
+		{
+			"message": "fast goes first normally",
+			"name": "status_paralysis_turn_order",
+			"status": "pass"
+		},
+		{
+			"message": "paralyzed fast goes second",
+			"name": "status_paralysis_turn_order",
+			"status": "pass"
+		},
+		{
+			"message": "paralysis has no EOT effect",
+			"name": "status_paralysis_no_eot",
+			"status": "pass"
+		},
+		{
+			"message": "HP unchanged by paralysis EOT",
+			"name": "status_paralysis_no_eot",
+			"status": "pass"
+		},
+		{
+			"message": "zero chance skill doesn't apply status",
+			"name": "status_zero_chance_no_apply",
+			"status": "pass"
+		},
+		{
+			"message": "target has no status",
+			"name": "status_zero_chance_no_apply",
+			"status": "pass"
+		},
+		{
+			"message": "max_hp = 40 + 5*2 = 50",
+			"name": "get_max_hp",
+			"status": "pass"
+		},
+		{
+			"message": "attack = 14 + 5 = 19",
+			"name": "get_attack",
+			"status": "pass"
+		},
+		{
+			"message": "defense = 8 + 5 = 13",
+			"name": "get_defense",
+			"status": "pass"
+		},
+		{
+			"message": "agility = 12 + 5 = 17",
+			"name": "get_agility",
+			"status": "pass"
+		},
+		{
+			"message": "HP reduced by 15",
+			"name": "take_damage_basic",
+			"status": "pass"
+		},
+		{
+			"message": "HP floors at 0",
+			"name": "take_damage_floor_zero",
+			"status": "pass"
+		},
+		{
+			"message": "fainted at 0 HP",
+			"name": "is_fainted_at_zero",
+			"status": "pass"
+		},
+		{
+			"message": "not fainted above 0 HP",
+			"name": "is_fainted_above_zero",
+			"status": "pass"
+		},
+		{
+			"message": "healed 10 HP",
+			"name": "heal_basic",
+			"status": "pass"
+		},
+		{
+			"message": "heal capped at max HP",
+			"name": "heal_capped_at_max",
+			"status": "pass"
+		},
+		{
+			"message": "level 5: 5*5*10 = 250",
+			"name": "get_xp_threshold",
+			"status": "pass"
+		},
+		{
+			"message": "should level up",
+			"name": "add_experience_level_up",
+			"status": "pass"
+		},
+		{
+			"message": "old level = 5",
+			"name": "add_experience_level_up",
+			"status": "pass"
+		},
+		{
+			"message": "new level = 6",
+			"name": "add_experience_level_up",
+			"status": "pass"
+		},
+		{
+			"message": "party size is 1",
+			"name": "add_to_party",
+			"status": "pass"
+		},
+		{
+			"message": "party at max 6",
+			"name": "party_max_six",
+			"status": "pass"
+		},
+		{
+			"message": "7th monster rejected",
+			"name": "party_max_six",
+			"status": "pass"
+		},
+		{
+			"message": "skips fainted, returns alive",
+			"name": "get_first_alive_skips_fainted",
+			"status": "pass"
+		},
+		{
+			"message": "all fainted = true",
+			"name": "all_fainted",
+			"status": "pass"
+		},
+		{
+			"message": "all fainted = false with alive member",
+			"name": "all_fainted",
+			"status": "pass"
+		},
+		{
+			"message": "monster 1 fully healed",
+			"name": "heal_all_party",
+			"status": "pass"
+		},
+		{
+			"message": "monster 2 fully healed",
+			"name": "heal_all_party",
+			"status": "pass"
+		},
+		{
+			"message": "add_item returns true for valid item",
+			"name": "inventory_add_item",
+			"status": "pass"
+		},
+		{
+			"message": "potion count = 3",
+			"name": "inventory_add_item",
+			"status": "pass"
+		},
+		{
+			"message": "potions stack to 5",
+			"name": "inventory_stack_items",
+			"status": "pass"
+		},
+		{
+			"message": "remove_item returns true",
+			"name": "inventory_remove_item",
+			"status": "pass"
+		},
+		{
+			"message": "potion count = 3 after removing 2",
+			"name": "inventory_remove_item",
+			"status": "pass"
+		},
+		{
+			"message": "remove_item fails with insufficient count",
+			"name": "inventory_remove_insufficient",
+			"status": "pass"
+		},
+		{
+			"message": "count unchanged after failed remove",
+			"name": "inventory_remove_insufficient",
+			"status": "pass"
+		},
+		{
+			"message": "add_item rejects unknown item_id",
+			"name": "inventory_reject_invalid",
+			"status": "pass"
+		},
+		{
+			"message": "2 battle items",
+			"name": "inventory_get_battle_items",
+			"status": "pass"
+		},
+		{
+			"message": "ball multiplier increases catch rate",
+			"name": "inventory_catch_rate_with_ball",
+			"status": "pass"
+		},
+		{
+			"message": "potion name correct",
+			"name": "inventory_get_item_def",
+			"status": "pass"
+		},
+		{
+			"message": "potion type is heal",
+			"name": "inventory_get_item_def",
+			"status": "pass"
+		},
+		{
+			"message": "potion count 0 after removing last",
+			"name": "inventory_remove_last_erases",
+			"status": "pass"
+		},
+		{
+			"message": "potion key erased from inventory",
+			"name": "inventory_remove_last_erases",
+			"status": "pass"
+		},
+		{
+			"message": "town position saved",
+			"name": "area_position_persistence",
+			"status": "pass"
+		},
+		{
+			"message": "route1 position saved",
+			"name": "area_position_persistence",
+			"status": "pass"
+		},
+		{
+			"message": "town monster 1 defeated",
+			"name": "area_defeated_separate",
+			"status": "pass"
+		},
+		{
+			"message": "town monster 3 defeated",
+			"name": "area_defeated_separate",
+			"status": "pass"
+		},
+		{
+			"message": "town monster 2 not defeated",
+			"name": "area_defeated_separate",
+			"status": "pass"
+		},
+		{
+			"message": "route1 monster 2 defeated",
+			"name": "area_defeated_separate",
+			"status": "pass"
+		},
+		{
+			"message": "route1 monster 1 not defeated",
+			"name": "area_defeated_separate",
+			"status": "pass"
+		},
+		{
+			"message": "unvisited area returns null",
+			"name": "area_unvisited_returns_null",
+			"status": "pass"
+		},
+		{
+			"message": "unvisited area has no defeated",
+			"name": "area_unvisited_no_defeated",
+			"status": "pass"
+		},
+		{
+			"message": "unvisited area defeated list empty",
+			"name": "area_unvisited_no_defeated",
+			"status": "pass"
+		},
+		{
+			"message": "no duplicate defeated monsters",
+			"name": "area_no_duplicate_defeated",
+			"status": "pass"
+		},
+		{
+			"message": "scene loads: main.tscn",
+			"name": "load_scene_main",
+			"status": "pass"
+		},
+		{
+			"message": "scene loads: overworld.tscn",
+			"name": "load_scene_overworld",
+			"status": "pass"
+		},
+		{
+			"message": "scene loads: battle_scene.tscn",
+			"name": "load_scene_battle_scene",
+			"status": "pass"
+		},
+		{
+			"message": "scene loads: encounter_ui.tscn",
+			"name": "load_scene_encounter_ui",
+			"status": "pass"
+		},
+		{
+			"message": "scene loads: party_menu.tscn",
+			"name": "load_scene_party_menu",
+			"status": "pass"
+		},
+		{
+			"message": "scene loads: player.tscn",
+			"name": "load_scene_player",
+			"status": "pass"
+		},
+		{
+			"message": "scene loads: gender_select.tscn",
+			"name": "load_scene_gender_select",
+			"status": "pass"
+		},
+		{
+			"message": "scene loads: starter_select.tscn",
+			"name": "load_scene_starter_select",
+			"status": "pass"
+		},
+		{
+			"message": "scene loads: inventory_ui.tscn",
+			"name": "load_scene_inventory_ui",
+			"status": "pass"
+		},
+		{
+			"message": "MonsterDB has 30 monsters",
+			"name": "monsterdb_monster_count",
+			"status": "pass"
+		},
+		{
+			"message": "MonsterDB has 22 skills",
+			"name": "monsterdb_skill_count",
+			"status": "pass"
+		},
+		{
+			"message": "starter ID 1 exists",
+			"name": "starters_exist",
+			"status": "pass"
+		},
+		{
+			"message": "starter ID 2 exists",
+			"name": "starters_exist",
+			"status": "pass"
+		},
+		{
+			"message": "starter ID 3 exists",
+			"name": "starters_exist",
+			"status": "pass"
+		},
+		{
+			"message": "all 30 monsters have front + back sprites",
+			"name": "all_monsters_have_sprites",
+			"status": "pass"
+		},
+		{
+			"message": "all 6 audio files exist",
+			"name": "audio_files_exist",
+			"status": "pass"
+		},
+		{
+			"message": "load all monsters in 1ms (< 2000ms)",
+			"name": "perf_load_all_monsters",
+			"status": "pass"
+		},
+		{
+			"message": "load battle scene in 1ms (< 1000ms)",
+			"name": "perf_load_battle_scene",
+			"status": "pass"
+		},
+		{
+			"message": "accuracy stage +2 mult > 1.0, got 1.66",
+			"name": "accuracy_stage_positive",
+			"status": "pass"
+		},
+		{
+			"message": "accuracy stage +2 = 1.66",
+			"name": "accuracy_stage_positive",
+			"status": "pass"
+		},
+		{
+			"message": "evasion stage -1 mult < 1.0, got 0.75",
+			"name": "evasion_stage_negative",
+			"status": "pass"
+		},
+		{
+			"message": "evasion stage -1 = 0.75",
+			"name": "evasion_stage_negative",
+			"status": "pass"
+		},
+		{
+			"message": "accuracy_stage reset to 0",
+			"name": "stages_reset_on_heal_full",
+			"status": "pass"
+		},
+		{
+			"message": "evasion_stage reset to 0",
+			"name": "stages_reset_on_heal_full",
+			"status": "pass"
+		},
+		{
+			"message": "attack_stage reset to 0",
+			"name": "stages_reset_on_heal_full",
+			"status": "pass"
+		},
+		{
+			"message": "physical skill damage = 23",
+			"name": "physical_uses_attack_defense",
+			"status": "pass"
+		},
+		{
+			"message": "special skill damage = 25",
+			"name": "special_uses_sp_attack_sp_defense",
+			"status": "pass"
+		},
+		{
+			"message": "sp_attack=0 falls back to get_attack()",
+			"name": "sp_attack_zero_fallback",
+			"status": "pass"
+		},
+		{
+			"message": "sp_defense=0 falls back to get_defense()",
+			"name": "sp_defense_zero_fallback",
+			"status": "pass"
+		},
+		{
+			"message": "multi-hit count always in [2, 5]",
+			"name": "multi_hit_in_range",
+			"status": "pass"
+		},
+		{
+			"message": "single-hit skill returns 1",
+			"name": "single_hit_backward_compat",
+			"status": "pass"
+		},
+		{
+			"message": "thick_skin 30 * 0.75 = 22",
+			"name": "ability_thick_skin_reduces_se",
+			"status": "pass"
+		},
+		{
+			"message": "thick_skin no effect at neutral",
+			"name": "ability_thick_skin_reduces_se",
+			"status": "pass"
+		},
+		{
+			"message": "thick_skin reduces SE damage",
+			"name": "ability_thick_skin_full_calc",
+			"status": "pass"
+		},
+		{
+			"message": "attack stage starts at 0",
+			"name": "ability_intimidate_lowers_attack",
+			"status": "pass"
+		},
+		{
+			"message": "attack stage = -1 after intimidate",
+			"name": "ability_intimidate_lowers_attack",
+			"status": "pass"
+		},
+		{
+			"message": "effective attack reduced by stage",
+			"name": "ability_intimidate_lowers_attack",
+			"status": "pass"
+		},
+		{
+			"message": "swift ability detected",
+			"name": "ability_swift_concept",
+			"status": "pass"
+		},
+		{
+			"message": "swift prevents accuracy stage below 0",
+			"name": "ability_swift_concept",
+			"status": "pass"
+		},
+		{
+			"message": "poison_touch ability detected",
+			"name": "ability_poison_touch_detected",
+			"status": "pass"
+		},
+		{
+			"message": "SE skill scored higher: 20.0 > 12.0",
+			"name": "ai_prefers_super_effective",
+			"status": "pass"
+		},
+		{
+			"message": "STAB skill scored higher: 18.0 > 12.0",
+			"name": "ai_prefers_stab",
+			"status": "pass"
+		},
+		{
+			"message": "equal skills = equal score: 12.0 vs 12.0",
+			"name": "ai_equal_skills_equal_score",
+			"status": "pass"
+		},
+		{
+			"message": "untyped damage unchanged at 23",
+			"name": "compat_untyped_damage_unchanged",
+			"status": "pass"
+		},
+		{
+			"message": "check_accuracy(skill) backward compat",
+			"name": "compat_check_accuracy_one_arg",
+			"status": "pass"
+		}
+	],
+	"durationMs": 333,
+	"status": "pass",
+	"testsPassed": 143.0,
+	"testsTotal": 143.0,
+	"timestamp": "2026-02-23T06:23:41"
+}

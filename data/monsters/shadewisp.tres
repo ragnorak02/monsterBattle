@@ -16,5 +16,7 @@ max_hp = 32
 attack = 16
 defense = 5
 agility = 17
+sp_attack = 18
+sp_defense = 7
 element_type = "Dark"
 starting_skills = Array[Resource]([ExtResource("4"), ExtResource("5")])
