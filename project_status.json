@@ -2,10 +2,10 @@
   "schemaVersion": 1,
   "gameId": "monsterbattle",
   "title": "Monster Catcher",
-  "lastUpdated": "2026-02-24T22:42:00Z",
+  "lastUpdated": "2026-02-24T23:40:00Z",
   "health": {
-    "progressPercent": 47,
-    "buildVersion": "0.3.0",
+    "progressPercent": 63,
+    "buildVersion": "0.4.1",
     "assetStage": "placeholder"
   },
   "tech": {
@@ -33,9 +33,9 @@
   },
   "testing": {
     "testCommand": "tests/run-tests.bat",
-    "lastRunAt": "2026-02-24T22:42:00Z",
+    "lastRunAt": "2026-02-24T23:40:00Z",
     "status": "pass",
-    "notes": "222 tests passing (checkpoints 42-45 complete: Pokedex UI, XP curve, evolution animation, stat growth)"
+    "notes": "322 tests passing (checkpoints 55-60 complete: quest system, dialogue trees, cutscene framework, world map, weather, day/night cycle)"
   },
   "links": {
     "repo": null,

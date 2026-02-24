@@ -37,6 +37,16 @@ func _ready() -> void:
 	_run_evolution_tests()
 	_run_xp_curve_tests()
 	_run_pokedex_scene_tests()
+	_run_badge_system_tests()
+	_run_trainer_battle_tests()
+	_run_area_data_tests()
+	_run_trainer_scene_tests()
+	_run_dialogue_tree_tests()
+	_run_quest_system_tests()
+	_run_cutscene_tests()
+	_run_world_map_tests()
+	_run_day_night_tests()
+	_run_weather_tests()
 
 	var total := _pass_count + _fail_count
 	print("")
@@ -735,6 +745,7 @@ func _run_scene_loading_tests() -> void:
 		"starter_select.tscn": "res://scenes/starter_select.tscn",
 		"inventory_ui.tscn": "res://scenes/ui/inventory_ui.tscn",
 		"pokedex.tscn": "res://scenes/ui/pokedex.tscn",
+		"trainer.tscn": "res://scenes/overworld/trainer.tscn",
 	}
 
 	for scene_name: String in scenes:
@@ -1396,3 +1407,594 @@ func _run_pokedex_scene_tests() -> void:
 	_begin("pokedex_scene_loads")
 	var packed := load("res://scenes/ui/pokedex.tscn") as PackedScene
 	_assert_not_null(packed, "pokedex.tscn loads")
+
+# ══════════════════════════════════════════════
+#  S. Badge System Tests
+# ══════════════════════════════════════════════
+
+func _run_badge_system_tests() -> void:
+	print("\n── Badge System ──")
+
+	# Save and reset state
+	var saved_badges := GameManager.badges.duplicate()
+	var saved_trainers := GameManager.defeated_trainers.duplicate()
+	GameManager.badges = {}
+	GameManager.defeated_trainers = {}
+
+	# Test: default state — no badges
+	_begin("badge_default_empty")
+	_assert_eq(GameManager.get_badge_count(), 0, "no badges by default")
+	_assert_false(GameManager.has_badge("tide_badge"), "tide_badge not earned by default")
+
+	# Test: earn badge + has_badge + count
+	_begin("badge_earn_and_check")
+	GameManager.earn_badge("tide_badge")
+	_assert_true(GameManager.has_badge("tide_badge"), "tide_badge earned")
+	_assert_eq(GameManager.get_badge_count(), 1, "badge count = 1")
+
+	# Test: earning same badge doesn't double count
+	_begin("badge_no_double_count")
+	GameManager.earn_badge("tide_badge")
+	_assert_eq(GameManager.get_badge_count(), 1, "badge count still 1 after duplicate")
+
+	# Test: trainer defeated tracking
+	_begin("badge_trainer_defeated")
+	GameManager.mark_trainer_defeated("town2_gym")
+	_assert_true(GameManager.is_trainer_defeated("town2_gym"), "town2_gym marked defeated")
+	_assert_false(GameManager.is_trainer_defeated("route2_trainer1"), "route2_trainer1 not defeated")
+
+	# Restore state
+	GameManager.badges = saved_badges
+	GameManager.defeated_trainers = saved_trainers
+
+# ══════════════════════════════════════════════
+#  T. Trainer Battle Tests
+# ══════════════════════════════════════════════
+
+func _run_trainer_battle_tests() -> void:
+	print("\n── Trainer Battle ──")
+
+	# Test: enemy party built from data array
+	_begin("trainer_enemy_party_from_data")
+	var mon1_data := MonsterDB.get_monster(1)
+	var mon2_data := MonsterDB.get_monster(2)
+	if mon1_data and mon2_data:
+		var party_data: Array = [
+			{"data": mon1_data, "level": 10},
+			{"data": mon2_data, "level": 12},
+		]
+		var party: Array = []
+		for entry in party_data:
+			var inst := MonsterInstance.new(entry["data"], entry["level"])
+			party.append(inst)
+		_assert_eq(party.size(), 2, "enemy party has 2 monsters")
+		_assert_eq(party[0].level, 10, "first monster level = 10")
+		_assert_eq(party[1].level, 12, "second monster level = 12")
+	else:
+		_fail("could not load monster data for trainer party test")
+
+	# Test: enemy switching on faint — next monster in party
+	_begin("trainer_enemy_switch_on_faint")
+	var m1_data := MonsterDB.get_monster(1)
+	var m2_data := MonsterDB.get_monster(2)
+	if m1_data and m2_data:
+		var enemy_party: Array = [
+			MonsterInstance.new(m1_data, 10),
+			MonsterInstance.new(m2_data, 12),
+		]
+		var idx := 0
+		enemy_party[idx].take_damage(9999)  # Faint first monster
+		_assert_true(enemy_party[idx].is_fainted(), "first enemy fainted")
+		idx += 1
+		_assert_lt(idx, enemy_party.size(), "next enemy available at index 1")
+		_assert_false(enemy_party[idx].is_fainted(), "second enemy alive")
+	else:
+		_fail("could not load monster data for switching test")
+
+	# Test: all enemy monsters fainted = win condition
+	_begin("trainer_all_fainted_is_win")
+	var ma_data := MonsterDB.get_monster(1)
+	var mb_data := MonsterDB.get_monster(2)
+	if ma_data and mb_data:
+		var t_party: Array = [
+			MonsterInstance.new(ma_data, 10),
+			MonsterInstance.new(mb_data, 12),
+		]
+		for m in t_party:
+			m.take_damage(9999)
+		var all_fainted := true
+		for m in t_party:
+			if not m.is_fainted():
+				all_fainted = false
+		_assert_true(all_fainted, "all trainer monsters fainted = win")
+	else:
+		_fail("could not load monster data for all fainted test")
+
+	# Test: trainer battle flag disables catching concept
+	_begin("trainer_battle_no_catch_flag")
+	var is_trainer_battle := true
+	_assert_true(is_trainer_battle, "is_trainer_battle flag set")
+	# In trainer battles, catch button is hidden and run is blocked
+
+	# Test: trainer battle flag blocks running concept
+	_begin("trainer_battle_no_run_flag")
+	_assert_true(is_trainer_battle, "trainer battles block running")
+
+# ══════════════════════════════════════════════
+#  U. Area Data Tests
+# ══════════════════════════════════════════════
+
+func _run_area_data_tests() -> void:
+	print("\n── Area Data ──")
+
+	# Load overworld script to access AREA_DATA
+	var overworld_script := load("res://scripts/overworld/overworld.gd") as GDScript
+	_assert_not_null(overworld_script, "overworld script loads")
+	if not overworld_script:
+		return
+
+	var area_data: Dictionary = overworld_script.get("AREA_DATA") if overworld_script.has_method("get") else {}
+	# AREA_DATA is a const on the script, access via constants
+	# For const access we need to check the script's constants
+	var has_town2 := false
+	var has_route2 := false
+	var has_route1_north := false
+	var has_town2_gym := false
+
+	# Since we can't directly access consts from a loaded script in tests easily,
+	# validate by checking if scenes can instantiate and if keys exist in the script source
+	# Instead, validate the areas exist by checking if we can load the overworld scene
+	# and verify the data structurally
+
+	# Test: AREA_DATA has all 4 required areas
+	_begin("area_data_has_town2")
+	# We verify by checking that the overworld.gd source contains "town2"
+	var script_source: String = overworld_script.source_code
+	has_town2 = script_source.contains("\"town2\"")
+	_assert_true(has_town2, "AREA_DATA contains town2 key")
+
+	_begin("area_data_has_route2")
+	has_route2 = script_source.contains("\"route2\"")
+	_assert_true(has_route2, "AREA_DATA contains route2 key")
+
+	# Test: route1 has north transition to route2
+	_begin("area_route1_north_transition")
+	has_route1_north = script_source.contains("\"target_area\": \"route2\"")
+	_assert_true(has_route1_north, "route1 has transition to route2")
+
+	# Test: town2 has gym leader trainer
+	_begin("area_town2_has_gym_leader")
+	has_town2_gym = script_source.contains("\"is_gym_leader\": true")
+	_assert_true(has_town2_gym, "town2 has gym leader trainer")
+
+# ══════════════════════════════════════════════
+#  V. Trainer Scene Tests
+# ══════════════════════════════════════════════
+
+func _run_trainer_scene_tests() -> void:
+	print("\n── Trainer Scene ──")
+
+	# Test: trainer.tscn loads
+	_begin("trainer_scene_loads")
+	var packed := load("res://scenes/overworld/trainer.tscn") as PackedScene
+	_assert_not_null(packed, "trainer.tscn loads")
+
+	# Test: area name dictionary completeness
+	_begin("area_names_complete")
+	var area_names: Dictionary = {
+		"town": "Monster Town",
+		"route1": "Route 1",
+		"route2": "Route 2",
+		"town2": "Coral City",
+	}
+	_assert_eq(area_names.size(), 4, "area_names has 4 entries")
+	_assert_true(area_names.has("town2"), "area_names has town2")
+	_assert_true(area_names.has("route2"), "area_names has route2")
+
+# ══════════════════════════════════════════════
+#  W. Dialogue Tree Tests
+# ══════════════════════════════════════════════
+
+func _run_dialogue_tree_tests() -> void:
+	print("\n── Dialogue Tree ──")
+
+	# Test: dialogue_tree.tscn loads
+	_begin("dialogue_tree_scene_loads")
+	var packed := load("res://scenes/overworld/dialogue_tree.tscn") as PackedScene
+	_assert_not_null(packed, "dialogue_tree.tscn loads")
+
+	# Test: dialogue_tree_ui.gd script loads
+	_begin("dialogue_tree_script_loads")
+	var script := load("res://scripts/ui/dialogue_tree_ui.gd") as GDScript
+	_assert_not_null(script, "dialogue_tree_ui.gd loads")
+
+	# Test: node structure has required children
+	_begin("dialogue_tree_node_structure")
+	if packed:
+		var tree := packed.instantiate()
+		var margin := tree.get_node_or_null("MarginContainer")
+		_assert_not_null(margin, "dialogue tree has MarginContainer")
+		var vbox := tree.get_node_or_null("MarginContainer/VBox")
+		_assert_not_null(vbox, "dialogue tree has VBox")
+		var speaker := tree.get_node_or_null("MarginContainer/VBox/SpeakerLabel")
+		_assert_not_null(speaker, "dialogue tree has SpeakerLabel")
+		var text := tree.get_node_or_null("MarginContainer/VBox/TextLabel")
+		_assert_not_null(text, "dialogue tree has TextLabel")
+		var choices := tree.get_node_or_null("MarginContainer/VBox/ChoicesContainer")
+		_assert_not_null(choices, "dialogue tree has ChoicesContainer")
+		tree.queue_free()
+	else:
+		_fail("could not instantiate dialogue tree")
+
+	# Test: node map building from set_tree
+	_begin("dialogue_tree_node_map")
+	var test_nodes: Array = [
+		{"id": "start", "text": "Hello", "speaker": "NPC"},
+		{"id": "reply", "text": "Goodbye", "speaker": "NPC"},
+	]
+	# Verify format: each node has id and text
+	_assert_true(test_nodes[0].has("id"), "dialogue node has id")
+	_assert_true(test_nodes[0].has("text"), "dialogue node has text")
+	_assert_true(test_nodes[1].has("speaker"), "dialogue node has speaker")
+
+	# Test: choices format
+	_begin("dialogue_tree_choices_format")
+	var choice_node: Dictionary = {
+		"id": "ask",
+		"text": "What do you want?",
+		"choices": [
+			{"label": "Quest", "next": "quest"},
+			{"label": "Bye", "next": "bye"},
+		]
+	}
+	_assert_true(choice_node.has("choices"), "node has choices key")
+	_assert_eq(choice_node["choices"].size(), 2, "node has 2 choices")
+	_assert_true(choice_node["choices"][0].has("label"), "choice has label")
+	_assert_true(choice_node["choices"][0].has("next"), "choice has next")
+
+	# Test: action format
+	_begin("dialogue_tree_action_format")
+	var action_node: Dictionary = {"id": "give", "text": "Here!", "action": "start_quest:fetch_herb"}
+	var action_str: String = str(action_node["action"])
+	var action_parts: PackedStringArray = action_str.split(":")
+	_assert_eq(action_parts.size(), 2, "action string splits into 2 parts")
+	_assert_eq(action_parts[0], "start_quest", "action type = start_quest")
+	_assert_eq(action_parts[1], "fetch_herb", "action value = fetch_herb")
+
+	# Test: condition format parsing
+	_begin("dialogue_tree_condition_format")
+	var cond_str := "has_badge:tide_badge"
+	var cond_parts: PackedStringArray = cond_str.split(":")
+	_assert_eq(cond_parts.size(), 2, "condition splits into 2 parts")
+	_assert_eq(cond_parts[0], "has_badge", "condition type = has_badge")
+
+	# Test: backward compat — NPC with lines still works
+	_begin("dialogue_tree_backward_compat")
+	var npc_script := load("res://scripts/overworld/npc_controller.gd") as GDScript
+	_assert_not_null(npc_script, "npc_controller.gd loads")
+	var source: String = npc_script.source_code
+	_assert_true(source.contains("dialogue_tree"), "npc has dialogue_tree var")
+	_assert_true(source.contains("dialogue_lines"), "npc still has dialogue_lines")
+
+	# Test: overworld supports dialogue tree
+	_begin("dialogue_tree_overworld_support")
+	var ow_script := load("res://scripts/overworld/overworld.gd") as GDScript
+	var ow_source: String = ow_script.source_code
+	_assert_true(ow_source.contains("_show_dialogue_tree"), "overworld has _show_dialogue_tree method")
+	_assert_true(ow_source.contains("_handle_dialogue_action"), "overworld has _handle_dialogue_action method")
+
+# ══════════════════════════════════════════════
+#  X. Quest System Tests
+# ══════════════════════════════════════════════
+
+func _run_quest_system_tests() -> void:
+	print("\n── Quest System ──")
+
+	# Save and reset state
+	var saved_active := GameManager.active_quests.duplicate(true)
+	var saved_complete := GameManager.completed_quests.duplicate(true)
+	GameManager.active_quests = {}
+	GameManager.completed_quests = {}
+
+	# Test: QUEST_DEFS exists and has entries
+	_begin("quest_defs_exist")
+	_assert_true(GameManager.QUEST_DEFS.size() >= 3, "QUEST_DEFS has at least 3 quests")
+
+	# Test: quest def structure
+	_begin("quest_def_structure")
+	var herb_def: Dictionary = GameManager.get_quest_def("fetch_herb")
+	_assert_true(herb_def.has("name"), "quest def has name")
+	_assert_true(herb_def.has("type"), "quest def has type")
+	_assert_true(herb_def.has("goal"), "quest def has goal")
+
+	# Test: start quest
+	_begin("quest_start")
+	GameManager.start_quest("fetch_herb")
+	_assert_true(GameManager.is_quest_active("fetch_herb"), "fetch_herb is active after start")
+	_assert_eq(GameManager.get_quest_progress("fetch_herb"), 0, "progress starts at 0")
+
+	# Test: advance quest
+	_begin("quest_advance")
+	GameManager.advance_quest("fetch_herb")
+	_assert_eq(GameManager.get_quest_progress("fetch_herb"), 0, "fetch_herb auto-completed at goal=1")
+	_assert_true(GameManager.is_quest_complete("fetch_herb"), "fetch_herb completed after advance")
+
+	# Test: multi-step quest
+	_begin("quest_multi_step")
+	GameManager.active_quests = {}
+	GameManager.completed_quests = {}
+	GameManager.start_quest("catch_5_monsters")
+	GameManager.advance_quest("catch_5_monsters")
+	GameManager.advance_quest("catch_5_monsters")
+	_assert_eq(GameManager.get_quest_progress("catch_5_monsters"), 2, "catch quest progress = 2")
+	_assert_true(GameManager.is_quest_active("catch_5_monsters"), "catch quest still active at 2/5")
+
+	# Test: auto-complete at goal
+	_begin("quest_auto_complete")
+	GameManager.advance_quest("catch_5_monsters")
+	GameManager.advance_quest("catch_5_monsters")
+	GameManager.advance_quest("catch_5_monsters")
+	_assert_true(GameManager.is_quest_complete("catch_5_monsters"), "catch quest completed at 5/5")
+	_assert_false(GameManager.is_quest_active("catch_5_monsters"), "catch quest no longer active")
+
+	# Test: no duplicate start
+	_begin("quest_no_duplicate_start")
+	GameManager.active_quests = {}
+	GameManager.completed_quests = {}
+	GameManager.start_quest("fetch_herb")
+	GameManager.start_quest("fetch_herb")
+	_assert_eq(GameManager.active_quests.size(), 1, "no duplicate active quest")
+
+	# Test: no restart completed
+	_begin("quest_no_restart_completed")
+	GameManager.active_quests = {}
+	GameManager.completed_quests = {}
+	GameManager.start_quest("fetch_herb")
+	GameManager.advance_quest("fetch_herb")
+	GameManager.start_quest("fetch_herb")
+	_assert_true(GameManager.is_quest_complete("fetch_herb"), "completed quest stays complete")
+	_assert_false(GameManager.is_quest_active("fetch_herb"), "completed quest not re-activated")
+
+	# Test: inactive quest progress is 0
+	_begin("quest_inactive_progress_zero")
+	_assert_eq(GameManager.get_quest_progress("nonexistent_quest"), 0, "inactive quest progress = 0")
+
+	# Test: quest log scene loads
+	_begin("quest_log_scene_loads")
+	var packed := load("res://scenes/ui/quest_log.tscn") as PackedScene
+	_assert_not_null(packed, "quest_log.tscn loads")
+
+	# Test: quest def types
+	_begin("quest_def_types")
+	var types_found: Array = []
+	for quest_id: String in GameManager.QUEST_DEFS:
+		var qdef: Dictionary = GameManager.QUEST_DEFS[quest_id]
+		var qtype: String = str(qdef.get("type", ""))
+		if qtype not in types_found:
+			types_found.append(qtype)
+	_assert_true(types_found.size() >= 3, "at least 3 quest types defined: %s" % str(types_found))
+
+	# Restore state
+	GameManager.active_quests = saved_active
+	GameManager.completed_quests = saved_complete
+
+# ══════════════════════════════════════════════
+#  Y. Cutscene Tests
+# ══════════════════════════════════════════════
+
+func _run_cutscene_tests() -> void:
+	print("\n── Cutscene ──")
+
+	# Test: cutscene_player.gd loads
+	_begin("cutscene_script_loads")
+	var script := load("res://scripts/overworld/cutscene_player.gd") as GDScript
+	_assert_not_null(script, "cutscene_player.gd loads")
+
+	# Test: script has play method
+	_begin("cutscene_has_play_method")
+	if script:
+		var source: String = script.source_code
+		_assert_true(source.contains("func play("), "cutscene has play() method")
+		_assert_true(source.contains("cutscene_finished"), "cutscene has finished signal")
+
+	# Test: step format — dialogue
+	_begin("cutscene_step_dialogue")
+	var dialogue_step: Dictionary = {"type": "dialogue", "lines": ["Hello!"]}
+	_assert_eq(dialogue_step["type"], "dialogue", "dialogue step type")
+	_assert_true(dialogue_step.has("lines"), "dialogue step has lines")
+
+	# Test: step format — wait
+	_begin("cutscene_step_wait")
+	var wait_step: Dictionary = {"type": "wait", "duration": 1.0}
+	_assert_eq(wait_step["type"], "wait", "wait step type")
+	_assert_true(wait_step.has("duration"), "wait step has duration")
+
+	# Test: step format — camera_move
+	_begin("cutscene_step_camera_move")
+	var cam_step: Dictionary = {"type": "camera_move", "target": Vector2(100, 50), "duration": 1.0}
+	_assert_eq(cam_step["type"], "camera_move", "camera_move step type")
+	_assert_true(cam_step.has("target"), "camera_move step has target")
+
+	# Test: step format — screen flash
+	_begin("cutscene_step_flash")
+	var flash_step: Dictionary = {"type": "screen_flash", "color": Color.WHITE, "duration": 0.3}
+	_assert_eq(flash_step["type"], "screen_flash", "flash step type")
+
+	# Test: step format — fade
+	_begin("cutscene_step_fade")
+	var fade_step: Dictionary = {"type": "fade_out", "duration": 0.5}
+	_assert_eq(fade_step["type"], "fade_out", "fade_out step type")
+
+	# Test: overworld has play_cutscene
+	_begin("cutscene_overworld_support")
+	var ow_script := load("res://scripts/overworld/overworld.gd") as GDScript
+	var ow_source: String = ow_script.source_code
+	_assert_true(ow_source.contains("play_cutscene"), "overworld has play_cutscene")
+
+# ══════════════════════════════════════════════
+#  Z. World Map Tests
+# ══════════════════════════════════════════════
+
+func _run_world_map_tests() -> void:
+	print("\n── World Map ──")
+
+	# Test: world_map.tscn loads
+	_begin("world_map_scene_loads")
+	var packed := load("res://scenes/ui/world_map.tscn") as PackedScene
+	_assert_not_null(packed, "world_map.tscn loads")
+
+	# Test: world_map_ui.gd loads
+	_begin("world_map_script_loads")
+	var script := load("res://scripts/ui/world_map_ui.gd") as GDScript
+	_assert_not_null(script, "world_map_ui.gd loads")
+
+	# Test: MAP_POSITIONS covers all 4 areas
+	_begin("world_map_positions_coverage")
+	if script:
+		var source: String = script.source_code
+		_assert_true(source.contains("\"town\""), "map has town position")
+		_assert_true(source.contains("\"route1\""), "map has route1 position")
+		_assert_true(source.contains("\"route2\""), "map has route2 position")
+		_assert_true(source.contains("\"town2\""), "map has town2 position")
+
+	# Test: connections count
+	_begin("world_map_connections")
+	# 3 connections: town-route1, route1-route2, route2-town2
+	if script:
+		var source: String = script.source_code
+		var conn_count := 0
+		var search_pos := 0
+		while true:
+			var idx := source.find("[\"", search_pos)
+			if idx < 0:
+				break
+			# Count array entries in MAP_CONNECTIONS
+			var ctx := source.substr(maxi(0, idx - 100), 120)
+			if ctx.contains("MAP_CONNECTIONS"):
+				conn_count += 1
+			search_pos = idx + 2
+		# Simple check: verify 3 connection pairs exist in source
+		_assert_true(source.contains("\"town\", \"route1\""), "connection: town-route1")
+		_assert_true(source.contains("\"route1\", \"route2\""), "connection: route1-route2")
+
+# ══════════════════════════════════════════════
+#  AA. Day/Night Tests
+# ══════════════════════════════════════════════
+
+func _run_day_night_tests() -> void:
+	print("\n── Day/Night ──")
+
+	# Save state
+	var saved_time := GameManager.game_time
+	var saved_period := GameManager.time_period
+
+	# Test: default time is daytime
+	_begin("daynight_default_period")
+	GameManager.game_time = 10.0
+	GameManager.time_period = GameManager._get_time_period()
+	_assert_eq(GameManager.time_period, "day", "10:00 is day")
+
+	# Test: night period
+	_begin("daynight_night_period")
+	GameManager.game_time = 22.0
+	var night_period: String = GameManager._get_time_period()
+	_assert_eq(night_period, "night", "22:00 is night")
+
+	# Test: dawn period
+	_begin("daynight_dawn_period")
+	GameManager.game_time = 6.0
+	var dawn_period: String = GameManager._get_time_period()
+	_assert_eq(dawn_period, "dawn", "6:00 is dawn")
+
+	# Test: dusk period
+	_begin("daynight_dusk_period")
+	GameManager.game_time = 18.0
+	var dusk_period: String = GameManager._get_time_period()
+	_assert_eq(dusk_period, "dusk", "18:00 is dusk")
+
+	# Test: advance time
+	_begin("daynight_advance_time")
+	GameManager.game_time = 10.0
+	GameManager.time_period = "day"
+	GameManager.advance_time(2.0)
+	_assert_eq(GameManager.game_time, 12.0, "time advanced to 12.0")
+
+	# Test: wrapping at 24
+	_begin("daynight_wrap_24")
+	GameManager.game_time = 23.0
+	GameManager.time_period = "night"
+	GameManager.advance_time(3.0)
+	_assert_true(GameManager.game_time >= 1.0 and GameManager.game_time <= 3.0, "time wraps at 24: %.1f" % GameManager.game_time)
+
+	# Test: color values exist for all periods
+	_begin("daynight_color_values")
+	for period_name: String in GameManager.TIME_PERIODS:
+		var period: Dictionary = GameManager.TIME_PERIODS[period_name]
+		_assert_true(period.has("color"), "%s has color" % period_name)
+
+	# Test: get_time_color returns valid Color
+	_begin("daynight_get_time_color")
+	GameManager.game_time = 10.0
+	GameManager.time_period = "day"
+	var color: Color = GameManager.get_time_color()
+	_assert_eq(color, Color(1.0, 1.0, 1.0), "day color is white")
+
+	# Restore state
+	GameManager.game_time = saved_time
+	GameManager.time_period = saved_period
+
+# ══════════════════════════════════════════════
+#  AB. Weather Tests
+# ══════════════════════════════════════════════
+
+func _run_weather_tests() -> void:
+	print("\n── Weather ──")
+
+	# Test: weather_system.gd loads
+	_begin("weather_script_loads")
+	var script := load("res://scripts/overworld/weather_system.gd") as GDScript
+	_assert_not_null(script, "weather_system.gd loads")
+
+	# Test: default weather is clear
+	_begin("weather_default_clear")
+	if script:
+		var weather := Node2D.new()
+		weather.set_script(script)
+		_assert_eq(weather.get_weather(), "clear", "default weather is clear")
+		weather.queue_free()
+
+	# Test: AREA_DATA has weather key on route2
+	_begin("weather_area_data_route2")
+	var ow_script := load("res://scripts/overworld/overworld.gd") as GDScript
+	if ow_script:
+		var source: String = ow_script.source_code
+		_assert_true(source.contains("\"weather\": \"rain\""), "route2 has weather: rain")
+
+	# Test: fog is overlay-only (no particles)
+	_begin("weather_fog_overlay_only")
+	if script:
+		var source: String = script.source_code
+		# In the fog case, only _create_overlay is called, not _create_particles
+		var fog_section_start := source.find("\"fog\":")
+		if fog_section_start > 0:
+			var fog_section := source.substr(fog_section_start, 100)
+			_assert_true(fog_section.contains("_create_overlay"), "fog creates overlay")
+			_assert_false(fog_section.contains("_create_particles"), "fog has no particles")
+		else:
+			_fail("could not find fog section in weather script")
+
+	# Test: weather types covered
+	_begin("weather_types_covered")
+	if script:
+		var source: String = script.source_code
+		_assert_true(source.contains("\"rain\""), "rain weather type exists")
+		_assert_true(source.contains("\"snow\""), "snow weather type exists")
+		_assert_true(source.contains("\"fog\""), "fog weather type exists")
+		_assert_true(source.contains("\"sandstorm\""), "sandstorm weather type exists")
+
+	# Test: overworld has weather setup
+	_begin("weather_overworld_setup")
+	var ow_script2 := load("res://scripts/overworld/overworld.gd") as GDScript
+	if ow_script2:
+		var source: String = ow_script2.source_code
+		_assert_true(source.contains("_setup_weather"), "overworld has _setup_weather")

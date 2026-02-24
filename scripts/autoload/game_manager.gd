@@ -4,6 +4,8 @@ signal party_changed
 signal inventory_changed
 signal pc_storage_changed
 signal registry_changed
+signal quest_updated(quest_id: String)
+signal time_changed(new_period: String)
 
 var player_gender: String = ""  # "boy" or "girl"
 var player_party: Array[MonsterInstance] = []
@@ -14,6 +16,10 @@ var is_in_menu: bool = false
 var is_in_dialogue: bool = false
 var monster_registry_seen: Dictionary = {}
 var monster_registry_caught: Dictionary = {}
+
+# ── Badges & Trainers ──
+var badges: Dictionary = {}              # { "gym_1": true }
+var defeated_trainers: Dictionary = {}   # { "town2_gym": true }
 
 # ── Inventory ──
 var inventory: Dictionary = {}  # { item_id: count }
@@ -170,6 +176,23 @@ func sync_registry_from_owned_monsters() -> void:
 		if id > 0:
 			mark_monster_caught(id)
 
+# ── Badge & Trainer Methods ──
+
+func earn_badge(badge_id: String) -> void:
+	badges[badge_id] = true
+
+func has_badge(badge_id: String) -> bool:
+	return badges.has(badge_id)
+
+func get_badge_count() -> int:
+	return badges.size()
+
+func mark_trainer_defeated(trainer_id: String) -> void:
+	defeated_trainers[trainer_id] = true
+
+func is_trainer_defeated(trainer_id: String) -> bool:
+	return defeated_trainers.has(trainer_id)
+
 # ── Inventory Methods ──
 
 func add_item(item_id: String, count: int = 1) -> bool:
@@ -203,3 +226,108 @@ func get_battle_items() -> Array:
 		if ITEM_DEFS.has(item_id) and ITEM_DEFS[item_id]["battle"]:
 			items.append({"id": item_id, "name": ITEM_DEFS[item_id]["name"], "count": inventory[item_id]})
 	return items
+
+# ── Quest System ──
+
+const QUEST_DEFS: Dictionary = {
+	"fetch_herb": {
+		"name": "Herb Delivery",
+		"description": "Talk to the elder in Monster Town.",
+		"type": "talk",
+		"goal": 1,
+	},
+	"defeat_route2_trainer": {
+		"name": "Route 2 Challenge",
+		"description": "Defeat Bug Catcher Tim on Route 2.",
+		"type": "defeat_trainer",
+		"target": "route2_trainer1",
+		"goal": 1,
+	},
+	"catch_5_monsters": {
+		"name": "Monster Collector",
+		"description": "Catch 5 wild monsters.",
+		"type": "catch_count",
+		"goal": 5,
+	},
+}
+
+var active_quests: Dictionary = {}    # { quest_id: { "progress": int } }
+var completed_quests: Dictionary = {} # { quest_id: true }
+
+func start_quest(quest_id: String) -> void:
+	if not QUEST_DEFS.has(quest_id):
+		return
+	if active_quests.has(quest_id) or completed_quests.has(quest_id):
+		return
+	active_quests[quest_id] = {"progress": 0}
+	quest_updated.emit(quest_id)
+
+func advance_quest(quest_id: String, amount: int = 1) -> void:
+	if not active_quests.has(quest_id):
+		return
+	active_quests[quest_id]["progress"] += amount
+	var quest_def: Dictionary = QUEST_DEFS.get(quest_id, {})
+	var goal: int = int(quest_def.get("goal", 1))
+	if active_quests[quest_id]["progress"] >= goal:
+		complete_quest(quest_id)
+	else:
+		quest_updated.emit(quest_id)
+
+func complete_quest(quest_id: String) -> void:
+	if completed_quests.has(quest_id):
+		return
+	active_quests.erase(quest_id)
+	completed_quests[quest_id] = true
+	quest_updated.emit(quest_id)
+
+func is_quest_active(quest_id: String) -> bool:
+	return active_quests.has(quest_id)
+
+func is_quest_complete(quest_id: String) -> bool:
+	return completed_quests.has(quest_id)
+
+func get_quest_progress(quest_id: String) -> int:
+	if active_quests.has(quest_id):
+		return int(active_quests[quest_id]["progress"])
+	return 0
+
+func get_quest_def(quest_id: String) -> Dictionary:
+	return QUEST_DEFS.get(quest_id, {})
+
+# ── Day/Night Cycle ──
+
+var game_time: float = 10.0  # Hours (0-24)
+var time_period: String = "day"
+
+const TIME_PERIODS: Dictionary = {
+	"dawn":  {"start": 5.0, "end": 7.0, "color": Color(1.0, 0.9, 0.8)},
+	"day":   {"start": 7.0, "end": 17.0, "color": Color(1.0, 1.0, 1.0)},
+	"dusk":  {"start": 17.0, "end": 19.0, "color": Color(1.0, 0.8, 0.6)},
+	"night": {"start": 19.0, "end": 5.0, "color": Color(0.6, 0.6, 0.9)},
+}
+
+func advance_time(hours: float) -> void:
+	game_time += hours
+	if game_time >= 24.0:
+		game_time -= 24.0
+	var new_period: String = _get_time_period()
+	if new_period != time_period:
+		time_period = new_period
+		time_changed.emit(time_period)
+
+func _get_time_period() -> String:
+	for period_name: String in TIME_PERIODS:
+		var period: Dictionary = TIME_PERIODS[period_name]
+		var start_h: float = float(period["start"])
+		var end_h: float = float(period["end"])
+		if start_h < end_h:
+			if game_time >= start_h and game_time < end_h:
+				return period_name
+		else:
+			# Wraps midnight (night: 19-5)
+			if game_time >= start_h or game_time < end_h:
+				return period_name
+	return "day"
+
+func get_time_color() -> Color:
+	return TIME_PERIODS.get(time_period, TIME_PERIODS["day"])["color"] as Color

@@ -189,17 +189,17 @@ AMARIS STANDARD — 95 Checkpoints
 - [x] 47. NPC dialogue system
 - [x] 48. Wild encounter zones
 - [x] 49. Route transitions
-- [ ] 50. Multiple towns
-- [ ] 51. Gym leaders
-- [ ] 52. Badge system
-- [ ] 53. Trainer battles
-- [ ] 54. Trainer AI switching logic
-- [ ] 55. Quest system
-- [ ] 56. Dialogue trees (data-driven)
-- [ ] 57. Cutscene framework
-- [ ] 58. World map UI
-- [ ] 59. Weather system
-- [ ] 60. Day/Night cycle
+- [x] 50. Multiple towns
+- [x] 51. Gym leaders
+- [x] 52. Badge system
+- [x] 53. Trainer battles
+- [x] 54. Trainer AI switching logic
+- [x] 55. Quest system
+- [x] 56. Dialogue trees (data-driven)
+- [x] 57. Cutscene framework
+- [x] 58. World map UI
+- [x] 59. Weather system
+- [x] 60. Day/Night cycle
 
 ---
 
@@ -302,10 +302,10 @@ AMARIS dashboard depends on this.
 
 # Current Focus
 
-Current Goal: Begin Macro Phase 4 — Overworld Expansion
-Current Task: Multiple towns, gym leaders, trainer battles
+Current Goal: Macro Phase 4 Complete — Begin Macro Phase 5
+Current Task: Save & persistence system
 Work Mode: Feature Development
-Next Milestone: Macro Phase 4 progress (checkpoints 46–60)
+Next Milestone: Macro Phase 5 (checkpoints 61–70)
 
 ---
 

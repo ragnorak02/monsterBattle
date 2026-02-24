@@ -15,6 +15,8 @@ var _current_encounter_level: int = 5
 
 var _auto_test: bool = false  # Set to true to enable auto-test
 var _area_name_label: Label = null
+var _canvas_modulate: CanvasModulate = null
+var _weather_system: Node2D = null
 
 # ── Area Configuration ──
 const AREA_DATA: Dictionary = {
@@ -24,7 +26,21 @@ const AREA_DATA: Dictionary = {
 		"tile_palette": "town",
 		"safe_zone": true,
 		"npcs": [
-			{"pos": Vector2(-48, -80), "lines": ["Welcome to Monster Town!", "Go explore and catch monsters!"], "bubble": "Hey there!"},
+			{
+				"pos": Vector2(-48, -80),
+				"lines": ["Welcome to Monster Town!", "Go explore and catch monsters!"],
+				"bubble": "Hey there!",
+				"dialogue": [
+					{"id": "start", "text": "Welcome to Monster Town!", "speaker": "Elder", "choices": [
+						{"label": "Tell me about quests", "next": "quests"},
+						{"label": "Any tips?", "next": "tips"},
+						{"label": "Goodbye", "next": "bye"},
+					]},
+					{"id": "quests", "text": "There's always work to be done!\nTalk to folks around town.", "speaker": "Elder"},
+					{"id": "tips", "text": "Press Q for your quest log.\nPress M to view the world map!", "speaker": "Elder"},
+					{"id": "bye", "text": "Good luck on your adventure!", "speaker": "Elder"},
+				],
+			},
 			{"pos": Vector2(80, -80), "lines": ["I heard there are monsters\nin the tall grass nearby.", "Be careful out there!"], "bubble": "Monsters are scary..."},
 			{"pos": Vector2(0, 64), "lines": ["Press Tab to check your party.\nPress I to open inventory.", "Good luck on your adventure!"], "bubble": "Need some tips?"},
 		],
@@ -54,6 +70,68 @@ const AREA_DATA: Dictionary = {
 		],
 		"transitions": [
 			{"edge": "south", "target_area": "town", "spawn_offset": Vector2(0, 32)},
+			{"edge": "north", "target_area": "route2", "spawn_offset": Vector2(0, -32)},
+		],
+	},
+	"route2": {
+		"music": "res://assets/audio/music/town_theme.wav",
+		"map_size": 40,
+		"tile_palette": "route",
+		"weather": "rain",
+		"npcs": [
+			{"pos": Vector2(200, 100), "lines": ["The gym leader in Coral City\nis really tough!"], "bubble": "A warning..."},
+		],
+		"trainers": [
+			{
+				"pos": Vector2(-100, -50),
+				"trainer_id": "route2_trainer1",
+				"name": "Bug Catcher Tim",
+				"monster_ids": [7, 8],
+				"monster_levels": [8, 9],
+				"dialogue_before": ["Hey! Let's battle!"],
+				"dialogue_after": ["You're strong!"],
+			},
+		],
+		"wild_monsters": [
+			{"pos": Vector2(150, 50), "monster_id": 9, "level_min": 8, "level_max": 12},
+			{"pos": Vector2(300, 180), "monster_id": 11, "level_min": 9, "level_max": 13},
+			{"pos": Vector2(100, 280), "monster_id": 15, "level_min": 8, "level_max": 11},
+			{"pos": Vector2(350, 50), "monster_id": 19, "level_min": 10, "level_max": 14},
+			{"pos": Vector2(450, 300), "monster_id": 22, "level_min": 9, "level_max": 12},
+			{"pos": Vector2(50, 400), "monster_id": 27, "level_min": 10, "level_max": 14},
+		],
+		"transitions": [
+			{"edge": "south", "target_area": "route1", "spawn_offset": Vector2(0, 32)},
+			{"edge": "north", "target_area": "town2", "spawn_offset": Vector2(0, -32)},
+		],
+	},
+	"town2": {
+		"music": "res://assets/audio/music/town_theme.wav",
+		"map_size": 22,
+		"tile_palette": "town",
+		"safe_zone": true,
+		"npcs": [
+			{"pos": Vector2(-48, -80), "lines": ["Welcome to Coral City!", "Our gym leader specializes\nin Water-types."], "bubble": "Welcome!"},
+			{"pos": Vector2(80, 64), "lines": ["The gym is in the northeast.\nYou'll need strong monsters!"], "bubble": "Good luck!"},
+		],
+		"pc_terminals": [
+			{"pos": Vector2(-80, -64)},
+		],
+		"trainers": [
+			{
+				"pos": Vector2(80, -80),
+				"trainer_id": "town2_gym",
+				"name": "Gym Leader Coral",
+				"monster_ids": [5, 2],
+				"monster_levels": [14, 12],
+				"dialogue_before": ["I am Coral, master of Water-types!", "Prepare yourself!"],
+				"dialogue_after": ["Impressive... You've earned\nthe Tide Badge!"],
+				"is_gym_leader": true,
+				"badge_id": "tide_badge",
+			},
+		],
+		"transitions": [
+			{"edge": "south", "target_area": "route2", "spawn_offset": Vector2(0, 32)},
 		],
 	},
 }
@@ -62,6 +140,7 @@ func _ready() -> void:
 	var area_config: Dictionary = _get_area_config()
 	_setup_tilemap(area_config)
 	_spawn_npcs(area_config)
+	_spawn_trainers(area_config)
 	_spawn_pc_terminals(area_config)
 	_spawn_wild_monsters(area_config)
 	_spawn_transition_zones(area_config)
@@ -69,6 +148,8 @@ func _ready() -> void:
 	_restore_player_position()
 	_setup_follower()
 	_show_area_name()
+	_setup_day_night()
+	_setup_weather(area_config)
 	AudioManager.play_music(area_config["music"], false)
 	if hint_bar:
 		hint_bar.set_hints([
@@ -140,12 +221,27 @@ func _setup_town_tilemap(tile_set: TileSet, map_size: int) -> void:
 		for y in range(-map_size, map_size):
 			tile_map.set_cell(Vector2i(x, y), 0, GRASS)
 
+	# Determine open edges from transitions
+	var area_config: Dictionary = _get_area_config()
+	var transitions: Array = area_config.get("transitions", [])
+	var open_edges: Array = []
+	for t in transitions:
+		open_edges.append(t["edge"])
+
 	# Tree border around perimeter (2 tiles thick)
 	for x in range(-map_size, map_size):
 		for y in range(-map_size, map_size):
 			if abs(x) >= map_size - 2 or abs(y) >= map_size - 2:
-				# North exit gap: leave opening for route transition
-				if y <= -(map_size - 2) and abs(x) < 3:
+				var is_opening := false
+				if "north" in open_edges and y <= -(map_size - 2) and abs(x) < 3:
+					is_opening = true
+				if "south" in open_edges and y >= map_size - 2 and abs(x) < 3:
+					is_opening = true
+				if "east" in open_edges and x >= map_size - 2 and abs(y) < 3:
+					is_opening = true
+				if "west" in open_edges and x <= -(map_size - 2) and abs(y) < 3:
+					is_opening = true
+				if is_opening:
 					tile_map.set_cell(Vector2i(x, y), 0, PATH)
 				else:
 					tile_map.set_cell(Vector2i(x, y), 0, TREE)
@@ -230,12 +326,27 @@ func _setup_route_tilemap(tile_set: TileSet, map_size: int) -> void:
 
 	tile_map.tile_set = tile_set
 
+	# Determine open edges from transitions
+	var area_config: Dictionary = _get_area_config()
+	var transitions: Array = area_config.get("transitions", [])
+	var open_edges: Array = []
+	for t in transitions:
+		open_edges.append(t["edge"])
+
 	for x in range(-map_size, map_size):
 		for y in range(-map_size, map_size):
 			var on_border: bool = abs(x) >= map_size - 2 or abs(y) >= map_size - 2
 			if on_border:
-				# Leave south edge open for transition back to town
-				if y >= map_size - 2 and abs(x) < 5:
+				var is_opening := false
+				if "south" in open_edges and y >= map_size - 2 and abs(x) < 5:
+					is_opening = true
+				if "north" in open_edges and y <= -(map_size - 2) and abs(x) < 5:
+					is_opening = true
+				if "east" in open_edges and x >= map_size - 2 and abs(y) < 5:
+					is_opening = true
+				if "west" in open_edges and x <= -(map_size - 2) and abs(y) < 5:
+					is_opening = true
+				if is_opening:
 					tile_map.set_cell(Vector2i(x, y), 0, Vector2i(1, 0))
 				else:
 					tile_map.set_cell(Vector2i(x, y), 0, Vector2i(2, 0))
@@ -268,10 +379,66 @@ func _spawn_npcs(area_config: Dictionary) -> void:
 	for config in npc_configs:
 		var npc := npc_scene.instantiate()
 		npc.position = config["pos"]
-		npc.dialogue_lines = config["lines"]
+		npc.dialogue_lines = config.get("lines", ["Hello!"])
 		if config.has("bubble"):
 			npc.bubble_text = config["bubble"]
+		if config.has("dialogue"):
+			npc.dialogue_tree = config["dialogue"]
 		npcs_container.add_child(npc)
+
+func _spawn_trainers(area_config: Dictionary) -> void:
+	var trainer_configs: Array = area_config.get("trainers", [])
+	if trainer_configs.is_empty():
+		return
+	var trainer_scene := load("res://scenes/overworld/trainer.tscn") as PackedScene
+	if not trainer_scene:
+		return
+	for config in trainer_configs:
+		var trainer := trainer_scene.instantiate()
+		trainer.position = config["pos"]
+		trainer.trainer_id = config["trainer_id"]
+		trainer.trainer_name = config["name"]
+		trainer.monster_ids = config["monster_ids"]
+		trainer.monster_levels = config["monster_levels"]
+		trainer.dialogue_before = config["dialogue_before"]
+		trainer.dialogue_after = config["dialogue_after"]
+		trainer.is_gym_leader = config.get("is_gym_leader", false)
+		trainer.badge_id = config.get("badge_id", "")
+		npcs_container.add_child(trainer)
+
+func start_trainer_battle(trainer: Node) -> void:
+	if GameManager.is_in_battle:
+		return
+	GameManager.is_in_battle = true
+	var battle_scene_res := load("res://scenes/battle/battle_scene.tscn") as PackedScene
+	if not battle_scene_res:
+		print("ERROR: Failed to load battle scene!")
+		GameManager.is_in_battle = false
+		return
+	var battle := battle_scene_res.instantiate()
+	battle.is_trainer_battle = true
+	battle.trainer_name = trainer.trainer_name
+	battle.enemy_party_data = trainer.get_party()
+	if battle.enemy_party_data.size() > 0:
+		battle.wild_monster_data = battle.enemy_party_data[0]["data"]
+		battle.wild_monster_level = battle.enemy_party_data[0]["level"]
+	battle.battle_ended.connect(_on_trainer_battle_ended.bind(trainer))
+	battle_layer.add_child(battle)
+
+func _on_trainer_battle_ended(result: String, _overworld_id: int, trainer: Node) -> void:
+	GameManager.is_in_battle = false
+	GameManager.advance_time(0.5)
+	if result == "win":
+		GameManager.mark_trainer_defeated(trainer.trainer_id)
+		if trainer.is_gym_leader and trainer.badge_id != "":
+			GameManager.earn_badge(trainer.badge_id)
+		if trainer.has_method("on_defeated"):
+			trainer.on_defeated()
+		# Advance defeat_trainer quests
+		for quest_id: String in GameManager.active_quests:
+			var quest_def: Dictionary = GameManager.get_quest_def(quest_id)
+			if quest_def.get("type", "") == "defeat_trainer" and quest_def.get("target", "") == trainer.trainer_id:
+				GameManager.advance_quest(quest_id)
 
 func _spawn_pc_terminals(area_config: Dictionary) -> void:
 	var terminal_configs: Array = area_config.get("pc_terminals", [])
@@ -348,6 +515,7 @@ func _spawn_transition_zones(area_config: Dictionary) -> void:
 func _on_transition_entered(_body: Node2D, target_area: String, spawn_offset: Vector2) -> void:
 	if GameManager.is_in_battle or GameManager.is_in_menu or GameManager.is_in_dialogue:
 		return
+	GameManager.advance_time(1.0)
 	# Save current position
 	GameManager.set_area_player_position(GameManager.current_area, player.position)
 	# Set target area and spawn position
@@ -376,6 +544,8 @@ func _show_area_name() -> void:
 	var area_names: Dictionary = {
 		"town": "Monster Town",
 		"route1": "Route 1",
+		"route2": "Route 2",
+		"town2": "Coral City",
 	}
 	var display_name: String = area_names.get(GameManager.current_area, GameManager.current_area)
 
@@ -455,9 +625,17 @@ func start_battle(monster_data: Resource, overworld_id: int, monster_level: int 
 
 func _on_battle_ended(result: String, overworld_id: int) -> void:
 	GameManager.is_in_battle = false
+	GameManager.advance_time(0.5)
 	var removed := (result == "win" or result == "catch")
 	if removed:
 		GameManager.mark_area_monster_defeated(GameManager.current_area, overworld_id)
+
+	# Advance catch-count quests
+	if result == "catch":
+		for quest_id: String in GameManager.active_quests:
+			var quest_def: Dictionary = GameManager.get_quest_def(quest_id)
+			if quest_def.get("type", "") == "catch_count":
+				GameManager.advance_quest(quest_id)
 
 	# Notify the wild monster
 	for child in wild_monsters_container.get_children():
@@ -491,3 +669,69 @@ func _run_auto_test() -> void:
 	print("[AUTO-TEST] Triggering encounter with: ", str(test_monster.get("monster_name")))
 	# Skip the encounter UI and go straight to battle
 	start_battle(test_monster, -1)
+
+# ── Dialogue Tree ──
+
+func _show_dialogue_tree(nodes: Array) -> void:
+	var tree_scene := load("res://scenes/overworld/dialogue_tree.tscn") as PackedScene
+	if tree_scene:
+		var tree := tree_scene.instantiate()
+		tree.set_tree(nodes)
+		tree.dialogue_action.connect(_handle_dialogue_action)
+		ui_layer.add_child(tree)
+
+func _handle_dialogue_action(action_str: String) -> void:
+	var parts: PackedStringArray = action_str.split(":")
+	if parts.size() < 2:
+		return
+	var action_type: String = parts[0]
+	match action_type:
+		"start_quest":
+			GameManager.start_quest(parts[1])
+		"complete_quest":
+			GameManager.complete_quest(parts[1])
+		"give_item":
+			if parts.size() >= 3:
+				GameManager.add_item(parts[1], int(parts[2]))
+			else:
+				GameManager.add_item(parts[1])
+		"heal_party":
+			GameManager.heal_all_party()
+
+# ── Cutscene ──
+
+func play_cutscene(steps: Array) -> void:
+	var cutscene_script := load("res://scripts/overworld/cutscene_player.gd") as GDScript
+	if cutscene_script:
+		var cutscene := Node.new()
+		cutscene.set_script(cutscene_script)
+		add_child(cutscene)
+		cutscene.play(steps, player.camera, ui_layer)
+
+# ── Day/Night ──
+
+func _setup_day_night() -> void:
+	_canvas_modulate = CanvasModulate.new()
+	_canvas_modulate.color = GameManager.get_time_color()
+	add_child(_canvas_modulate)
+	if GameManager.has_signal("time_changed"):
+		GameManager.time_changed.connect(_on_time_changed)
+
+func _on_time_changed(_new_period: String) -> void:
+	if _canvas_modulate:
+		var tween := create_tween()
+		tween.tween_property(_canvas_modulate, "color", GameManager.get_time_color(), 1.0)
+
+# ── Weather ──
+
+func _setup_weather(area_config: Dictionary) -> void:
+	var weather_type: String = area_config.get("weather", "clear")
+	if weather_type == "clear":
+		return
+	var weather_script := load("res://scripts/overworld/weather_system.gd") as GDScript
+	if weather_script:
+		_weather_system = Node2D.new()
+		_weather_system.set_script(weather_script)
+		add_child(_weather_system)
+		_weather_system.setup(ui_layer)
+		_weather_system.set_weather(weather_type)

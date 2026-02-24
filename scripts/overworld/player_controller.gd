@@ -63,6 +63,16 @@ func _unhandled_input(event: InputEvent) -> void:
 		_open_pokedex()
 		get_viewport().set_input_as_handled()
 
+	# Q key - quest log
+	if event is InputEventKey and event.pressed and event.keycode == KEY_Q:
+		_open_quest_log()
+		get_viewport().set_input_as_handled()
+
+	# M key - world map
+	if event is InputEventKey and event.pressed and event.keycode == KEY_M:
+		_open_world_map()
+		get_viewport().set_input_as_handled()
+
 func _get_facing_from_input(input: Vector2) -> Vector2:
 	if abs(input.x) > abs(input.y):
 		return Vector2(sign(input.x), 0)
@@ -131,3 +141,19 @@ func _open_pokedex() -> void:
 	if dex_scene:
 		var dex := dex_scene.instantiate()
 		get_tree().current_scene.add_child(dex)
+
+func _open_quest_log() -> void:
+	if GameManager.is_in_menu:
+		return
+	var quest_scene := load("res://scenes/ui/quest_log.tscn") as PackedScene
+	if quest_scene:
+		var quest := quest_scene.instantiate()
+		get_tree().current_scene.add_child(quest)
+
+func _open_world_map() -> void:
+	if GameManager.is_in_menu:
+		return
+	var map_scene := load("res://scenes/ui/world_map.tscn") as PackedScene
+	if map_scene:
+		var map_ui := map_scene.instantiate()
+		get_tree().current_scene.add_child(map_ui)

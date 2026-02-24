@@ -1,6 +1,7 @@
 extends CharacterBody2D
 
 var dialogue_lines: Array = ["Hello!"]
+var dialogue_tree: Array = []
 @export var npc_name: String = "NPC"
 @export var bubble_text: String = "Hello!"
 
@@ -20,9 +21,10 @@ func _ready() -> void:
 		interaction_zone.body_exited.connect(_on_player_away)
 
 func interact() -> void:
-	# Find the dialogue box in the UI layer
 	var overworld := get_parent().get_parent()  # NPCs container -> Overworld
-	if overworld and overworld.has_method("_show_dialogue"):
+	if dialogue_tree.size() > 0 and overworld and overworld.has_method("_show_dialogue_tree"):
+		overworld._show_dialogue_tree(dialogue_tree)
+	elif overworld and overworld.has_method("_show_dialogue"):
 		overworld._show_dialogue(dialogue_lines)
 	else:
 		_show_dialogue_fallback()

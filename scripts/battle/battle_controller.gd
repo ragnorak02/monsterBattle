@@ -24,6 +24,13 @@ var wild_overworld_id: int = -1
 var wild_monster_level: int = 5
 var auto_battle: bool = false  # Auto-pick skills for testing
 
+# ── Trainer Battle ──
+var is_trainer_battle: bool = false
+var trainer_name: String = ""
+var enemy_party_data: Array = []      # [{data: Resource, level: int}, ...]
+var _enemy_party: Array = []          # Array of MonsterInstance
+var _enemy_party_index: int = 0
+
 var _state: BattleState = BattleState.INTRO
 var _player_monster: MonsterInstance
 var _enemy_monster: MonsterInstance
@@ -55,8 +62,22 @@ func _ready() -> void:
 		return
 
 	print("[BATTLE] Player monster: %s (HP:%d/%d)" % [_get_name(_player_monster), _player_monster.current_hp, _player_monster.get_max_hp()])
-	_enemy_monster = MonsterInstance.new(wild_monster_data, wild_monster_level)
-	print("[BATTLE] Enemy monster: %s Lv.%d (HP:%d/%d)" % [_get_name(_enemy_monster), wild_monster_level, _enemy_monster.current_hp, _enemy_monster.get_max_hp()])
+
+	# Build enemy — trainer party or single wild monster
+	if is_trainer_battle and not enemy_party_data.is_empty():
+		_enemy_party = []
+		for entry in enemy_party_data:
+			var inst := MonsterInstance.new(entry["data"], entry["level"])
+			_enemy_party.append(inst)
+		_enemy_party_index = 0
+		_enemy_monster = _enemy_party[0]
+		# Mark all trainer monsters as seen
+		for entry in enemy_party_data:
+			GameManager.mark_monster_seen(int(entry["data"].get("id")))
+	else:
+		_enemy_monster = MonsterInstance.new(wild_monster_data, wild_monster_level)
+
+	print("[BATTLE] Enemy monster: %s Lv.%d (HP:%d/%d)" % [_get_name(_enemy_monster), _enemy_monster.level, _enemy_monster.current_hp, _enemy_monster.get_max_hp()])
 
 	print("[BATTLE] Setting up displays...")
 	player_display.setup(_player_monster, true)
@@ -91,8 +112,13 @@ func _start_intro() -> void:
 	_state = BattleState.INTRO
 	action_menu.set_enabled(false)
 	_update_hints_for_state()
-	GameManager.mark_monster_seen(int(wild_monster_data.get("id")))
-	var msg := "A wild %s (Lv.%d) appeared!" % [_get_name(_enemy_monster), _enemy_monster.level]
+	if not is_trainer_battle:
+		GameManager.mark_monster_seen(int(wild_monster_data.get("id")))
+	var msg: String
+	if is_trainer_battle:
+		msg = "%s wants to battle!" % trainer_name
+	else:
+		msg = "A wild %s (Lv.%d) appeared!" % [_get_name(_enemy_monster), _enemy_monster.level]
 	print("[BATTLE] %s" % msg)
 	_show_message(msg)
 	await get_tree().create_timer(1.5).timeout
@@ -121,6 +147,8 @@ func _trigger_entry_ability(owner: MonsterInstance, opponent: MonsterInstance) -
 func _start_player_turn() -> void:
 	_state = BattleState.PLAYER_TURN
 	_update_hints_for_state()
+	if is_trainer_battle:
+		action_menu.set_trainer_mode(true)
 	var msg := "What will %s do?" % _get_name(_player_monster)
 	print("[BATTLE] %s" % msg)
 	_show_message(msg)
@@ -146,6 +174,10 @@ func _on_skill_selected(skill: Resource) -> void:
 
 func _on_catch_selected() -> void:
 	if _state != BattleState.PLAYER_TURN:
+		return
+	if is_trainer_battle:
+		_show_message("Can't catch a trainer's monster!")
+		await get_tree().create_timer(0.8).timeout
 		return
 	action_menu.set_enabled(false)
 	_state = BattleState.CATCH_ATTEMPT
@@ -184,6 +216,12 @@ func _on_run_selected() -> void:
 	if _state != BattleState.PLAYER_TURN:
 		return
 	action_menu.set_enabled(false)
+
+	if is_trainer_battle:
+		_show_message("Can't run from a trainer battle!")
+		await get_tree().create_timer(0.8).timeout
+		_start_player_turn()
+		return
 
 	if DamageCalculator.check_run_success():
 		print("[BATTLE] Run success!")
@@ -513,14 +551,34 @@ func _check_faint() -> bool:
 
 	if _enemy_monster.is_fainted():
 		AudioManager.play_sfx("res://assets/audio/sfx/faint.wav")
-		print("[BATTLE] Enemy %s fainted! YOU WIN!" % _get_name(_enemy_monster))
+		print("[BATTLE] Enemy %s fainted!" % _get_name(_enemy_monster))
 		_show_message("%s fainted!" % _get_name(_enemy_monster))
 		await get_tree().create_timer(1.0).timeout
-		_show_message("You win!")
-		_state = BattleState.WIN
-		await get_tree().create_timer(1.0).timeout
-		await _grant_xp()
-		return true
+
+		if is_trainer_battle:
+			_enemy_party_index += 1
+			if _enemy_party_index < _enemy_party.size():
+				_enemy_monster = _enemy_party[_enemy_party_index]
+				var next_name := _get_name(_enemy_monster)
+				print("[BATTLE] %s sent out %s!" % [trainer_name, next_name])
+				_show_message("%s sent out %s!" % [trainer_name, next_name])
+				enemy_display.setup(_enemy_monster, false)
+				await get_tree().create_timer(1.0).timeout
+				_start_player_turn()
+				return true
+			else:
+				print("[BATTLE] You defeated %s!" % trainer_name)
+				_show_message("You defeated %s!" % trainer_name)
+				_state = BattleState.WIN
+				await get_tree().create_timer(1.0).timeout
+				await _grant_xp()
+				return true
+		else:
+			_show_message("You win!")
+			_state = BattleState.WIN
+			await get_tree().create_timer(1.0).timeout
+			await _grant_xp()
+			return true
 
 	if _player_monster.is_fainted():
 		AudioManager.play_sfx("res://assets/audio/sfx/faint.wav")

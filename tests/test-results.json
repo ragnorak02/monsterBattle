@@ -571,6 +571,11 @@
 			"status": "pass"
 		},
 		{
+			"message": "scene loads: trainer.tscn",
+			"name": "load_scene_trainer",
+			"status": "pass"
+		},
+		{
 			"message": "MonsterDB has 30 monsters",
 			"name": "monsterdb_monster_count",
 			"status": "pass"
@@ -611,7 +616,7 @@
 			"status": "pass"
 		},
 		{
-			"message": "load battle scene in 1ms (< 1000ms)",
+			"message": "load battle scene in 2ms (< 1000ms)",
 			"name": "perf_load_battle_scene",
 			"status": "pass"
 		},
@@ -1109,11 +1114,506 @@
 			"message": "pokedex.tscn loads",
 			"name": "pokedex_scene_loads",
 			"status": "pass"
+		},
+		{
+			"message": "no badges by default",
+			"name": "badge_default_empty",
+			"status": "pass"
+		},
+		{
+			"message": "tide_badge not earned by default",
+			"name": "badge_default_empty",
+			"status": "pass"
+		},
+		{
+			"message": "tide_badge earned",
+			"name": "badge_earn_and_check",
+			"status": "pass"
+		},
+		{
+			"message": "badge count = 1",
+			"name": "badge_earn_and_check",
+			"status": "pass"
+		},
+		{
+			"message": "badge count still 1 after duplicate",
+			"name": "badge_no_double_count",
+			"status": "pass"
+		},
+		{
+			"message": "town2_gym marked defeated",
+			"name": "badge_trainer_defeated",
+			"status": "pass"
+		},
+		{
+			"message": "route2_trainer1 not defeated",
+			"name": "badge_trainer_defeated",
+			"status": "pass"
+		},
+		{
+			"message": "enemy party has 2 monsters",
+			"name": "trainer_enemy_party_from_data",
+			"status": "pass"
+		},
+		{
+			"message": "first monster level = 10",
+			"name": "trainer_enemy_party_from_data",
+			"status": "pass"
+		},
+		{
+			"message": "second monster level = 12",
+			"name": "trainer_enemy_party_from_data",
+			"status": "pass"
+		},
+		{
+			"message": "first enemy fainted",
+			"name": "trainer_enemy_switch_on_faint",
+			"status": "pass"
+		},
+		{
+			"message": "next enemy available at index 1",
+			"name": "trainer_enemy_switch_on_faint",
+			"status": "pass"
+		},
+		{
+			"message": "second enemy alive",
+			"name": "trainer_enemy_switch_on_faint",
+			"status": "pass"
+		},
+		{
+			"message": "all trainer monsters fainted = win",
+			"name": "trainer_all_fainted_is_win",
+			"status": "pass"
+		},
+		{
+			"message": "is_trainer_battle flag set",
+			"name": "trainer_battle_no_catch_flag",
+			"status": "pass"
+		},
+		{
+			"message": "trainer battles block running",
+			"name": "trainer_battle_no_run_flag",
+			"status": "pass"
+		},
+		{
+			"message": "overworld script loads",
+			"name": "trainer_battle_no_run_flag",
+			"status": "pass"
+		},
+		{
+			"message": "AREA_DATA contains town2 key",
+			"name": "area_data_has_town2",
+			"status": "pass"
+		},
+		{
+			"message": "AREA_DATA contains route2 key",
+			"name": "area_data_has_route2",
+			"status": "pass"
+		},
+		{
+			"message": "route1 has transition to route2",
+			"name": "area_route1_north_transition",
+			"status": "pass"
+		},
+		{
+			"message": "town2 has gym leader trainer",
+			"name": "area_town2_has_gym_leader",
+			"status": "pass"
+		},
+		{
+			"message": "trainer.tscn loads",
+			"name": "trainer_scene_loads",
+			"status": "pass"
+		},
+		{
+			"message": "area_names has 4 entries",
+			"name": "area_names_complete",
+			"status": "pass"
+		},
+		{
+			"message": "area_names has town2",
+			"name": "area_names_complete",
+			"status": "pass"
+		},
+		{
+			"message": "area_names has route2",
+			"name": "area_names_complete",
+			"status": "pass"
+		},
+		{
+			"message": "dialogue_tree.tscn loads",
+			"name": "dialogue_tree_scene_loads",
+			"status": "pass"
+		},
+		{
+			"message": "dialogue_tree_ui.gd loads",
+			"name": "dialogue_tree_script_loads",
+			"status": "pass"
+		},
+		{
+			"message": "dialogue tree has MarginContainer",
+			"name": "dialogue_tree_node_structure",
+			"status": "pass"
+		},
+		{
+			"message": "dialogue tree has VBox",
+			"name": "dialogue_tree_node_structure",
+			"status": "pass"
+		},
+		{
+			"message": "dialogue tree has SpeakerLabel",
+			"name": "dialogue_tree_node_structure",
+			"status": "pass"
+		},
+		{
+			"message": "dialogue tree has TextLabel",
+			"name": "dialogue_tree_node_structure",
+			"status": "pass"
+		},
+		{
+			"message": "dialogue tree has ChoicesContainer",
+			"name": "dialogue_tree_node_structure",
+			"status": "pass"
+		},
+		{
+			"message": "dialogue node has id",
+			"name": "dialogue_tree_node_map",
+			"status": "pass"
+		},
+		{
+			"message": "dialogue node has text",
+			"name": "dialogue_tree_node_map",
+			"status": "pass"
+		},
+		{
+			"message": "dialogue node has speaker",
+			"name": "dialogue_tree_node_map",
+			"status": "pass"
+		},
+		{
+			"message": "node has choices key",
+			"name": "dialogue_tree_choices_format",
+			"status": "pass"
+		},
+		{
+			"message": "node has 2 choices",
+			"name": "dialogue_tree_choices_format",
+			"status": "pass"
+		},
+		{
+			"message": "choice has label",
+			"name": "dialogue_tree_choices_format",
+			"status": "pass"
+		},
+		{
+			"message": "choice has next",
+			"name": "dialogue_tree_choices_format",
+			"status": "pass"
+		},
+		{
+			"message": "action string splits into 2 parts",
+			"name": "dialogue_tree_action_format",
+			"status": "pass"
+		},
+		{
+			"message": "action type = start_quest",
+			"name": "dialogue_tree_action_format",
+			"status": "pass"
+		},
+		{
+			"message": "action value = fetch_herb",
+			"name": "dialogue_tree_action_format",
+			"status": "pass"
+		},
+		{
+			"message": "condition splits into 2 parts",
+			"name": "dialogue_tree_condition_format",
+			"status": "pass"
+		},
+		{
+			"message": "condition type = has_badge",
+			"name": "dialogue_tree_condition_format",
+			"status": "pass"
+		},
+		{
+			"message": "npc_controller.gd loads",
+			"name": "dialogue_tree_backward_compat",
+			"status": "pass"
+		},
+		{
+			"message": "npc has dialogue_tree var",
+			"name": "dialogue_tree_backward_compat",
+			"status": "pass"
+		},
+		{
+			"message": "npc still has dialogue_lines",
+			"name": "dialogue_tree_backward_compat",
+			"status": "pass"
+		},
+		{
+			"message": "overworld has _show_dialogue_tree method",
+			"name": "dialogue_tree_overworld_support",
+			"status": "pass"
+		},
+		{
+			"message": "overworld has _handle_dialogue_action method",
+			"name": "dialogue_tree_overworld_support",
+			"status": "pass"
+		},
+		{
+			"message": "QUEST_DEFS has at least 3 quests",
+			"name": "quest_defs_exist",
+			"status": "pass"
+		},
+		{
+			"message": "quest def has name",
+			"name": "quest_def_structure",
+			"status": "pass"
+		},
+		{
+			"message": "quest def has type",
+			"name": "quest_def_structure",
+			"status": "pass"
+		},
+		{
+			"message": "quest def has goal",
+			"name": "quest_def_structure",
+			"status": "pass"
+		},
+		{
+			"message": "fetch_herb is active after start",
+			"name": "quest_start",
+			"status": "pass"
+		},
+		{
+			"message": "progress starts at 0",
+			"name": "quest_start",
+			"status": "pass"
+		},
+		{
+			"message": "fetch_herb auto-completed at goal=1",
+			"name": "quest_advance",
+			"status": "pass"
+		},
+		{
+			"message": "fetch_herb completed after advance",
+			"name": "quest_advance",
+			"status": "pass"
+		},
+		{
+			"message": "catch quest progress = 2",
+			"name": "quest_multi_step",
+			"status": "pass"
+		},
+		{
+			"message": "catch quest still active at 2/5",
+			"name": "quest_multi_step",
+			"status": "pass"
+		},
+		{
+			"message": "catch quest completed at 5/5",
+			"name": "quest_auto_complete",
+			"status": "pass"
+		},
+		{
+			"message": "catch quest no longer active",
+			"name": "quest_auto_complete",
+			"status": "pass"
+		},
+		{
+			"message": "no duplicate active quest",
+			"name": "quest_no_duplicate_start",
+			"status": "pass"
+		},
+		{
+			"message": "completed quest stays complete",
+			"name": "quest_no_restart_completed",
+			"status": "pass"
+		},
+		{
+			"message": "completed quest not re-activated",
+			"name": "quest_no_restart_completed",
+			"status": "pass"
+		},
+		{
+			"message": "inactive quest progress = 0",
+			"name": "quest_inactive_progress_zero",
+			"status": "pass"
+		},
+		{
+			"message": "quest_log.tscn loads",
+			"name": "quest_log_scene_loads",
+			"status": "pass"
+		},
+		{
+			"message": "at least 3 quest types defined: [\"talk\", \"defeat_trainer\", \"catch_count\"]",
+			"name": "quest_def_types",
+			"status": "pass"
+		},
+		{
+			"message": "cutscene_player.gd loads",
+			"name": "cutscene_script_loads",
+			"status": "pass"
+		},
+		{
+			"message": "cutscene has play() method",
+			"name": "cutscene_has_play_method",
+			"status": "pass"
+		},
+		{
+			"message": "cutscene has finished signal",
+			"name": "cutscene_has_play_method",
+			"status": "pass"
+		},
+		{
+			"message": "dialogue step type",
+			"name": "cutscene_step_dialogue",
+			"status": "pass"
+		},
+		{
+			"message": "dialogue step has lines",
+			"name": "cutscene_step_dialogue",
+			"status": "pass"
+		},
+		{
+			"message": "wait step type",
+			"name": "cutscene_step_wait",
+			"status": "pass"
+		},
+		{
+			"message": "wait step has duration",
+			"name": "cutscene_step_wait",
+			"status": "pass"
+		},
+		{
+			"message": "camera_move step type",
+			"name": "cutscene_step_camera_move",
+			"status": "pass"
+		},
+		{
+			"message": "camera_move step has target",
+			"name": "cutscene_step_camera_move",
+			"status": "pass"
+		},
+		{
+			"message": "flash step type",
+			"name": "cutscene_step_flash",
+			"status": "pass"
+		},
+		{
+			"message": "fade_out step type",
+			"name": "cutscene_step_fade",
+			"status": "pass"
+		},
+		{
+			"message": "overworld has play_cutscene",
+			"name": "cutscene_overworld_support",
+			"status": "pass"
+		},
+		{
+			"message": "world_map.tscn loads",
+			"name": "world_map_scene_loads",
+			"status": "pass"
+		},
+		{
+			"message": "world_map_ui.gd loads",
+			"name": "world_map_script_loads",
+			"status": "pass"
+		},
+		{
+			"message": "map has town position",
+			"name": "world_map_positions_coverage",
+			"status": "pass"
+		},
+		{
+			"message": "map has route1 position",
+			"name": "world_map_positions_coverage",
+			"status": "pass"
+		},
+		{
+			"message": "map has route2 position",
+			"name": "world_map_positions_coverage",
+			"status": "pass"
+		},
+		{
+			"message": "map has town2 position",
+			"name": "world_map_positions_coverage",
+			"status": "pass"
+		},
+		{
+			"message": "connection: town-route1",
+			"name": "world_map_connections",
+			"status": "pass"
+		},
+		{
+			"message": "connection: route1-route2",
+			"name": "world_map_connections",
+			"status": "pass"
+		},
+		{
+			"message": "10:00 is day",
+			"name": "daynight_default_period",
+			"status": "pass"
+		},
+		{
+			"message": "22:00 is night",
+			"name": "daynight_night_period",
+			"status": "pass"
+		},
+		{
+			"message": "6:00 is dawn",
+			"name": "daynight_dawn_period",
+			"status": "pass"
+		},
+		{
+			"message": "18:00 is dusk",
+			"name": "daynight_dusk_period",
+			"status": "pass"
+		},
+		{
+			"message": "time advanced to 12.0",
+			"name": "daynight_advance_time",
+			"status": "pass"
+		},
+		{
+			"message": "time wraps at 24: 2.0",
+			"name": "daynight_wrap_24",
+			"status": "pass"
+		},
+		{
+			"message": "dawn has color",
+			"name": "daynight_color_values",
+			"status": "pass"
+		},
+		{
+			"message": "day has color",
+			"name": "daynight_color_values",
+			"status": "pass"
+		},
+		{
+			"message": "dusk has color",
+			"name": "daynight_color_values",
+			"status": "pass"
+		},
+		{
+			"message": "night has color",
+			"name": "daynight_color_values",
+			"status": "pass"
+		},
+		{
+			"message": "day color is white",
+			"name": "daynight_get_time_color",
+			"status": "pass"
+		},
+		{
+			"message": "weather_system.gd loads",
+			"name": "weather_script_loads",
+			"status": "pass"
 		}
 	],
-	"durationMs": 334,
+	"durationMs": 426,
 	"status": "pass",
-	"testsPassed": 222.0,
-	"testsTotal": 222.0,
-	"timestamp": "2026-02-24T22:42:02"
+	"testsPassed": 322.0,
+	"testsTotal": 322.0,
+	"timestamp": "2026-02-24T23:40:11"
 }

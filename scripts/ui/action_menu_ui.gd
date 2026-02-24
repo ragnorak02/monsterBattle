@@ -15,6 +15,7 @@ var _item_buttons: Array[Button] = []
 var _items_button: Button = null
 var _in_replace_mode: bool = false
 var _in_items_mode: bool = false
+var _trainer_mode: bool = false
 
 func _ready() -> void:
 	catch_button.pressed.connect(func(): catch_selected.emit())
@@ -88,6 +89,13 @@ func set_enabled(enabled: bool) -> void:
 func set_catch_visible(flag: bool) -> void:
 	catch_button.visible = flag
 
+func set_trainer_mode(enabled: bool) -> void:
+	_trainer_mode = enabled
+	catch_button.visible = not enabled
+	run_button.visible = not enabled
+	if _items_button:
+		_items_button.visible = not enabled
+
 func _on_items_pressed() -> void:
 	if _in_items_mode:
 		_close_items_submenu()
@@ -140,10 +148,11 @@ func _close_items_submenu() -> void:
 	# Restore skill buttons
 	for btn in _skill_buttons:
 		btn.visible = true
-	catch_button.visible = true
-	run_button.visible = true
-	if _items_button:
-		_items_button.visible = true
+	if not _trainer_mode:
+		catch_button.visible = true
+		run_button.visible = true
+		if _items_button:
+			_items_button.visible = true
 	if _skill_buttons.size() > 0:
 		_skill_buttons[0].call_deferred("grab_focus")
 
