@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "gameId": "monsterbattle",
   "title": "Monster Catcher",
-  "lastUpdated": "2026-02-24T04:08:00Z",
+  "lastUpdated": "2026-02-24T05:30:00Z",
   "health": {
-    "progressPercent": 36,
+    "progressPercent": 37,
     "buildVersion": "0.2.1",
     "assetStage": "placeholder"
   },

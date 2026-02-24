@@ -170,7 +170,7 @@ AMARIS STANDARD — 95 Checkpoints
 - [x] 33. Catch rate modifiers (HP-based)
 - [x] 34. Item inventory system
 - [x] 35. Potion usage
-- [ ] 36. Antidotes
+- [x] 36. Antidotes
 - [x] 37. Gender selection flow restored
 - [x] 38. Starter selection flow restored
 - [x] 39. PC storage system
