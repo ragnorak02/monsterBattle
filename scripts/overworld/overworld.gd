@@ -20,33 +20,24 @@ var _area_name_label: Label = null
 const AREA_DATA: Dictionary = {
 	"town": {
 		"music": "res://assets/audio/music/town_theme.wav",
-		"map_size": 30,
-		"tile_palette": "town",  # green grass, paths, water borders
+		"map_size": 20,
+		"tile_palette": "town",
+		"safe_zone": true,
 		"npcs": [
-			{"pos": Vector2(80, 80), "lines": ["Welcome to Monster Town!", "Go explore and catch monsters!"]},
-			{"pos": Vector2(240, 100), "lines": ["I heard there are monsters\nin the tall grass nearby.", "Be careful out there!"]},
-			{"pos": Vector2(100, 240), "lines": ["Press Tab to check your party.\nPress I to open inventory.", "Good luck on your adventure!"]},
-		],
-		"wild_monsters": [
-			{"pos": Vector2(200, 160), "monster_id": 4, "level_min": 3, "level_max": 6},
-			{"pos": Vector2(120, 100), "monster_id": 7, "level_min": 3, "level_max": 5},
-			{"pos": Vector2(220, 220), "monster_id": 9, "level_min": 4, "level_max": 7},
-			{"pos": Vector2(60, 200), "monster_id": 11, "level_min": 3, "level_max": 6},
-			{"pos": Vector2(100, 50), "monster_id": 15, "level_min": 5, "level_max": 8},
-			{"pos": Vector2(280, 100), "monster_id": 8, "level_min": 4, "level_max": 7},
-			{"pos": Vector2(300, 250), "monster_id": 12, "level_min": 4, "level_max": 6},
-			{"pos": Vector2(50, 300), "monster_id": 22, "level_min": 5, "level_max": 9},
+			{"pos": Vector2(-48, -80), "lines": ["Welcome to Monster Town!", "Go explore and catch monsters!"], "bubble": "Hey there!"},
+			{"pos": Vector2(80, -80), "lines": ["I heard there are monsters\nin the tall grass nearby.", "Be careful out there!"], "bubble": "Monsters are scary..."},
+			{"pos": Vector2(0, 64), "lines": ["Press Tab to check your party.\nPress I to open inventory.", "Good luck on your adventure!"], "bubble": "Need some tips?"},
 		],
 		"transitions": [
-			{"edge": "east", "target_area": "route1", "spawn_offset": Vector2(32, 0)},
+			{"edge": "north", "target_area": "route1", "spawn_offset": Vector2(0, -32)},
 		],
 	},
 	"route1": {
 		"music": "res://assets/audio/music/town_theme.wav",
 		"map_size": 35,
-		"tile_palette": "route",  # darker, wilder terrain
+		"tile_palette": "route",
 		"npcs": [
-			{"pos": Vector2(160, 160), "lines": ["This is Route 1!", "The monsters here are stronger."]},
+			{"pos": Vector2(160, 160), "lines": ["This is Route 1!", "The monsters here are stronger."], "bubble": "Watch your step!"},
 		],
 		"wild_monsters": [
 			{"pos": Vector2(100, 80), "monster_id": 18, "level_min": 6, "level_max": 9},
@@ -59,7 +50,7 @@ const AREA_DATA: Dictionary = {
 			{"pos": Vector2(50, 350), "monster_id": 30, "level_min": 8, "level_max": 12},
 		],
 		"transitions": [
-			{"edge": "west", "target_area": "town", "spawn_offset": Vector2(-32, 0)},
+			{"edge": "south", "target_area": "town", "spawn_offset": Vector2(0, 32)},
 		],
 	},
 }
@@ -103,7 +94,126 @@ func _setup_follower() -> void:
 func _setup_tilemap(area_config: Dictionary) -> void:
 	var tile_set := TileSet.new()
 	tile_set.tile_size = Vector2i(16, 16)
+	tile_set.add_physics_layer()
+	tile_set.set_physics_layer_collision_layer(0, 2)
 
+	var palette: String = area_config.get("tile_palette", "town")
+	var map_size: int = area_config.get("map_size", 30)
+
+	if palette == "town":
+		_setup_town_tilemap(tile_set, map_size)
+	else:
+		_setup_route_tilemap(tile_set, map_size)
+
+	tile_map.tile_set = tile_set
+
+func _setup_town_tilemap(tile_set: TileSet, map_size: int) -> void:
+	var source := TileSetAtlasSource.new()
+	var tex := load("res://assets/sprites/overworld/tileset_town.png") as Texture2D
+	if not tex:
+		tex = load("res://assets/sprites/overworld/tileset_placeholder.png") as Texture2D
+	if tex:
+		source.texture = tex
+		source.texture_region_size = Vector2i(16, 16)
+		for i in 8:
+			source.create_tile(Vector2i(i, 0))
+		tile_set.add_source(source, 0)
+
+	tile_map.tile_set = tile_set
+
+	# Tile indices: 0=grass, 1=path, 2=water, 3=tree, 4=house_wall, 5=house_roof, 6=fence, 7=flowers
+	var GRASS := Vector2i(0, 0)
+	var PATH := Vector2i(1, 0)
+	var WATER := Vector2i(2, 0)
+	var TREE := Vector2i(3, 0)
+	var WALL := Vector2i(4, 0)
+	var ROOF := Vector2i(5, 0)
+	var FENCE := Vector2i(6, 0)
+	var FLOWERS := Vector2i(7, 0)
+
+	# Fill everything with grass first
+	for x in range(-map_size, map_size):
+		for y in range(-map_size, map_size):
+			tile_map.set_cell(Vector2i(x, y), 0, GRASS)
+
+	# Tree border around perimeter (2 tiles thick)
+	for x in range(-map_size, map_size):
+		for y in range(-map_size, map_size):
+			if abs(x) >= map_size - 2 or abs(y) >= map_size - 2:
+				# North exit gap: leave opening for route transition
+				if y <= -(map_size - 2) and abs(x) < 3:
+					tile_map.set_cell(Vector2i(x, y), 0, PATH)
+				else:
+					tile_map.set_cell(Vector2i(x, y), 0, TREE)
+
+	# -- House 1 (upper-left area): roof at y=-8..-7, wall at y=-6..-5 --
+	for x in range(-6, -2):
+		for y in range(-8, -6):
+			tile_map.set_cell(Vector2i(x, y), 0, ROOF)
+		for y in range(-6, -4):
+			tile_map.set_cell(Vector2i(x, y), 0, WALL)
+
+	# -- House 2 (upper-right area): roof at y=-8..-7, wall at y=-6..-5 --
+	for x in range(3, 7):
+		for y in range(-8, -6):
+			tile_map.set_cell(Vector2i(x, y), 0, ROOF)
+		for y in range(-6, -4):
+			tile_map.set_cell(Vector2i(x, y), 0, WALL)
+
+	# -- Main paths --
+	# Vertical path from north exit to center
+	for y in range(-map_size, 6):
+		tile_map.set_cell(Vector2i(-1, y), 0, PATH)
+		tile_map.set_cell(Vector2i(0, y), 0, PATH)
+		tile_map.set_cell(Vector2i(1, y), 0, PATH)
+
+	# Horizontal path connecting houses at y=-3
+	for x in range(-8, 9):
+		tile_map.set_cell(Vector2i(x, -3), 0, PATH)
+		tile_map.set_cell(Vector2i(x, -2), 0, PATH)
+
+	# Small path branches to house entrances
+	for y in range(-4, -2):
+		tile_map.set_cell(Vector2i(-4, y), 0, PATH)
+		tile_map.set_cell(Vector2i(-3, y), 0, PATH)
+		tile_map.set_cell(Vector2i(4, y), 0, PATH)
+		tile_map.set_cell(Vector2i(5, y), 0, PATH)
+
+	# Horizontal path at y=4 (south area)
+	for x in range(-8, 9):
+		tile_map.set_cell(Vector2i(x, 4), 0, PATH)
+		tile_map.set_cell(Vector2i(x, 5), 0, PATH)
+
+	# -- Pond (lower-left corner) --
+	for x in range(-10, -6):
+		for y in range(8, 12):
+			tile_map.set_cell(Vector2i(x, y), 0, WATER)
+
+	# -- Flower garden (lower-right area) --
+	for x in range(5, 10):
+		for y in range(7, 11):
+			tile_map.set_cell(Vector2i(x, y), 0, FLOWERS)
+
+	# -- Fence segments along south path edges --
+	for x in range(-8, -3):
+		tile_map.set_cell(Vector2i(x, 3), 0, FENCE)
+	for x in range(3, 9):
+		tile_map.set_cell(Vector2i(x, 3), 0, FENCE)
+	for x in range(-8, -3):
+		tile_map.set_cell(Vector2i(x, 6), 0, FENCE)
+	for x in range(3, 9):
+		tile_map.set_cell(Vector2i(x, 6), 0, FENCE)
+
+	# -- Add collision to solid tiles --
+	_add_tile_collision(source, TREE)
+	_add_tile_collision(source, WATER)
+	_add_tile_collision(source, WALL)
+	_add_tile_collision(source, ROOF)
+	_add_tile_collision(source, FENCE)
+
+	tile_map.modulate = Color(1.0, 1.0, 1.0)
+
+func _setup_route_tilemap(tile_set: TileSet, map_size: int) -> void:
 	var source := TileSetAtlasSource.new()
 	var tex := load("res://assets/sprites/overworld/tileset_placeholder.png") as Texture2D
 	if tex:
@@ -114,52 +224,30 @@ func _setup_tilemap(area_config: Dictionary) -> void:
 		source.create_tile(Vector2i(2, 0))
 		tile_set.add_source(source, 0)
 
-	tile_set.add_physics_layer()
-	tile_set.set_physics_layer_collision_layer(0, 2)
 	tile_map.tile_set = tile_set
-
-	var map_size: int = area_config.get("map_size", 30)
-	var palette: String = area_config.get("tile_palette", "town")
 
 	for x in range(-map_size, map_size):
 		for y in range(-map_size, map_size):
-			if palette == "route":
-				# Route: no water border on transition edges, wilder layout
-				var on_border: bool = abs(x) >= map_size - 2 or abs(y) >= map_size - 2
-				if on_border:
-					# Leave west edge open for transition back to town
-					if x <= -(map_size - 2) and abs(y) < 5:
-						tile_map.set_cell(Vector2i(x, y), 0, Vector2i(1, 0))
-					else:
-						tile_map.set_cell(Vector2i(x, y), 0, Vector2i(2, 0))
-				elif (x + y) % 7 == 0 and abs(x) > 4 and abs(y) > 4:
-					tile_map.set_cell(Vector2i(x, y), 0, Vector2i(2, 0))  # Scattered rocks/water
-				elif (x == 0 and abs(y) < 12) or (y == 0 and abs(x) < 12):
+			var on_border: bool = abs(x) >= map_size - 2 or abs(y) >= map_size - 2
+			if on_border:
+				# Leave south edge open for transition back to town
+				if y >= map_size - 2 and abs(x) < 5:
 					tile_map.set_cell(Vector2i(x, y), 0, Vector2i(1, 0))
 				else:
-					tile_map.set_cell(Vector2i(x, y), 0, Vector2i(0, 0))
+					tile_map.set_cell(Vector2i(x, y), 0, Vector2i(2, 0))
+			elif (x + y) % 7 == 0 and abs(x) > 4 and abs(y) > 4:
+				tile_map.set_cell(Vector2i(x, y), 0, Vector2i(2, 0))
+			elif (x == 0 and abs(y) < 12) or (y == 0 and abs(x) < 12):
+				tile_map.set_cell(Vector2i(x, y), 0, Vector2i(1, 0))
 			else:
-				# Town: original layout, east edge open for transition
-				if abs(x) >= map_size - 2 or abs(y) >= map_size - 2:
-					if x >= map_size - 2 and abs(y) < 5:
-						tile_map.set_cell(Vector2i(x, y), 0, Vector2i(1, 0))
-					else:
-						tile_map.set_cell(Vector2i(x, y), 0, Vector2i(2, 0))
-				elif (x == 0 and abs(y) < 10) or (y == 0 and abs(x) < 10):
-					tile_map.set_cell(Vector2i(x, y), 0, Vector2i(1, 0))
-				else:
-					tile_map.set_cell(Vector2i(x, y), 0, Vector2i(0, 0))
+				tile_map.set_cell(Vector2i(x, y), 0, Vector2i(0, 0))
 
-	_add_water_collision(tile_set, source)
+	_add_tile_collision(source, Vector2i(2, 0))
 
-	# Apply color modulation for route areas
-	if palette == "route":
-		tile_map.modulate = Color(0.85, 0.9, 0.75)  # Slightly yellow-green, wilder
-	else:
-		tile_map.modulate = Color(1.0, 1.0, 1.0)
+	tile_map.modulate = Color(0.85, 0.9, 0.75)
 
-func _add_water_collision(_tile_set: TileSet, source: TileSetAtlasSource) -> void:
-	var tile_data := source.get_tile_data(Vector2i(2, 0), 0)
+func _add_tile_collision(source: TileSetAtlasSource, atlas_coords: Vector2i) -> void:
+	var tile_data := source.get_tile_data(atlas_coords, 0)
 	if tile_data:
 		var polygon := PackedVector2Array([
 			Vector2(-8, -8), Vector2(8, -8), Vector2(8, 8), Vector2(-8, 8)
@@ -177,9 +265,14 @@ func _spawn_npcs(area_config: Dictionary) -> void:
 		var npc := npc_scene.instantiate()
 		npc.position = config["pos"]
 		npc.dialogue_lines = config["lines"]
+		if config.has("bubble"):
+			npc.bubble_text = config["bubble"]
 		npcs_container.add_child(npc)
 
 func _spawn_wild_monsters(area_config: Dictionary) -> void:
+	if area_config.get("safe_zone", false):
+		return
+
 	var wild_scene := load("res://scenes/overworld/wild_monster.tscn") as PackedScene
 	if not wild_scene:
 		return
