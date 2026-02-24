@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "gameId": "monsterbattle",
   "title": "Monster Catcher",
-  "lastUpdated": "2026-02-22T00:00:00Z",
+  "lastUpdated": "2026-02-24T04:08:00Z",
   "health": {
-    "progressPercent": 35,
+    "progressPercent": 36,
     "buildVersion": "0.2.1",
     "assetStage": "placeholder"
   },
@@ -33,9 +33,9 @@
   },
   "testing": {
     "testCommand": "tests/run-tests.bat",
-    "lastRunAt": "2026-02-22T04:36:00Z",
+    "lastRunAt": "2026-02-24T04:08:00Z",
     "status": "pass",
-    "notes": "143 tests passing (27 new for CP 25-30)"
+    "notes": "165 tests passing (5 new for PC storage CP 39)"
   },
   "links": {
     "repo": null,

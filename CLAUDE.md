@@ -173,7 +173,7 @@ AMARIS STANDARD — 95 Checkpoints
 - [ ] 36. Antidotes
 - [x] 37. Gender selection flow restored
 - [x] 38. Starter selection flow restored
-- [ ] 39. PC storage system
+- [x] 39. PC storage system
 - [x] 40. Party size enforcement (6 max)
 - [ ] 41. Monster registry (seen/caught)
 - [ ] 42. Pokedex UI
