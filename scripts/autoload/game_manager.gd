@@ -2,9 +2,11 @@ extends Node
 
 signal party_changed
 signal inventory_changed
+signal pc_storage_changed
 
 var player_gender: String = ""  # "boy" or "girl"
 var player_party: Array[MonsterInstance] = []
+var pc_storage: Array[MonsterInstance] = []
 var defeated_monster_ids: Array[int] = []  # Track removed overworld monsters (legacy, for backward compat)
 var is_in_battle: bool = false
 var is_in_menu: bool = false
@@ -18,7 +20,7 @@ const ITEM_DEFS: Dictionary = {
 	"super_potion": {"name": "Super Potion", "type": "heal", "value": 60, "battle": true},
 	"capture_ball": {"name": "Capture Ball", "type": "catch", "value": 1.5, "battle": true},
 	"great_ball": {"name": "Great Ball", "type": "catch", "value": 2.0, "battle": true},
-	"antidote": {"name": "Antidote", "type": "heal", "value": 0, "battle": false},
+	"antidote": {"name": "Antidote", "type": "cure", "value": "poison", "battle": true},
 }
 
 # ── Area Persistence ──
@@ -79,6 +81,44 @@ func heal_all_party() -> void:
 	for monster in player_party:
 		monster.heal_full()
 	party_changed.emit()
+
+# ── PC Storage Methods ──
+
+func add_to_pc(monster: MonsterInstance) -> void:
+	pc_storage.append(monster)
+	pc_storage_changed.emit()
+
+func remove_from_pc(index: int) -> MonsterInstance:
+	if index < 0 or index >= pc_storage.size():
+		return null
+	var monster := pc_storage[index]
+	pc_storage.remove_at(index)
+	pc_storage_changed.emit()
+	return monster
+
+func move_pc_to_party(pc_index: int) -> bool:
+	if player_party.size() >= 6:
+		return false
+	if pc_index < 0 or pc_index >= pc_storage.size():
+		return false
+	var monster := pc_storage[pc_index]
+	pc_storage.remove_at(pc_index)
+	player_party.append(monster)
+	party_changed.emit()
+	pc_storage_changed.emit()
+	return true
+
+func move_party_to_pc(party_index: int) -> bool:
+	if player_party.size() <= 1:
+		return false
+	if party_index < 0 or party_index >= player_party.size():
+		return false
+	var monster := player_party[party_index]
+	player_party.remove_at(party_index)
+	pc_storage.append(monster)
+	party_changed.emit()
+	pc_storage_changed.emit()
+	return true
 
 # ── Inventory Methods ──
 

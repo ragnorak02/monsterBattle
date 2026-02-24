@@ -158,15 +158,13 @@ func _on_catch_selected() -> void:
 		_caught = true
 		var enemy_name: String = _get_name(_enemy_monster)
 		print("[BATTLE] Catch success!")
+		var caught_instance := _build_caught_instance()
 		if GameManager.player_party.size() < 6:
-			var caught_instance := MonsterInstance.new(wild_monster_data, _enemy_monster.level)
-			caught_instance.current_hp = _enemy_monster.current_hp
-			caught_instance.skills = _enemy_monster.skills.duplicate()
-			caught_instance.experience = _enemy_monster.experience
 			GameManager.add_to_party(caught_instance)
 			_show_message("Gotcha! %s was caught!" % enemy_name)
 		else:
-			_show_message("%s was caught but your party is full! It was released." % enemy_name)
+			GameManager.add_to_pc(caught_instance)
+			_show_message("%s was caught and sent to PC!" % enemy_name)
 		await get_tree().create_timer(1.5).timeout
 		await _grant_xp()
 	else:
@@ -274,15 +272,13 @@ func _on_item_selected(item_id: String) -> void:
 			_caught = true
 			var enemy_name: String = _get_name(_enemy_monster)
 			print("[BATTLE] Catch success!")
+			var caught_instance := _build_caught_instance()
 			if GameManager.player_party.size() < 6:
-				var caught_instance := MonsterInstance.new(wild_monster_data, _enemy_monster.level)
-				caught_instance.current_hp = _enemy_monster.current_hp
-				caught_instance.skills = _enemy_monster.skills.duplicate()
-				caught_instance.experience = _enemy_monster.experience
 				GameManager.add_to_party(caught_instance)
 				_show_message("Gotcha! %s was caught!" % enemy_name)
 			else:
-				_show_message("%s was caught but your party is full! It was released." % enemy_name)
+				GameManager.add_to_pc(caught_instance)
+				_show_message("%s was caught and sent to PC!" % enemy_name)
 			await get_tree().create_timer(1.5).timeout
 			await _grant_xp()
 		else:
@@ -295,6 +291,13 @@ func _on_item_selected(item_id: String) -> void:
 				return
 			await _process_end_of_turn_status()
 			await _check_faint()
+
+func _build_caught_instance() -> MonsterInstance:
+	var inst := MonsterInstance.new(wild_monster_data, _enemy_monster.level)
+	inst.current_hp = _enemy_monster.current_hp
+	inst.skills = _enemy_monster.skills.duplicate()
+	inst.experience = _enemy_monster.experience
+	return inst
 
 func _pick_enemy_skill() -> Resource:
 	var skills_arr: Array = _enemy_monster.skills

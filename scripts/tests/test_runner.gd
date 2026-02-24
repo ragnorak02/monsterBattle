@@ -31,6 +31,7 @@ func _ready() -> void:
 	_run_ability_tests()
 	_run_ai_scoring_tests()
 	_run_backward_compat_tests()
+	_run_pc_storage_tests()
 
 	var total := _pass_count + _fail_count
 	print("")
@@ -624,6 +625,33 @@ func _run_inventory_tests() -> void:
 	_assert_eq(GameManager.get_item_count("potion"), 0, "potion count 0 after removing last")
 	_assert_false(GameManager.inventory.has("potion"), "potion key erased from inventory")
 
+	# Test: antidote item def has type "cure" and value "poison"
+	_begin("antidote_item_def")
+	var antidote_def := GameManager.get_item_def("antidote")
+	_assert_eq(antidote_def["type"], "cure", "antidote type is cure")
+	_assert_eq(antidote_def["value"], "poison", "antidote value is poison")
+
+	# Test: antidote appears in battle items
+	_begin("antidote_in_battle_items")
+	GameManager.inventory = {}
+	GameManager.add_item("antidote", 2)
+	var battle_items2: Array = GameManager.get_battle_items()
+	var found_antidote := false
+	for bi in battle_items2:
+		if bi["id"] == "antidote":
+			found_antidote = true
+			break
+	_assert_true(found_antidote, "antidote appears in battle items")
+
+	# Test: antidote cures poison via clear_status
+	_begin("antidote_cures_poison")
+	var poisoned_mon := _make_monster(40, 10, 8, 10)
+	poisoned_mon.apply_status("poison")
+	_assert_eq(poisoned_mon.status, "poison", "monster is poisoned")
+	poisoned_mon.clear_status()
+	_assert_eq(poisoned_mon.status, "", "monster cured after clear_status")
+	_assert_false(poisoned_mon.has_status(), "has_status false after cure")
+
 	# Cleanup
 	GameManager.inventory = {}
 
@@ -1013,3 +1041,77 @@ func _run_backward_compat_tests() -> void:
 	_begin("compat_check_accuracy_one_arg")
 	var perfect := _make_skill("Sure", 10, 1.0)
 	_assert_true(DamageCalculator.check_accuracy(perfect), "check_accuracy(skill) backward compat")
+
+# ══════════════════════════════════════════════
+#  M. PC Storage Tests
+# ══════════════════════════════════════════════
+
+func _run_pc_storage_tests() -> void:
+	print("\n── PC Storage ──")
+
+	# Save and reset state
+	var saved_party := GameManager.player_party.duplicate()
+	var saved_pc := GameManager.pc_storage.duplicate()
+	GameManager.player_party = []
+	GameManager.pc_storage = []
+
+	# Test: add monster to PC and verify count
+	_begin("pc_add_and_count")
+	var mon1 := _make_monster(40, 10, 8, 10)
+	GameManager.add_to_pc(mon1)
+	_assert_eq(GameManager.pc_storage.size(), 1, "PC has 1 monster after add")
+	var mon2 := _make_monster(50, 12, 9, 11)
+	GameManager.add_to_pc(mon2)
+	_assert_eq(GameManager.pc_storage.size(), 2, "PC has 2 monsters after second add")
+
+	# Test: move from PC to party
+	_begin("pc_move_to_party")
+	GameManager.player_party = []
+	GameManager.pc_storage = []
+	var pc_mon := _make_monster(40, 10, 8, 10)
+	GameManager.add_to_pc(pc_mon)
+	var moved := GameManager.move_pc_to_party(0)
+	_assert_true(moved, "move_pc_to_party returns true")
+	_assert_eq(GameManager.player_party.size(), 1, "party has 1 after withdraw")
+	_assert_eq(GameManager.pc_storage.size(), 0, "PC empty after withdraw")
+	_assert_eq(GameManager.player_party[0], pc_mon, "correct monster withdrawn")
+
+	# Test: move to party blocked when party full
+	_begin("pc_move_to_party_full")
+	GameManager.player_party = []
+	GameManager.pc_storage = []
+	for i in 6:
+		GameManager.add_to_party(_make_monster(40, 10, 8, 10))
+	GameManager.add_to_pc(_make_monster(50, 12, 9, 11))
+	var blocked := GameManager.move_pc_to_party(0)
+	_assert_false(blocked, "move_pc_to_party blocked when party full")
+	_assert_eq(GameManager.player_party.size(), 6, "party still 6")
+	_assert_eq(GameManager.pc_storage.size(), 1, "PC still 1")
+
+	# Test: move from party to PC
+	_begin("pc_move_party_to_pc")
+	GameManager.player_party = []
+	GameManager.pc_storage = []
+	var p1 := _make_monster(40, 10, 8, 10)
+	var p2 := _make_monster(50, 12, 9, 11)
+	GameManager.add_to_party(p1)
+	GameManager.add_to_party(p2)
+	var deposited := GameManager.move_party_to_pc(1)
+	_assert_true(deposited, "move_party_to_pc returns true")
+	_assert_eq(GameManager.player_party.size(), 1, "party has 1 after deposit")
+	_assert_eq(GameManager.pc_storage.size(), 1, "PC has 1 after deposit")
+	_assert_eq(GameManager.pc_storage[0], p2, "correct monster deposited")
+
+	# Test: can't box last monster
+	_begin("pc_cant_box_last")
+	GameManager.player_party = []
+	GameManager.pc_storage = []
+	GameManager.add_to_party(_make_monster(40, 10, 8, 10))
+	var cant_box := GameManager.move_party_to_pc(0)
+	_assert_false(cant_box, "move_party_to_pc blocked when only 1 in party")
+	_assert_eq(GameManager.player_party.size(), 1, "party still 1")
+	_assert_eq(GameManager.pc_storage.size(), 0, "PC still empty")
+
+	# Restore state
+	GameManager.player_party = saved_party
+	GameManager.pc_storage = saved_pc

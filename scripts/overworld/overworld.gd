@@ -28,6 +28,9 @@ const AREA_DATA: Dictionary = {
 			{"pos": Vector2(80, -80), "lines": ["I heard there are monsters\nin the tall grass nearby.", "Be careful out there!"], "bubble": "Monsters are scary..."},
 			{"pos": Vector2(0, 64), "lines": ["Press Tab to check your party.\nPress I to open inventory.", "Good luck on your adventure!"], "bubble": "Need some tips?"},
 		],
+		"pc_terminals": [
+			{"pos": Vector2(48, -64)},
+		],
 		"transitions": [
 			{"edge": "north", "target_area": "route1", "spawn_offset": Vector2(0, -32)},
 		],
@@ -59,6 +62,7 @@ func _ready() -> void:
 	var area_config: Dictionary = _get_area_config()
 	_setup_tilemap(area_config)
 	_spawn_npcs(area_config)
+	_spawn_pc_terminals(area_config)
 	_spawn_wild_monsters(area_config)
 	_spawn_transition_zones(area_config)
 	_update_player_sprite()
@@ -268,6 +272,18 @@ func _spawn_npcs(area_config: Dictionary) -> void:
 		if config.has("bubble"):
 			npc.bubble_text = config["bubble"]
 		npcs_container.add_child(npc)
+
+func _spawn_pc_terminals(area_config: Dictionary) -> void:
+	var terminal_configs: Array = area_config.get("pc_terminals", [])
+	if terminal_configs.is_empty():
+		return
+	var terminal_scene := load("res://scenes/overworld/pc_terminal.tscn") as PackedScene
+	if not terminal_scene:
+		return
+	for config in terminal_configs:
+		var terminal := terminal_scene.instantiate()
+		terminal.position = config["pos"]
+		npcs_container.add_child(terminal)
 
 func _spawn_wild_monsters(area_config: Dictionary) -> void:
 	if area_config.get("safe_zone", false):
