@@ -175,11 +175,11 @@ AMARIS STANDARD — 95 Checkpoints
 - [x] 38. Starter selection flow restored
 - [x] 39. PC storage system
 - [x] 40. Party size enforcement (6 max)
-- [ ] 41. Monster registry (seen/caught)
-- [ ] 42. Pokedex UI
-- [ ] 43. XP curve balancing
-- [ ] 44. Evolution animation polish
-- [ ] 45. Level-up stat growth tuning
+- [x] 41. Monster registry (seen/caught)
+- [x] 42. Pokedex UI
+- [x] 43. XP curve balancing
+- [x] 44. Evolution animation polish
+- [x] 45. Level-up stat growth tuning
 
 ---
 
@@ -302,10 +302,10 @@ AMARIS dashboard depends on this.
 
 # Current Focus
 
-Current Goal: Begin Macro Phase 3 — Catching & Progression
-Current Task: Antidotes, PC storage, monster registry
+Current Goal: Begin Macro Phase 4 — Overworld Expansion
+Current Task: Multiple towns, gym leaders, trainer battles
 Work Mode: Feature Development
-Next Milestone: Macro Phase 3 complete (checkpoints 31–45)
+Next Milestone: Macro Phase 4 progress (checkpoints 46–60)
 
 ---
 
@@ -313,8 +313,6 @@ Next Milestone: Macro Phase 3 complete (checkpoints 31–45)
 
 - No save system
 - No achievements system
-- No PC storage (caught monsters lost if party full)
-- No Pokedex/registry UI
 - No version display in game UI
 - AI move selection is score-based (could be deeper)
 

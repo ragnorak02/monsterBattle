@@ -32,7 +32,8 @@
       "Bash(head:*)",
       "Bash(unzip:*)",
       "Bash(# Check no placeholder-sized files remain \\(originals were 176-178 bytes\\) DEST=\"\"Z:/Development/amatris/monsterBattle/assets/sprites/monsters\"\" echo \"\"=== Files still under 200 bytes \\(should be NONE\\) ===\"\" find \"\"$DEST\"\" -name \"\"*.png\"\" -size -200c echo \"\"\"\" echo \"\"=== Size range of new sprites ===\"\" ls -la \"\"$DEST\"\"/*.png)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(grep:*)"
     ]
   }
 }

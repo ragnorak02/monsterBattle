@@ -23,7 +23,8 @@ var player_girl_sprite: String = "res://assets/sprites/player/player_girl.png"
 var npc_default_sprite: String = "res://assets/sprites/npcs/npc_default.png"
 
 # ── Overworld ──
-var tileset_texture: String = "res://assets/sprites/overworld/tileset_placeholder.png"
+var tileset_town: String = "res://assets/sprites/overworld/tileset_town.png"
+var tileset_route: String = "res://assets/sprites/overworld/tileset_placeholder.png"
 
 # ── UI ──
 var ui_theme: String = "res://assets/ui/game_theme.tres"

@@ -58,6 +58,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		_open_inventory()
 		get_viewport().set_input_as_handled()
 
+	# P key - pokedex
+	if event is InputEventKey and event.pressed and event.keycode == KEY_P:
+		_open_pokedex()
+		get_viewport().set_input_as_handled()
+
 func _get_facing_from_input(input: Vector2) -> Vector2:
 	if abs(input.x) > abs(input.y):
 		return Vector2(sign(input.x), 0)
@@ -118,3 +123,11 @@ func _open_inventory() -> void:
 	if inv_scene:
 		var inv := inv_scene.instantiate()
 		get_tree().current_scene.add_child(inv)
+
+func _open_pokedex() -> void:
+	if GameManager.is_in_menu:
+		return
+	var dex_scene := load("res://scenes/ui/pokedex.tscn") as PackedScene
+	if dex_scene:
+		var dex := dex_scene.instantiate()
+		get_tree().current_scene.add_child(dex)

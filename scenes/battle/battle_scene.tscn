@@ -38,8 +38,8 @@ grow_vertical = 2
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_top = 20.0
-offset_bottom = 200.0
+offset_top = 70.0
+offset_bottom = 290.0
 grow_horizontal = 2
 theme_override_constants/separation = 40
 alignment = 1
@@ -47,21 +47,11 @@ alignment = 1
 [node name="PlayerSide" type="VBoxContainer" parent="BattleUI/HBox"]
 layout_mode = 2
 
-[node name="PlayerLabel" type="Label" parent="BattleUI/HBox/PlayerSide"]
-layout_mode = 2
-text = "YOUR MONSTER"
-horizontal_alignment = 1
-
 [node name="PlayerDisplay" parent="BattleUI/HBox/PlayerSide" instance=ExtResource("2")]
 layout_mode = 2
 
 [node name="EnemySide" type="VBoxContainer" parent="BattleUI/HBox"]
 layout_mode = 2
-
-[node name="EnemyLabel" type="Label" parent="BattleUI/HBox/EnemySide"]
-layout_mode = 2
-text = "WILD MONSTER"
-horizontal_alignment = 1
 
 [node name="EnemyDisplay" parent="BattleUI/HBox/EnemySide" instance=ExtResource("2")]
 layout_mode = 2
@@ -72,8 +62,8 @@ anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -105.0
-offset_bottom = -65.0
+offset_top = -55.0
+offset_bottom = -28.0
 grow_horizontal = 2
 grow_vertical = 0
 
@@ -90,8 +80,8 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -200.0
-offset_top = -160.0
+offset_left = -108.0
+offset_top = -80.0
 grow_horizontal = 0
 grow_vertical = 0
 

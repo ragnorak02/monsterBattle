@@ -5,10 +5,10 @@ var _current_encounter_overworld_id: int = -1
 var _current_encounter_level: int = 5
 
 @onready var tile_map: TileMapLayer = $TileMapLayer
-@onready var player: CharacterBody2D = $Player
-@onready var npcs_container: Node2D = $NPCs
-@onready var follower: Node2D = $Follower
-@onready var wild_monsters_container: Node2D = $WildMonsters
+@onready var player: CharacterBody2D = $YSortRoot/Player
+@onready var npcs_container: Node2D = $YSortRoot/NPCs
+@onready var follower: Node2D = $YSortRoot/Follower
+@onready var wild_monsters_container: Node2D = $YSortRoot/WildMonsters
 @onready var ui_layer: CanvasLayer = $UILayer
 @onready var battle_layer: CanvasLayer = $BattleLayer
 @onready var hint_bar: PanelContainer = $UILayer/ControllerHintBar
@@ -113,9 +113,9 @@ func _setup_tilemap(area_config: Dictionary) -> void:
 
 func _setup_town_tilemap(tile_set: TileSet, map_size: int) -> void:
 	var source := TileSetAtlasSource.new()
-	var tex := load("res://assets/sprites/overworld/tileset_town.png") as Texture2D
+	var tex := AssetRegistry.load_texture(AssetRegistry.tileset_town)
 	if not tex:
-		tex = load("res://assets/sprites/overworld/tileset_placeholder.png") as Texture2D
+		tex = AssetRegistry.load_texture(AssetRegistry.tileset_route)
 	if tex:
 		source.texture = tex
 		source.texture_region_size = Vector2i(16, 16)
@@ -219,7 +219,7 @@ func _setup_town_tilemap(tile_set: TileSet, map_size: int) -> void:
 
 func _setup_route_tilemap(tile_set: TileSet, map_size: int) -> void:
 	var source := TileSetAtlasSource.new()
-	var tex := load("res://assets/sprites/overworld/tileset_placeholder.png") as Texture2D
+	var tex := AssetRegistry.load_texture(AssetRegistry.tileset_route)
 	if tex:
 		source.texture = tex
 		source.texture_region_size = Vector2i(16, 16)

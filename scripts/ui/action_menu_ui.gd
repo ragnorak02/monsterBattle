@@ -19,6 +19,8 @@ var _in_items_mode: bool = false
 func _ready() -> void:
 	catch_button.pressed.connect(func(): catch_selected.emit())
 	run_button.pressed.connect(func(): run_selected.emit())
+	catch_button.add_theme_font_size_override("font_size", 8)
+	run_button.add_theme_font_size_override("font_size", 8)
 
 const TYPE_COLORS: Dictionary = {
 	"Fire": Color(1.0, 0.4, 0.2),
@@ -45,9 +47,8 @@ func setup_skills(skills: Array) -> void:
 		var stype: String = str(skill.get("skill_type")) if skill.get("skill_type") else "Normal"
 		var category: String = str(skill.get("category")) if skill.get("category") else "physical"
 		var cat_tag: String = "[P]" if category == "physical" else "[S]"
-		var accuracy: float = float(skill.get("accuracy")) if skill.get("accuracy") else 1.0
-		var acc_str: String = " Acc:%d%%" % int(accuracy * 100) if accuracy < 1.0 else ""
-		btn.text = "%s %s [%s] Pow:%d%s" % [cat_tag, str(skill.get("skill_name")), stype, int(skill.get("power")), acc_str]
+		btn.text = "%s %s Pow:%d" % [cat_tag, str(skill.get("skill_name")), int(skill.get("power"))]
+		btn.add_theme_font_size_override("font_size", 8)
 		# Type color tint
 		if TYPE_COLORS.has(stype):
 			var style := StyleBoxFlat.new()
@@ -55,7 +56,7 @@ func setup_skills(skills: Array) -> void:
 			style.set_border_width_all(1)
 			style.border_color = Color(TYPE_COLORS[stype], 0.5)
 			style.set_corner_radius_all(3)
-			style.set_content_margin_all(4)
+			style.set_content_margin_all(2)
 			btn.add_theme_stylebox_override("normal", style)
 		btn.pressed.connect(func(): skill_selected.emit(skill))
 		skill_container.add_child(btn)
@@ -67,6 +68,7 @@ func setup_skills(skills: Array) -> void:
 		_items_button = null
 	_items_button = Button.new()
 	_items_button.text = "Items"
+	_items_button.add_theme_font_size_override("font_size", 8)
 	_items_button.pressed.connect(_on_items_pressed)
 	skill_container.add_child(_items_button)
 
@@ -107,6 +109,7 @@ func _show_items_submenu() -> void:
 		var empty_label := Button.new()
 		empty_label.text = "No items!"
 		empty_label.disabled = true
+		empty_label.add_theme_font_size_override("font_size", 8)
 		skill_container.add_child(empty_label)
 		_item_buttons.append(empty_label)
 	else:
@@ -114,12 +117,14 @@ func _show_items_submenu() -> void:
 			var btn := Button.new()
 			var iid: String = item["id"]
 			btn.text = "%s x%d" % [item["name"], item["count"]]
+			btn.add_theme_font_size_override("font_size", 8)
 			btn.pressed.connect(func(): _on_item_picked(iid))
 			skill_container.add_child(btn)
 			_item_buttons.append(btn)
 
 	var back_btn := Button.new()
 	back_btn.text = "Back"
+	back_btn.add_theme_font_size_override("font_size", 8)
 	back_btn.pressed.connect(_close_items_submenu)
 	skill_container.add_child(back_btn)
 	_item_buttons.append(back_btn)

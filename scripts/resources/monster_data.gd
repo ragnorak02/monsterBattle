@@ -18,3 +18,9 @@ extends Resource
 @export var evolves_into_id: int = 0
 @export var evolution_level: int = 0
 @export var learnable_skills: Dictionary = {}  # { int_level: SkillData resource }
+@export var hp_growth: float = 1.0
+@export var atk_growth: float = 1.0
+@export var def_growth: float = 1.0
+@export var agi_growth: float = 1.0
+@export var sp_atk_growth: float = 1.0
+@export var sp_def_growth: float = 1.0

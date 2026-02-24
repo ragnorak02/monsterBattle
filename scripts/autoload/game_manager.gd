@@ -3,6 +3,7 @@ extends Node
 signal party_changed
 signal inventory_changed
 signal pc_storage_changed
+signal registry_changed
 
 var player_gender: String = ""  # "boy" or "girl"
 var player_party: Array[MonsterInstance] = []
@@ -11,6 +12,8 @@ var defeated_monster_ids: Array[int] = []  # Track removed overworld monsters (l
 var is_in_battle: bool = false
 var is_in_menu: bool = false
 var is_in_dialogue: bool = false
+var monster_registry_seen: Dictionary = {}
+var monster_registry_caught: Dictionary = {}
 
 # ── Inventory ──
 var inventory: Dictionary = {}  # { item_id: count }
@@ -119,6 +122,53 @@ func move_party_to_pc(party_index: int) -> bool:
 	party_changed.emit()
 	pc_storage_changed.emit()
 	return true
+
+# ── Monster Registry Methods ──
+
+func mark_monster_seen(id: int) -> void:
+	if id <= 0:
+		return
+	if not monster_registry_seen.has(id):
+		monster_registry_seen[id] = true
+		registry_changed.emit()
+
+func mark_monster_caught(id: int) -> void:
+	if id <= 0:
+		return
+	var changed := false
+	if not monster_registry_seen.has(id):
+		monster_registry_seen[id] = true
+		changed = true
+	if not monster_registry_caught.has(id):
+		monster_registry_caught[id] = true
+		changed = true
+	if changed:
+		registry_changed.emit()
+
+func is_monster_seen(id: int) -> bool:
+	return monster_registry_seen.has(id)
+
+func is_monster_caught(id: int) -> bool:
+	return monster_registry_caught.has(id)
+
+func get_seen_count() -> int:
+	return monster_registry_seen.size()
+
+func get_caught_count() -> int:
+	return monster_registry_caught.size()
+
+func get_total_monster_count() -> int:
+	return MonsterDB.monsters.size()
+
+func sync_registry_from_owned_monsters() -> void:
+	for monster in player_party:
+		var id: int = int(monster.base_data.get("id"))
+		if id > 0:
+			mark_monster_caught(id)
+	for monster in pc_storage:
+		var id: int = int(monster.base_data.get("id"))
+		if id > 0:
+			mark_monster_caught(id)
 
 # ── Inventory Methods ──
 

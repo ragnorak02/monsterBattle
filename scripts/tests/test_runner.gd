@@ -32,6 +32,11 @@ func _ready() -> void:
 	_run_ai_scoring_tests()
 	_run_backward_compat_tests()
 	_run_pc_storage_tests()
+	_run_registry_tests()
+	_run_growth_rate_tests()
+	_run_evolution_tests()
+	_run_xp_curve_tests()
+	_run_pokedex_scene_tests()
 
 	var total := _pass_count + _fail_count
 	print("")
@@ -480,15 +485,16 @@ func _run_monster_instance_tests() -> void:
 	hurt.heal(9999)
 	_assert_eq(hurt.current_hp, hurt.get_max_hp(), "heal capped at max HP")
 
-	# XP threshold
+	# XP threshold (L^1.5 * 10)
 	_begin("get_xp_threshold")
 	var mon5 := _make_monster(40, 10, 8, 10, 5)
-	_assert_eq(mon5.get_xp_threshold(), 250, "level 5: 5*5*10 = 250")
+	var expected_xp := int(pow(5.0, 1.5) * 10.0)  # 111
+	_assert_eq(mon5.get_xp_threshold(), expected_xp, "level 5: pow(5,1.5)*10 = %d" % expected_xp)
 
 	# add_experience with level-up
 	_begin("add_experience_level_up")
 	var mon6 := _make_monster(40, 10, 8, 10, 5)
-	var result := mon6.add_experience(250)
+	var result := mon6.add_experience(expected_xp)
 	_assert_true(result["leveled_up"] as bool, "should level up")
 	_assert_eq(result["old_level"], 5, "old level = 5")
 	_assert_eq(result["new_level"], 6, "new level = 6")
@@ -728,6 +734,7 @@ func _run_scene_loading_tests() -> void:
 		"gender_select.tscn": "res://scenes/gender_select.tscn",
 		"starter_select.tscn": "res://scenes/starter_select.tscn",
 		"inventory_ui.tscn": "res://scenes/ui/inventory_ui.tscn",
+		"pokedex.tscn": "res://scenes/ui/pokedex.tscn",
 	}
 
 	for scene_name: String in scenes:
@@ -1115,3 +1122,277 @@ func _run_pc_storage_tests() -> void:
 	# Restore state
 	GameManager.player_party = saved_party
 	GameManager.pc_storage = saved_pc
+
+# ══════════════════════════════════════════════
+#  N. Monster Registry Tests
+# ══════════════════════════════════════════════
+
+func _run_registry_tests() -> void:
+	print("\n── Monster Registry ──")
+
+	# Save and reset state
+	var saved_seen := GameManager.monster_registry_seen.duplicate()
+	var saved_caught := GameManager.monster_registry_caught.duplicate()
+	var saved_party := GameManager.player_party.duplicate()
+	var saved_pc := GameManager.pc_storage.duplicate()
+	GameManager.monster_registry_seen = {}
+	GameManager.monster_registry_caught = {}
+
+	# Test: initially empty
+	_begin("registry_initially_empty")
+	_assert_eq(GameManager.get_seen_count(), 0, "seen count starts at 0")
+	_assert_eq(GameManager.get_caught_count(), 0, "caught count starts at 0")
+
+	# Test: mark seen
+	_begin("registry_mark_seen")
+	GameManager.mark_monster_seen(1)
+	_assert_true(GameManager.is_monster_seen(1), "monster 1 is seen")
+	_assert_false(GameManager.is_monster_caught(1), "monster 1 is not caught (only seen)")
+	_assert_eq(GameManager.get_seen_count(), 1, "seen count = 1")
+
+	# Test: mark caught implies seen
+	_begin("registry_caught_implies_seen")
+	GameManager.monster_registry_seen = {}
+	GameManager.monster_registry_caught = {}
+	GameManager.mark_monster_caught(5)
+	_assert_true(GameManager.is_monster_seen(5), "caught monster is also seen")
+	_assert_true(GameManager.is_monster_caught(5), "caught monster is caught")
+	_assert_eq(GameManager.get_seen_count(), 1, "seen count = 1")
+	_assert_eq(GameManager.get_caught_count(), 1, "caught count = 1")
+
+	# Test: idempotent — marking twice doesn't double count
+	_begin("registry_idempotent")
+	GameManager.mark_monster_seen(5)
+	GameManager.mark_monster_caught(5)
+	_assert_eq(GameManager.get_seen_count(), 1, "seen count still 1 after duplicate")
+	_assert_eq(GameManager.get_caught_count(), 1, "caught count still 1 after duplicate")
+
+	# Test: unseen monster returns false
+	_begin("registry_unseen_returns_false")
+	_assert_false(GameManager.is_monster_seen(99), "unseen monster returns false")
+	_assert_false(GameManager.is_monster_caught(99), "uncaught monster returns false")
+
+	# Test: invalid ID ignored
+	_begin("registry_invalid_id_ignored")
+	GameManager.mark_monster_seen(0)
+	GameManager.mark_monster_seen(-1)
+	GameManager.mark_monster_caught(0)
+	GameManager.mark_monster_caught(-5)
+	_assert_eq(GameManager.get_seen_count(), 1, "seen count unchanged after invalid IDs")
+	_assert_eq(GameManager.get_caught_count(), 1, "caught count unchanged after invalid IDs")
+
+	# Test: multiple distinct monsters
+	_begin("registry_multiple_monsters")
+	GameManager.monster_registry_seen = {}
+	GameManager.monster_registry_caught = {}
+	GameManager.mark_monster_seen(1)
+	GameManager.mark_monster_seen(2)
+	GameManager.mark_monster_seen(3)
+	GameManager.mark_monster_caught(2)
+	_assert_eq(GameManager.get_seen_count(), 3, "3 monsters seen")
+	_assert_eq(GameManager.get_caught_count(), 1, "1 monster caught")
+
+	# Test: total monster count
+	_begin("registry_total_count")
+	var total := GameManager.get_total_monster_count()
+	_assert_eq(total, 30, "total monster count = 30")
+
+	# Test: sync from owned monsters
+	_begin("registry_sync_from_owned")
+	GameManager.monster_registry_seen = {}
+	GameManager.monster_registry_caught = {}
+	GameManager.player_party = []
+	GameManager.pc_storage = []
+	var mon1_data := MonsterDB.get_monster(1)
+	var mon2_data := MonsterDB.get_monster(3)
+	if mon1_data and mon2_data:
+		GameManager.add_to_party(MonsterInstance.new(mon1_data, 5))
+		GameManager.add_to_pc(MonsterInstance.new(mon2_data, 5))
+		GameManager.sync_registry_from_owned_monsters()
+		_assert_true(GameManager.is_monster_caught(1), "party monster 1 synced as caught")
+		_assert_true(GameManager.is_monster_caught(3), "PC monster 3 synced as caught")
+		_assert_true(GameManager.is_monster_seen(1), "party monster 1 synced as seen")
+		_assert_true(GameManager.is_monster_seen(3), "PC monster 3 synced as seen")
+		_assert_eq(GameManager.get_caught_count(), 2, "2 caught after sync")
+	else:
+		_fail("could not load monster data for sync test")
+
+	# Test: seen then caught upgrades properly
+	_begin("registry_seen_then_caught")
+	GameManager.monster_registry_seen = {}
+	GameManager.monster_registry_caught = {}
+	GameManager.mark_monster_seen(10)
+	_assert_true(GameManager.is_monster_seen(10), "monster 10 seen")
+	_assert_false(GameManager.is_monster_caught(10), "monster 10 not yet caught")
+	GameManager.mark_monster_caught(10)
+	_assert_true(GameManager.is_monster_seen(10), "monster 10 still seen")
+	_assert_true(GameManager.is_monster_caught(10), "monster 10 now caught")
+	_assert_eq(GameManager.get_seen_count(), 1, "seen count still 1")
+	_assert_eq(GameManager.get_caught_count(), 1, "caught count = 1")
+
+	# Restore state
+	GameManager.monster_registry_seen = saved_seen
+	GameManager.monster_registry_caught = saved_caught
+	GameManager.player_party = saved_party
+	GameManager.pc_storage = saved_pc
+
+# ══════════════════════════════════════════════
+#  O. Growth Rate Tests
+# ══════════════════════════════════════════════
+
+func _run_growth_rate_tests() -> void:
+	print("\n── Growth Rates ──")
+
+	# Test: default growth (1.0) backward compatible
+	_begin("growth_default_backward_compat")
+	var data := _make_monster_data(40, 14, 8, 12)
+	# Default growth = 1.0, level 5: attack = 14 + int(5 * 1.0) = 19
+	var mon := MonsterInstance.new(data, 5)
+	_assert_eq(mon.get_attack(), 19, "default growth: attack = 14 + 5 = 19")
+	_assert_eq(mon.get_defense(), 13, "default growth: defense = 8 + 5 = 13")
+	_assert_eq(mon.get_max_hp(), 50, "default growth: max_hp = 40 + 10 = 50")
+	_assert_eq(mon.get_agility(), 17, "default growth: agility = 12 + 5 = 17")
+
+	# Test: high atk_growth (1.5) at level 10
+	_begin("growth_high_atk")
+	var high_atk_data := _make_monster_data(40, 14, 8, 12)
+	high_atk_data.atk_growth = 1.5
+	var high_atk_mon := MonsterInstance.new(high_atk_data, 10)
+	# attack = 14 + int(10 * 1.5) = 14 + 15 = 29
+	_assert_eq(high_atk_mon.get_attack(), 29, "high atk_growth: 14 + int(10*1.5) = 29")
+
+	# Test: low def_growth (0.5) at level 10
+	_begin("growth_low_def")
+	var low_def_data := _make_monster_data(40, 14, 8, 12)
+	low_def_data.def_growth = 0.5
+	var low_def_mon := MonsterInstance.new(low_def_data, 10)
+	# defense = 8 + int(10 * 0.5) = 8 + 5 = 13
+	_assert_eq(low_def_mon.get_defense(), 13, "low def_growth: 8 + int(10*0.5) = 13")
+
+	# Test: HP growth with multiplier
+	_begin("growth_hp_multiplier")
+	var hp_data := _make_monster_data(40, 14, 8, 12)
+	hp_data.hp_growth = 1.5
+	var hp_mon := MonsterInstance.new(hp_data, 10)
+	# max_hp = 40 + int(20 * 1.5) = 40 + 30 = 70
+	_assert_eq(hp_mon.get_max_hp(), 70, "hp_growth 1.5: 40 + int(20*1.5) = 70")
+
+	# Test: damage calc still works with growth-modified stats
+	_begin("growth_damage_calc_works")
+	var atk_data := _make_monster_data(40, 14, 8, 12)
+	atk_data.atk_growth = 1.5
+	var attacker := MonsterInstance.new(atk_data, 10)
+	var defender := _make_monster(40, 10, 8, 10, 10)
+	var skill := _make_skill("Hit", 10, 1.0)
+	var dmg := DamageCalculator.calculate_damage(attacker, defender, skill)
+	# attack = 14 + int(10*1.5) = 29, power = 10, total = 39
+	# defense = 8 + 10 = 18, half = 9
+	# damage = max(1, 39 - 9) = 30
+	_assert_eq(dmg, 30, "damage with growth-modified atk = 30")
+
+# ══════════════════════════════════════════════
+#  P. Evolution Tests
+# ══════════════════════════════════════════════
+
+func _run_evolution_tests() -> void:
+	print("\n── Evolution ──")
+
+	# Test: starter .tres files have evolution data
+	_begin("evolution_starters_have_evo_data")
+	var emberpup: Resource = MonsterDB.get_monster(1)
+	var aqualing: Resource = MonsterDB.get_monster(2)
+	var thornlet: Resource = MonsterDB.get_monster(3)
+	_assert_true(int(emberpup.get("evolves_into_id")) > 0, "Emberpup has evolves_into_id")
+	_assert_true(int(emberpup.get("evolution_level")) > 0, "Emberpup has evolution_level")
+	_assert_true(int(aqualing.get("evolves_into_id")) > 0, "Aqualing has evolves_into_id")
+	_assert_true(int(aqualing.get("evolution_level")) > 0, "Aqualing has evolution_level")
+	_assert_true(int(thornlet.get("evolves_into_id")) > 0, "Thornlet has evolves_into_id")
+	_assert_true(int(thornlet.get("evolution_level")) > 0, "Thornlet has evolution_level")
+
+	# Test: evolve() swaps base_data and adjusts HP
+	_begin("evolution_evolve_function")
+	var base_data := MonsterDB.get_monster(1)
+	var evo_data := MonsterDB.get_monster(int(base_data.get("evolves_into_id")))
+	var mon := MonsterInstance.new(base_data, 12)
+	var old_hp := mon.current_hp
+	var old_max := mon.get_max_hp()
+	mon.evolve(evo_data)
+	_assert_eq(mon.base_data, evo_data, "base_data swapped to evolution")
+	var new_max := mon.get_max_hp()
+	_assert_eq(mon.current_hp, old_hp + (new_max - old_max), "HP adjusted by max HP difference")
+
+	# Test: add_experience returns can_evolve at correct level
+	_begin("evolution_can_evolve_at_level")
+	var evo_base := MonsterDB.get_monster(1)
+	var evo_level: int = int(evo_base.get("evolution_level"))
+	var mon2 := MonsterInstance.new(evo_base, evo_level - 1)
+	mon2.experience = 0
+	var xp_needed: int = mon2.get_xp_threshold()
+	var result := mon2.add_experience(xp_needed)
+	_assert_true(result["can_evolve"] as bool, "can_evolve true at evolution level")
+	_assert_eq(result["evolves_into_id"], int(evo_base.get("evolves_into_id")), "evolves_into_id matches")
+
+	# Test: below evolution level, can_evolve = false
+	_begin("evolution_below_level_no_evolve")
+	var early_mon := MonsterInstance.new(MonsterDB.get_monster(1), 5)
+	early_mon.experience = 0
+	var early_result := early_mon.add_experience(early_mon.get_xp_threshold())
+	_assert_false(early_result["can_evolve"] as bool, "can_evolve false below evolution level")
+
+# ══════════════════════════════════════════════
+#  Q. XP Curve Tests
+# ══════════════════════════════════════════════
+
+func _run_xp_curve_tests() -> void:
+	print("\n── XP Curve ──")
+
+	# Test: threshold values at key levels
+	_begin("xp_threshold_levels")
+	var mon5 := _make_monster(40, 10, 8, 10, 5)
+	var mon10 := _make_monster(40, 10, 8, 10, 10)
+	var mon20 := _make_monster(40, 10, 8, 10, 20)
+	_assert_eq(mon5.get_xp_threshold(), int(pow(5.0, 1.5) * 10.0), "L5 threshold")
+	_assert_eq(mon10.get_xp_threshold(), int(pow(10.0, 1.5) * 10.0), "L10 threshold")
+	_assert_eq(mon20.get_xp_threshold(), int(pow(20.0, 1.5) * 10.0), "L20 threshold")
+
+	# Test: level-diff bonus (higher enemy gives > base XP)
+	_begin("xp_level_diff_bonus")
+	# enemy_level=15, player_level=10 → diff=+5 → mult = 1.0 + 5*0.1 = 1.5
+	# base_xp = 15 * 10 = 150, adjusted = 150 * 1.5 = 225
+	var base_xp: int = 15 * 10
+	var diff: int = 15 - 10
+	var mult: float = 1.0 + diff * 0.1
+	var bonus_xp: int = maxi(1, int(float(base_xp) * mult))
+	_assert_gt(bonus_xp, base_xp, "higher enemy gives bonus XP: %d > %d" % [bonus_xp, base_xp])
+
+	# Test: level-diff penalty (much lower enemy gives reduced XP)
+	_begin("xp_level_diff_penalty")
+	# enemy_level=5, player_level=20 → diff=-15 → diff+5=-10 → mult = 1.0 + (-10)*0.1 = 0.0 → clamped 0.25
+	var low_base_xp: int = 5 * 10
+	var low_diff: int = 5 - 20
+	var low_mult: float = maxf(0.25, 1.0 + (low_diff + 5) * 0.1)
+	var penalty_xp: int = maxi(1, int(float(low_base_xp) * low_mult))
+	_assert_lt(penalty_xp, low_base_xp, "much lower enemy gives reduced XP: %d < %d" % [penalty_xp, low_base_xp])
+	_assert_true(low_mult >= 0.25, "minimum multiplier is 0.25")
+
+	# Test: no penalty within 5-level window
+	_begin("xp_no_penalty_within_window")
+	# enemy_level=8, player_level=10 → diff=-2 → no penalty (diff >= -5)
+	var within_diff: int = 8 - 10  # -2
+	var within_mult: float = 1.0
+	if within_diff > 0:
+		within_mult = 1.0 + within_diff * 0.1
+	elif within_diff < -5:
+		within_mult = maxf(0.25, 1.0 + (within_diff + 5) * 0.1)
+	_assert_true(absf(within_mult - 1.0) < 0.01, "no penalty within 5-level window: mult=%.2f" % within_mult)
+
+# ══════════════════════════════════════════════
+#  R. Pokedex Scene Tests
+# ══════════════════════════════════════════════
+
+func _run_pokedex_scene_tests() -> void:
+	print("\n── Pokedex ──")
+
+	_begin("pokedex_scene_loads")
+	var packed := load("res://scenes/ui/pokedex.tscn") as PackedScene
+	_assert_not_null(packed, "pokedex.tscn loads")

@@ -91,6 +91,7 @@ func _start_intro() -> void:
 	_state = BattleState.INTRO
 	action_menu.set_enabled(false)
 	_update_hints_for_state()
+	GameManager.mark_monster_seen(int(wild_monster_data.get("id")))
 	var msg := "A wild %s (Lv.%d) appeared!" % [_get_name(_enemy_monster), _enemy_monster.level]
 	print("[BATTLE] %s" % msg)
 	_show_message(msg)
@@ -159,6 +160,7 @@ func _on_catch_selected() -> void:
 		var enemy_name: String = _get_name(_enemy_monster)
 		print("[BATTLE] Catch success!")
 		var caught_instance := _build_caught_instance()
+		GameManager.mark_monster_caught(int(wild_monster_data.get("id")))
 		if GameManager.player_party.size() < 6:
 			GameManager.add_to_party(caught_instance)
 			_show_message("Gotcha! %s was caught!" % enemy_name)
@@ -273,6 +275,7 @@ func _on_item_selected(item_id: String) -> void:
 			var enemy_name: String = _get_name(_enemy_monster)
 			print("[BATTLE] Catch success!")
 			var caught_instance := _build_caught_instance()
+			GameManager.mark_monster_caught(int(wild_monster_data.get("id")))
 			if GameManager.player_party.size() < 6:
 				GameManager.add_to_party(caught_instance)
 				_show_message("Gotcha! %s was caught!" % enemy_name)
@@ -548,7 +551,14 @@ func _check_faint() -> bool:
 
 func _grant_xp() -> void:
 	_state = BattleState.XP_REWARD
-	var xp_amount: int = _enemy_monster.level * 10
+	var base_xp: int = _enemy_monster.level * 10
+	var level_diff: int = _enemy_monster.level - _player_monster.level
+	var multiplier: float = 1.0
+	if level_diff > 0:
+		multiplier = 1.0 + level_diff * 0.1
+	elif level_diff < -5:
+		multiplier = maxf(0.25, 1.0 + (level_diff + 5) * 0.1)
+	var xp_amount: int = maxi(1, int(float(base_xp) * multiplier))
 	var p_name: String = _get_name(_player_monster)
 	print("[BATTLE] %s gained %d XP" % [p_name, xp_amount])
 	_show_message("%s gained %d XP!" % [p_name, xp_amount])
@@ -616,11 +626,38 @@ func _handle_evolution(evolves_into_id: int) -> void:
 	var new_name: String = str(new_data.get("monster_name"))
 	print("[BATTLE] %s is evolving into %s!" % [old_name, new_name])
 	_show_message("What? %s is evolving!" % old_name)
-	await get_tree().create_timer(2.0).timeout
+	await get_tree().create_timer(1.0).timeout
+
+	# Flash pulses — 3 cycles, accelerating
+	for duration: float in [0.4, 0.3, 0.2]:
+		var flash_tween := create_tween()
+		flash_tween.tween_property(player_display, "modulate", Color(3, 3, 3), duration * 0.5)
+		flash_tween.tween_property(player_display, "modulate", Color(1, 1, 1), duration * 0.5)
+		await flash_tween.finished
+
+	# Scale bounce from center
+	player_display.pivot_offset = player_display.size / 2.0
+	var scale_tween := create_tween()
+	scale_tween.tween_property(player_display, "scale", Vector2(1.2, 1.2), 0.15)
+	scale_tween.tween_property(player_display, "scale", Vector2(0.9, 0.9), 0.1)
+	scale_tween.tween_property(player_display, "scale", Vector2(1.0, 1.0), 0.1)
+	await scale_tween.finished
+
+	# White flash — swap sprite while white
+	var white_tween := create_tween()
+	white_tween.tween_property(player_display, "modulate", Color(5, 5, 5), 0.15)
+	await white_tween.finished
 
 	_player_monster.evolve(new_data)
-	_show_message("%s evolved into %s!" % [old_name, new_name])
+	GameManager.mark_monster_caught(evolves_into_id)
 	player_display.setup(_player_monster, true)
+
+	# Reveal — fade modulate back to normal
+	var reveal_tween := create_tween()
+	reveal_tween.tween_property(player_display, "modulate", Color(1, 1, 1), 0.5)
+	await reveal_tween.finished
+
+	_show_message("%s evolved into %s!" % [old_name, new_name])
 	await get_tree().create_timer(2.0).timeout
 
 func _show_message(text: String) -> void:

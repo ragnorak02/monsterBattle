@@ -306,7 +306,7 @@
 			"status": "pass"
 		},
 		{
-			"message": "level 5: 5*5*10 = 250",
+			"message": "level 5: pow(5,1.5)*10 = 111",
 			"name": "get_xp_threshold",
 			"status": "pass"
 		},
@@ -436,6 +436,36 @@
 			"status": "pass"
 		},
 		{
+			"message": "antidote type is cure",
+			"name": "antidote_item_def",
+			"status": "pass"
+		},
+		{
+			"message": "antidote value is poison",
+			"name": "antidote_item_def",
+			"status": "pass"
+		},
+		{
+			"message": "antidote appears in battle items",
+			"name": "antidote_in_battle_items",
+			"status": "pass"
+		},
+		{
+			"message": "monster is poisoned",
+			"name": "antidote_cures_poison",
+			"status": "pass"
+		},
+		{
+			"message": "monster cured after clear_status",
+			"name": "antidote_cures_poison",
+			"status": "pass"
+		},
+		{
+			"message": "has_status false after cure",
+			"name": "antidote_cures_poison",
+			"status": "pass"
+		},
+		{
 			"message": "town position saved",
 			"name": "area_position_persistence",
 			"status": "pass"
@@ -533,6 +563,11 @@
 		{
 			"message": "scene loads: inventory_ui.tscn",
 			"name": "load_scene_inventory_ui",
+			"status": "pass"
+		},
+		{
+			"message": "scene loads: pokedex.tscn",
+			"name": "load_scene_pokedex",
 			"status": "pass"
 		},
 		{
@@ -714,11 +749,371 @@
 			"message": "check_accuracy(skill) backward compat",
 			"name": "compat_check_accuracy_one_arg",
 			"status": "pass"
+		},
+		{
+			"message": "PC has 1 monster after add",
+			"name": "pc_add_and_count",
+			"status": "pass"
+		},
+		{
+			"message": "PC has 2 monsters after second add",
+			"name": "pc_add_and_count",
+			"status": "pass"
+		},
+		{
+			"message": "move_pc_to_party returns true",
+			"name": "pc_move_to_party",
+			"status": "pass"
+		},
+		{
+			"message": "party has 1 after withdraw",
+			"name": "pc_move_to_party",
+			"status": "pass"
+		},
+		{
+			"message": "PC empty after withdraw",
+			"name": "pc_move_to_party",
+			"status": "pass"
+		},
+		{
+			"message": "correct monster withdrawn",
+			"name": "pc_move_to_party",
+			"status": "pass"
+		},
+		{
+			"message": "move_pc_to_party blocked when party full",
+			"name": "pc_move_to_party_full",
+			"status": "pass"
+		},
+		{
+			"message": "party still 6",
+			"name": "pc_move_to_party_full",
+			"status": "pass"
+		},
+		{
+			"message": "PC still 1",
+			"name": "pc_move_to_party_full",
+			"status": "pass"
+		},
+		{
+			"message": "move_party_to_pc returns true",
+			"name": "pc_move_party_to_pc",
+			"status": "pass"
+		},
+		{
+			"message": "party has 1 after deposit",
+			"name": "pc_move_party_to_pc",
+			"status": "pass"
+		},
+		{
+			"message": "PC has 1 after deposit",
+			"name": "pc_move_party_to_pc",
+			"status": "pass"
+		},
+		{
+			"message": "correct monster deposited",
+			"name": "pc_move_party_to_pc",
+			"status": "pass"
+		},
+		{
+			"message": "move_party_to_pc blocked when only 1 in party",
+			"name": "pc_cant_box_last",
+			"status": "pass"
+		},
+		{
+			"message": "party still 1",
+			"name": "pc_cant_box_last",
+			"status": "pass"
+		},
+		{
+			"message": "PC still empty",
+			"name": "pc_cant_box_last",
+			"status": "pass"
+		},
+		{
+			"message": "seen count starts at 0",
+			"name": "registry_initially_empty",
+			"status": "pass"
+		},
+		{
+			"message": "caught count starts at 0",
+			"name": "registry_initially_empty",
+			"status": "pass"
+		},
+		{
+			"message": "monster 1 is seen",
+			"name": "registry_mark_seen",
+			"status": "pass"
+		},
+		{
+			"message": "monster 1 is not caught (only seen)",
+			"name": "registry_mark_seen",
+			"status": "pass"
+		},
+		{
+			"message": "seen count = 1",
+			"name": "registry_mark_seen",
+			"status": "pass"
+		},
+		{
+			"message": "caught monster is also seen",
+			"name": "registry_caught_implies_seen",
+			"status": "pass"
+		},
+		{
+			"message": "caught monster is caught",
+			"name": "registry_caught_implies_seen",
+			"status": "pass"
+		},
+		{
+			"message": "seen count = 1",
+			"name": "registry_caught_implies_seen",
+			"status": "pass"
+		},
+		{
+			"message": "caught count = 1",
+			"name": "registry_caught_implies_seen",
+			"status": "pass"
+		},
+		{
+			"message": "seen count still 1 after duplicate",
+			"name": "registry_idempotent",
+			"status": "pass"
+		},
+		{
+			"message": "caught count still 1 after duplicate",
+			"name": "registry_idempotent",
+			"status": "pass"
+		},
+		{
+			"message": "unseen monster returns false",
+			"name": "registry_unseen_returns_false",
+			"status": "pass"
+		},
+		{
+			"message": "uncaught monster returns false",
+			"name": "registry_unseen_returns_false",
+			"status": "pass"
+		},
+		{
+			"message": "seen count unchanged after invalid IDs",
+			"name": "registry_invalid_id_ignored",
+			"status": "pass"
+		},
+		{
+			"message": "caught count unchanged after invalid IDs",
+			"name": "registry_invalid_id_ignored",
+			"status": "pass"
+		},
+		{
+			"message": "3 monsters seen",
+			"name": "registry_multiple_monsters",
+			"status": "pass"
+		},
+		{
+			"message": "1 monster caught",
+			"name": "registry_multiple_monsters",
+			"status": "pass"
+		},
+		{
+			"message": "total monster count = 30",
+			"name": "registry_total_count",
+			"status": "pass"
+		},
+		{
+			"message": "party monster 1 synced as caught",
+			"name": "registry_sync_from_owned",
+			"status": "pass"
+		},
+		{
+			"message": "PC monster 3 synced as caught",
+			"name": "registry_sync_from_owned",
+			"status": "pass"
+		},
+		{
+			"message": "party monster 1 synced as seen",
+			"name": "registry_sync_from_owned",
+			"status": "pass"
+		},
+		{
+			"message": "PC monster 3 synced as seen",
+			"name": "registry_sync_from_owned",
+			"status": "pass"
+		},
+		{
+			"message": "2 caught after sync",
+			"name": "registry_sync_from_owned",
+			"status": "pass"
+		},
+		{
+			"message": "monster 10 seen",
+			"name": "registry_seen_then_caught",
+			"status": "pass"
+		},
+		{
+			"message": "monster 10 not yet caught",
+			"name": "registry_seen_then_caught",
+			"status": "pass"
+		},
+		{
+			"message": "monster 10 still seen",
+			"name": "registry_seen_then_caught",
+			"status": "pass"
+		},
+		{
+			"message": "monster 10 now caught",
+			"name": "registry_seen_then_caught",
+			"status": "pass"
+		},
+		{
+			"message": "seen count still 1",
+			"name": "registry_seen_then_caught",
+			"status": "pass"
+		},
+		{
+			"message": "caught count = 1",
+			"name": "registry_seen_then_caught",
+			"status": "pass"
+		},
+		{
+			"message": "default growth: attack = 14 + 5 = 19",
+			"name": "growth_default_backward_compat",
+			"status": "pass"
+		},
+		{
+			"message": "default growth: defense = 8 + 5 = 13",
+			"name": "growth_default_backward_compat",
+			"status": "pass"
+		},
+		{
+			"message": "default growth: max_hp = 40 + 10 = 50",
+			"name": "growth_default_backward_compat",
+			"status": "pass"
+		},
+		{
+			"message": "default growth: agility = 12 + 5 = 17",
+			"name": "growth_default_backward_compat",
+			"status": "pass"
+		},
+		{
+			"message": "high atk_growth: 14 + int(10*1.5) = 29",
+			"name": "growth_high_atk",
+			"status": "pass"
+		},
+		{
+			"message": "low def_growth: 8 + int(10*0.5) = 13",
+			"name": "growth_low_def",
+			"status": "pass"
+		},
+		{
+			"message": "hp_growth 1.5: 40 + int(20*1.5) = 70",
+			"name": "growth_hp_multiplier",
+			"status": "pass"
+		},
+		{
+			"message": "damage with growth-modified atk = 30",
+			"name": "growth_damage_calc_works",
+			"status": "pass"
+		},
+		{
+			"message": "Emberpup has evolves_into_id",
+			"name": "evolution_starters_have_evo_data",
+			"status": "pass"
+		},
+		{
+			"message": "Emberpup has evolution_level",
+			"name": "evolution_starters_have_evo_data",
+			"status": "pass"
+		},
+		{
+			"message": "Aqualing has evolves_into_id",
+			"name": "evolution_starters_have_evo_data",
+			"status": "pass"
+		},
+		{
+			"message": "Aqualing has evolution_level",
+			"name": "evolution_starters_have_evo_data",
+			"status": "pass"
+		},
+		{
+			"message": "Thornlet has evolves_into_id",
+			"name": "evolution_starters_have_evo_data",
+			"status": "pass"
+		},
+		{
+			"message": "Thornlet has evolution_level",
+			"name": "evolution_starters_have_evo_data",
+			"status": "pass"
+		},
+		{
+			"message": "base_data swapped to evolution",
+			"name": "evolution_evolve_function",
+			"status": "pass"
+		},
+		{
+			"message": "HP adjusted by max HP difference",
+			"name": "evolution_evolve_function",
+			"status": "pass"
+		},
+		{
+			"message": "can_evolve true at evolution level",
+			"name": "evolution_can_evolve_at_level",
+			"status": "pass"
+		},
+		{
+			"message": "evolves_into_id matches",
+			"name": "evolution_can_evolve_at_level",
+			"status": "pass"
+		},
+		{
+			"message": "can_evolve false below evolution level",
+			"name": "evolution_below_level_no_evolve",
+			"status": "pass"
+		},
+		{
+			"message": "L5 threshold",
+			"name": "xp_threshold_levels",
+			"status": "pass"
+		},
+		{
+			"message": "L10 threshold",
+			"name": "xp_threshold_levels",
+			"status": "pass"
+		},
+		{
+			"message": "L20 threshold",
+			"name": "xp_threshold_levels",
+			"status": "pass"
+		},
+		{
+			"message": "higher enemy gives bonus XP: 225 > 150",
+			"name": "xp_level_diff_bonus",
+			"status": "pass"
+		},
+		{
+			"message": "much lower enemy gives reduced XP: 12 < 50",
+			"name": "xp_level_diff_penalty",
+			"status": "pass"
+		},
+		{
+			"message": "minimum multiplier is 0.25",
+			"name": "xp_level_diff_penalty",
+			"status": "pass"
+		},
+		{
+			"message": "no penalty within 5-level window: mult=1.00",
+			"name": "xp_no_penalty_within_window",
+			"status": "pass"
+		},
+		{
+			"message": "pokedex.tscn loads",
+			"name": "pokedex_scene_loads",
+			"status": "pass"
 		}
 	],
-	"durationMs": 333,
+	"durationMs": 334,
 	"status": "pass",
-	"testsPassed": 143.0,
-	"testsTotal": 143.0,
-	"timestamp": "2026-02-23T06:23:41"
+	"testsPassed": 222.0,
+	"testsTotal": 222.0,
+	"timestamp": "2026-02-24T22:42:02"
 }

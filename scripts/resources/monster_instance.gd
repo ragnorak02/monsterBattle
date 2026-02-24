@@ -29,22 +29,26 @@ func _init(p_base: Resource = null, p_level: int = 5) -> void:
 
 func get_max_hp() -> int:
 	if base_data:
-		return int(base_data.get("max_hp")) + (level * 2)
+		var growth: float = float(base_data.get("hp_growth")) if base_data.get("hp_growth") else 1.0
+		return int(base_data.get("max_hp")) + int(float(level * 2) * growth)
 	return 1
 
 func get_attack() -> int:
 	if base_data:
-		return int(base_data.get("attack")) + level
+		var growth: float = float(base_data.get("atk_growth")) if base_data.get("atk_growth") else 1.0
+		return int(base_data.get("attack")) + int(float(level) * growth)
 	return 1
 
 func get_defense() -> int:
 	if base_data:
-		return int(base_data.get("defense")) + level
+		var growth: float = float(base_data.get("def_growth")) if base_data.get("def_growth") else 1.0
+		return int(base_data.get("defense")) + int(float(level) * growth)
 	return 1
 
 func get_agility() -> int:
 	if base_data:
-		return int(base_data.get("agility")) + level
+		var growth: float = float(base_data.get("agi_growth")) if base_data.get("agi_growth") else 1.0
+		return int(base_data.get("agility")) + int(float(level) * growth)
 	return 1
 
 func is_fainted() -> bool:
@@ -77,14 +81,16 @@ func get_sp_attack() -> int:
 	if base_data:
 		var sp_atk: int = int(base_data.get("sp_attack")) if base_data.get("sp_attack") else 0
 		if sp_atk > 0:
-			return sp_atk + level
+			var growth: float = float(base_data.get("sp_atk_growth")) if base_data.get("sp_atk_growth") else 1.0
+			return sp_atk + int(float(level) * growth)
 	return get_attack()
 
 func get_sp_defense() -> int:
 	if base_data:
 		var sp_def: int = int(base_data.get("sp_defense")) if base_data.get("sp_defense") else 0
 		if sp_def > 0:
-			return sp_def + level
+			var growth: float = float(base_data.get("sp_def_growth")) if base_data.get("sp_def_growth") else 1.0
+			return sp_def + int(float(level) * growth)
 	return get_defense()
 
 func get_attack_stage_multiplier() -> float:
@@ -131,7 +137,7 @@ func modify_evasion_stage(amount: int) -> void:
 	evasion_stage = clampi(evasion_stage + amount, -6, 6)
 
 func get_xp_threshold() -> int:
-	return level * level * 10
+	return int(pow(float(level), 1.5) * 10.0)
 
 func add_experience(amount: int) -> Dictionary:
 	experience += amount

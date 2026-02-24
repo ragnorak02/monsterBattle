@@ -13,12 +13,6 @@ offset_right = 200.0
 offset_bottom = 180.0
 theme_override_constants/separation = 4
 
-[node name="Sprite" type="TextureRect" parent="VBox"]
-layout_mode = 2
-custom_minimum_size = Vector2(64, 64)
-stretch_mode = 5
-expand_mode = 1
-
 [node name="InfoBox" type="VBoxContainer" parent="VBox"]
 layout_mode = 2
 theme_override_constants/separation = 2
@@ -38,3 +32,10 @@ layout_mode = 2
 layout_mode = 2
 text = ""
 horizontal_alignment = 0
+
+[node name="Sprite" type="TextureRect" parent="VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(64, 64)
+size_flags_vertical = 3
+stretch_mode = 5
+expand_mode = 1
