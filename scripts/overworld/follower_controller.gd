@@ -4,7 +4,7 @@ extends Node2D
 ## 3-state machine: FOLLOWING → IDLE → ROAMING.
 ## Displays party[0]'s front_sprite scaled down.
 
-enum State { FOLLOWING, IDLE, ROAMING }
+enum State { FOLLOWING, IDLE, ROAMING, DASHING }
 
 # ── Constants ──
 const TRAIL_LENGTH := 10
@@ -21,6 +21,9 @@ const BREATHE_SPEED := 3.0
 const SPRITE_SCALE := Vector2(0.5, 0.5)
 const BEHIND_CHECK_DOT := 0.0
 const FRONT_CONE_DIST := 24.0
+const DASH_SPEED := 200.0
+const DASH_DURATION := 0.4
+const DASH_RANGE := 60.0
 
 # ── State ──
 var _state: State = State.FOLLOWING
@@ -31,6 +34,10 @@ var _roam_angle: float = 0.0
 var _roam_origin: Vector2 = Vector2.ZERO
 var _time: float = 0.0
 var _last_player_pos: Vector2 = Vector2.ZERO
+var _dash_direction: Vector2 = Vector2.ZERO
+var _dash_timer: float = 0.0
+var _dash_origin: Vector2 = Vector2.ZERO
+var _dash_hitbox: Area2D = null
 
 @onready var sprite: Sprite2D = $Sprite2D
 
@@ -65,6 +72,8 @@ func _physics_process(delta: float) -> void:
 			_process_idle(delta, player_pos)
 		State.ROAMING:
 			_process_roaming(delta, player_pos)
+		State.DASHING:
+			_process_dashing(delta, player_pos)
 
 	_last_player_pos = player_pos
 
@@ -212,3 +221,58 @@ func _update_sprite() -> void:
 
 func _on_party_changed() -> void:
 	_update_sprite()
+
+# ── Dash Action ──
+
+func perform_action(direction: Vector2) -> void:
+	if _state == State.DASHING or not visible:
+		return
+	_state = State.DASHING
+	_dash_direction = direction.normalized() if direction != Vector2.ZERO else Vector2.DOWN
+	_dash_timer = 0.0
+	_dash_origin = global_position
+
+	# Create hitbox
+	_dash_hitbox = Area2D.new()
+	_dash_hitbox.collision_layer = 0
+	_dash_hitbox.collision_mask = 12  # layers 4 + 8
+	var shape := CollisionShape2D.new()
+	var circle := CircleShape2D.new()
+	circle.radius = 14.0
+	shape.shape = circle
+	_dash_hitbox.add_child(shape)
+	add_child(_dash_hitbox)
+	_dash_hitbox.body_entered.connect(_on_dash_hit)
+
+	# Visual: scale up for charge feel
+	sprite.scale = SPRITE_SCALE * 1.3
+
+	# SFX
+	AudioManager.play_sfx("res://assets/audio/sfx/hit.wav")
+
+func _process_dashing(delta: float, _player_pos: Vector2) -> void:
+	_dash_timer += delta
+	global_position += _dash_direction * DASH_SPEED * delta
+
+	# End when duration expires or distance exceeded
+	var dist: float = global_position.distance_to(_dash_origin)
+	if _dash_timer >= DASH_DURATION or dist >= DASH_RANGE:
+		_end_dash()
+
+func _on_dash_hit(body: Node2D) -> void:
+	if body.has_method("take_overworld_hit"):
+		body.take_overworld_hit()
+
+func _end_dash() -> void:
+	_state = State.FOLLOWING
+	_idle_timer = 0.0
+	sprite.scale = SPRITE_SCALE
+	sprite.offset.y = 0.0
+	if _dash_hitbox and is_instance_valid(_dash_hitbox):
+		_dash_hitbox.queue_free()
+		_dash_hitbox = null
+
+func _exit_tree() -> void:
+	if _dash_hitbox and is_instance_valid(_dash_hitbox):
+		_dash_hitbox.queue_free()
+		_dash_hitbox = null

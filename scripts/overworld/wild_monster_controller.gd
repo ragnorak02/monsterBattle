@@ -81,10 +81,33 @@ func on_battle_ended(was_defeated: bool) -> void:
 		_cooldown_timer = COOLDOWN_DURATION
 		sprite.modulate = Color(1, 1, 1, 0.5)
 
+func take_overworld_hit() -> void:
+	if _is_on_cooldown:
+		return
+	_is_on_cooldown = true
+	set_physics_process(false)
+
+	# Flash red, then fade out + shrink
+	if sprite:
+		sprite.modulate = Color(1.0, 0.3, 0.3)
+	var tween := create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(self, "modulate:a", 0.0, 0.3)
+	tween.tween_property(self, "scale", Vector2(0.2, 0.2), 0.3)
+	tween.set_parallel(false)
+	tween.tween_callback(_finish_overworld_hit)
+
+func _finish_overworld_hit() -> void:
+	# Persist defeat
+	var overworld := _get_overworld()
+	if overworld and overworld.has_method("on_monster_swiped"):
+		overworld.on_monster_swiped(overworld_id)
+	queue_free()
+
 func _get_overworld() -> Node:
 	var parent := get_parent()
 	while parent:
-		if parent.has_method("show_encounter") or parent.has_method("start_battle"):
+		if parent.has_method("show_encounter") or parent.has_method("start_battle") or parent.has_method("on_monster_swiped"):
 			return parent
 		parent = parent.get_parent()
 	return null
