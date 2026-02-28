@@ -2,7 +2,7 @@ extends Node
 
 const SAVE_PATH: String = "user://save_data.json"
 const BACKUP_PATH: String = "user://save_data.backup.json"
-const CURRENT_SAVE_VERSION: int = 2
+const CURRENT_SAVE_VERSION: int = 3
 
 func save_game() -> bool:
 	# Create backup of existing save before writing
@@ -68,6 +68,8 @@ func _serialize() -> Dictionary:
 	data["current_area"] = GameManager.current_area
 	data["game_time"] = GameManager.game_time
 	data["time_period"] = GameManager.time_period
+	data["trainer_rank"] = GameManager.trainer_rank
+	data["trainer_experience"] = GameManager.trainer_experience
 
 	# Party
 	data["player_party"] = _serialize_monster_array(GameManager.player_party)
@@ -144,6 +146,8 @@ func _deserialize(data: Dictionary) -> void:
 	GameManager.current_area = str(data.get("current_area", "town"))
 	GameManager.game_time = float(data.get("game_time", 10.0))
 	GameManager.time_period = str(data.get("time_period", "day"))
+	GameManager.trainer_rank = int(data.get("trainer_rank", 1))
+	GameManager.trainer_experience = int(data.get("trainer_experience", 0))
 
 	# Party
 	GameManager.player_party = _deserialize_monster_array(data.get("player_party", []))
@@ -258,6 +262,10 @@ func _migrate_save(data: Dictionary) -> Dictionary:
 	if version < 2:
 		data["gold"] = 100
 		data["save_version"] = 2
+	if version < 3:
+		data["trainer_rank"] = 1
+		data["trainer_experience"] = 0
+		data["save_version"] = 3
 	return data
 
 # ── Validation ──

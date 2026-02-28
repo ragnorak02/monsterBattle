@@ -621,7 +621,7 @@
 			"status": "pass"
 		},
 		{
-			"message": "load battle scene in 4ms (< 1000ms)",
+			"message": "load battle scene in 1ms (< 1000ms)",
 			"name": "perf_load_battle_scene",
 			"status": "pass"
 		},
@@ -1746,7 +1746,7 @@
 			"status": "pass"
 		},
 		{
-			"message": "save_version is 2",
+			"message": "save_version is 3",
 			"name": "save_version_present",
 			"status": "pass"
 		},
@@ -1974,11 +1974,101 @@
 			"message": "DEBUG_TRAINER defaults to false",
 			"name": "trainer_flow_debug_flag_default",
 			"status": "pass"
+		},
+		{
+			"message": "threshold at rank 1",
+			"name": "trainer_xp_threshold_formula",
+			"status": "pass"
+		},
+		{
+			"message": "threshold at rank 5",
+			"name": "trainer_xp_threshold_formula",
+			"status": "pass"
+		},
+		{
+			"message": "threshold at rank 10",
+			"name": "trainer_xp_threshold_formula",
+			"status": "pass"
+		},
+		{
+			"message": "ranked up with enough XP",
+			"name": "trainer_rank_up",
+			"status": "pass"
+		},
+		{
+			"message": "old rank was 1",
+			"name": "trainer_rank_up",
+			"status": "pass"
+		},
+		{
+			"message": "new rank is 2",
+			"name": "trainer_rank_up",
+			"status": "pass"
+		},
+		{
+			"message": "trainer_rank updated",
+			"name": "trainer_rank_up",
+			"status": "pass"
+		},
+		{
+			"message": "no rank up with partial XP",
+			"name": "trainer_no_rank_up",
+			"status": "pass"
+		},
+		{
+			"message": "rank unchanged",
+			"name": "trainer_no_rank_up",
+			"status": "pass"
+		},
+		{
+			"message": "new_rank same as old",
+			"name": "trainer_no_rank_up",
+			"status": "pass"
+		},
+		{
+			"message": "rank 1 = Rookie",
+			"name": "trainer_title_at_ranks",
+			"status": "pass"
+		},
+		{
+			"message": "rank 6 = Novice",
+			"name": "trainer_title_at_ranks",
+			"status": "pass"
+		},
+		{
+			"message": "rank 11 = Skilled",
+			"name": "trainer_title_at_ranks",
+			"status": "pass"
+		},
+		{
+			"message": "trainer_rank restored",
+			"name": "trainer_save_round_trip",
+			"status": "pass"
+		},
+		{
+			"message": "trainer_experience restored",
+			"name": "trainer_save_round_trip",
+			"status": "pass"
+		},
+		{
+			"message": "migrated to version 3",
+			"name": "save_migration_v2_to_v3",
+			"status": "pass"
+		},
+		{
+			"message": "default trainer_rank after migration",
+			"name": "save_migration_v2_to_v3",
+			"status": "pass"
+		},
+		{
+			"message": "default trainer_experience after migration",
+			"name": "save_migration_v2_to_v3",
+			"status": "pass"
 		}
 	],
-	"durationMs": 520,
+	"durationMs": 515,
 	"status": "pass",
-	"testsPassed": 395.0,
-	"testsTotal": 395.0,
-	"timestamp": "2026-02-28T14:43:11"
+	"testsPassed": 413.0,
+	"testsTotal": 413.0,
+	"timestamp": "2026-02-28T16:19:31"
 }

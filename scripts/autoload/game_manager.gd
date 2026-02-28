@@ -7,9 +7,16 @@ signal registry_changed
 signal quest_updated(quest_id: String)
 signal time_changed(new_period: String)
 signal gold_changed
+signal trainer_rank_changed
 
 var player_gender: String = ""  # "boy" or "girl"
 var gold: int = 100
+var trainer_rank: int = 1
+var trainer_experience: int = 0
+
+const TRAINER_TITLES: Dictionary = {
+	1: "Rookie", 6: "Novice", 11: "Skilled", 16: "Veteran", 21: "Expert", 31: "Master",
+}
 var player_party: Array[MonsterInstance] = []
 var pc_storage: Array[MonsterInstance] = []
 var defeated_monster_ids: Array[int] = []  # Track removed overworld monsters (legacy, for backward compat)
@@ -360,3 +367,31 @@ func _get_time_period() -> String:
 
 func get_time_color() -> Color:
 	return TIME_PERIODS.get(time_period, TIME_PERIODS["day"])["color"] as Color
+
+# ── Trainer Rank ──
+
+func get_trainer_xp_threshold() -> int:
+	return int(pow(float(trainer_rank), 1.5) * 10.0)
+
+func add_trainer_experience(amount: int) -> Dictionary:
+	var result := {"ranked_up": false, "old_rank": trainer_rank, "new_rank": trainer_rank}
+	trainer_experience += amount
+	while trainer_experience >= get_trainer_xp_threshold():
+		trainer_experience -= get_trainer_xp_threshold()
+		trainer_rank += 1
+		result["ranked_up"] = true
+		result["new_rank"] = trainer_rank
+	if result["ranked_up"]:
+		trainer_rank_changed.emit()
+	return result
+
+func get_trainer_title() -> String:
+	var best_title: String = "Rookie"
+	for threshold: int in TRAINER_TITLES:
+		if trainer_rank >= threshold:
+			best_title = TRAINER_TITLES[threshold]
+	return best_title
+
+func reset_trainer_rank() -> void:
+	trainer_rank = 1
+	trainer_experience = 0

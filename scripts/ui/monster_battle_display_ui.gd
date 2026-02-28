@@ -5,6 +5,7 @@ extends Control
 @onready var level_label: Label = $VBox/InfoBox/LevelLabel
 @onready var hp_bar: Control = $VBox/InfoBox/HPBar
 @onready var status_label: Label = $VBox/InfoBox/StatusLabel
+@onready var xp_bar: ProgressBar = $VBox/InfoBox/XPBar
 
 var _monster: MonsterInstance
 
@@ -35,9 +36,26 @@ func setup(monster: MonsterInstance, show_back: bool) -> void:
 	hp_bar.setup(monster.current_hp, monster.get_max_hp())
 	update_status()
 
+	# XP bar: show only on player side (show_back == true)
+	if xp_bar:
+		if show_back:
+			xp_bar.visible = true
+			xp_bar.max_value = monster.get_xp_threshold()
+			xp_bar.value = monster.experience
+			var xp_style := StyleBoxFlat.new()
+			xp_style.bg_color = Color(0.3, 0.5, 0.9)
+			xp_bar.add_theme_stylebox_override("fill", xp_style)
+		else:
+			xp_bar.visible = false
+
 func update_hp() -> void:
 	if _monster:
 		hp_bar.animate_to(_monster.current_hp, _monster.get_max_hp())
+
+func update_xp() -> void:
+	if _monster and xp_bar and xp_bar.visible:
+		xp_bar.max_value = _monster.get_xp_threshold()
+		xp_bar.value = _monster.experience
 
 func update_status() -> void:
 	if not _monster or not status_label:

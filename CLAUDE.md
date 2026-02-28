@@ -255,6 +255,219 @@ Current state: achievementsSystem = missing :contentReference[oaicite:6]{index=6
 
 ---
 
+# PHASE 6 — EXPERIENCE SYSTEM (PLAYER + MONSTERS)
+
+## OBJECTIVE
+
+Introduce a scalable RPG experience and leveling system for:
+- Player character
+- All owned monsters ("Pokey")
+
+System must support:
+- EXP gain after battles
+- Level progression
+- Stat scaling
+- Move unlocks (future compatible)
+- Save persistence
+
+---
+
+## DATA ARCHITECTURE
+
+### Monster Data Model Expansion
+
+- [x] Add fields to Monster:
+      - level
+      - currentEXP
+      - expToNextLevel
+      - baseStats
+      - growthCurveType
+      - learnedMoves[]
+- [x] Create ExperienceCurve utility
+- [x] Implement levelUp() method
+- [x] Trigger stat recalculation on levelUp
+
+---
+
+### Trainer Rank System (replaces Player Experience Model)
+
+- [x] Add trainer_rank
+- [x] Add trainer_experience
+- [x] Add get_trainer_xp_threshold
+- [x] Hook trainer EXP gain into battle resolution
+- [x] Add trainer title lookup
+
+---
+
+## BATTLE INTEGRATION
+
+- [x] Award EXP to active monster
+- [x] Full-party EXP sharing (all non-fainted)
+- [x] Award trainer EXP
+- [x] Display "Level Up" popup with stat deltas
+- [x] Recalculate stats immediately
+- [x] XP bar in battle display (player side)
+- [x] Save updated values
+
+---
+
+## VALIDATION
+
+- EXP increases after battle
+- Level increases properly
+- Stats scale predictably
+- No overflow errors
+- Save/load retains level
+
+---
+
+# PHASE 7 — STATUS MENU REFACTOR
+
+## CURRENT PROBLEM
+
+Menu is cluttered.
+Too much player info.
+Poor layout.
+No proper party overview.
+
+We will restructure to match classic monster RPG layout.
+
+Reference:
+- menu1.png
+- menu2.png
+
+---
+
+# MENU STRUCTURE OVERVIEW
+
+## Menu 1 — Party Overview
+
+Layout:
+
+LEFT SIDE:
+- Active monster (walking companion)
+- Expanded stats preview
+- HP bar
+- Level
+- Small sprite
+
+RIGHT SIDE:
+- Vertical list of party monsters (max 6)
+- Each shows:
+    - Small sprite
+    - Name
+    - Level
+    - HP bar
+    - Status condition (if any)
+
+Controller:
+- D-pad up/down = select monster
+- A = Open details (Menu 2)
+- B = Close menu
+
+---
+
+## Implementation Tasks
+
+- [ ] Create PartyMenuScene
+- [ ] Limit party to 6 monsters
+- [ ] Create PartySlot UI component
+- [ ] Add HP bar component
+- [ ] Add Level display
+- [ ] Highlight selected slot
+- [ ] Add smooth open animation
+- [ ] Remove unnecessary player stat clutter
+
+---
+
+# MENU 2 — Detailed Monster View
+
+When selecting a monster:
+
+Display:
+
+LEFT:
+- Large sprite
+- Level
+- EXP bar
+- HP
+- Status
+- Type
+
+RIGHT:
+- Stats:
+    - Attack
+    - Defense
+    - Speed
+    - Special
+- Move list
+- Move power
+- Move type
+- Move description
+
+Controller:
+- LB/RB = switch tabs (Stats / Moves / EXP)
+- B = return to Menu 1
+
+---
+
+## Implementation Tasks
+
+- [ ] Create MonsterDetailScene
+- [ ] Create TabSwitchComponent
+- [ ] Create EXP progress bar
+- [ ] Create MoveList UI
+- [ ] Ensure scaling layout
+- [ ] Ensure 16:9 compatibility
+- [ ] Add smooth transition animation
+
+---
+
+# PHASE 8 — SAVE SYSTEM EXPANSION
+
+- [ ] Add level + EXP to save data
+- [ ] Add learned moves to save data
+- [ ] Add party order persistence
+- [ ] Add versioning to save file
+- [ ] Implement migration handler for older saves
+
+---
+
+# PHASE 9 — AUTOMATION COMPLIANCE
+
+- [ ] Update project_status.json
+- [ ] Increment macroPhase
+- [ ] Add completionPercent delta
+- [ ] Add regression tests:
+      - EXP gain
+      - Level up
+      - Menu navigation
+      - Controller compliance
+- [ ] Run headless tests
+- [ ] Confirm no null errors
+
+---
+
+# FINAL VALIDATION CHECKLIST
+
+- [ ] EXP system working
+- [ ] Monsters level correctly
+- [ ] Player levels correctly
+- [ ] Menu clean & readable
+- [ ] No UI overflow
+- [ ] Controller navigation smooth
+- [ ] Save/load stable
+- [ ] Party max size enforced
+- [ ] Performance stable (no frame drops)
+
+---
+
+Proceed phase by phase.
+No rushed refactors.
+Preserve modular architecture.
+
+---
+
 # Debug Flags
 
 Must exist and default false:
@@ -302,8 +515,8 @@ AMARIS dashboard depends on this.
 
 # Current Focus
 
-Current Goal: Macro Phase 4 Complete — Begin Macro Phase 5
-Current Task: Save & persistence system
+Current Goal: Phase 6 Experience System Complete — Continue Phase 5/7
+Current Task: Save & persistence system / Status menu refactor
 Work Mode: Feature Development
 Next Milestone: Macro Phase 5 (checkpoints 61–70)
 

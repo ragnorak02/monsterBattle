@@ -52,6 +52,7 @@ func _ready() -> void:
 	_run_shop_scene_tests()
 	_run_new_area_tests()
 	_run_trainer_flow_tests()
+	_run_trainer_rank_tests()
 
 	var total := _pass_count + _fail_count
 	print("")
@@ -2153,7 +2154,7 @@ func _run_save_system_tests() -> void:
 		if json.data is Dictionary:
 			var save_data: Dictionary = json.data as Dictionary
 			_assert_true(save_data.has("save_version"), "save_version key exists")
-			_assert_eq(int(save_data["save_version"]), 2, "save_version is 2")
+			_assert_eq(int(save_data["save_version"]), 3, "save_version is 3")
 		else:
 			_fail("save file is not a dictionary")
 	else:
@@ -2488,3 +2489,86 @@ func _run_trainer_flow_tests() -> void:
 	# Restore state
 	GameManager.is_in_dialogue = saved_dialogue
 	GameManager.is_in_battle = saved_battle
+
+# ══════════════════════════════════════════════
+#  Trainer Rank Tests
+# ══════════════════════════════════════════════
+
+func _run_trainer_rank_tests() -> void:
+	print("\n── Trainer Rank ──")
+
+	# Save original state
+	var orig_rank: int = GameManager.trainer_rank
+	var orig_exp: int = GameManager.trainer_experience
+
+	# 1. XP threshold formula
+	_begin("trainer_xp_threshold_formula")
+	GameManager.trainer_rank = 1
+	_assert_eq(GameManager.get_trainer_xp_threshold(), int(pow(1.0, 1.5) * 10.0), "threshold at rank 1")
+	GameManager.trainer_rank = 5
+	_assert_eq(GameManager.get_trainer_xp_threshold(), int(pow(5.0, 1.5) * 10.0), "threshold at rank 5")
+	GameManager.trainer_rank = 10
+	_assert_eq(GameManager.get_trainer_xp_threshold(), int(pow(10.0, 1.5) * 10.0), "threshold at rank 10")
+
+	# 2. Rank up
+	_begin("trainer_rank_up")
+	GameManager.trainer_rank = 1
+	GameManager.trainer_experience = 0
+	var threshold: int = GameManager.get_trainer_xp_threshold()
+	var res: Dictionary = GameManager.add_trainer_experience(threshold + 5)
+	_assert_true(res["ranked_up"], "ranked up with enough XP")
+	_assert_eq(res["old_rank"], 1, "old rank was 1")
+	_assert_eq(res["new_rank"], 2, "new rank is 2")
+	_assert_eq(GameManager.trainer_rank, 2, "trainer_rank updated")
+
+	# 3. No rank up on partial XP
+	_begin("trainer_no_rank_up")
+	GameManager.trainer_rank = 1
+	GameManager.trainer_experience = 0
+	var partial: Dictionary = GameManager.add_trainer_experience(1)
+	_assert_false(partial["ranked_up"], "no rank up with partial XP")
+	_assert_eq(partial["old_rank"], 1, "rank unchanged")
+	_assert_eq(partial["new_rank"], 1, "new_rank same as old")
+
+	# 4. Title lookup
+	_begin("trainer_title_at_ranks")
+	GameManager.trainer_rank = 1
+	_assert_eq(GameManager.get_trainer_title(), "Rookie", "rank 1 = Rookie")
+	GameManager.trainer_rank = 6
+	_assert_eq(GameManager.get_trainer_title(), "Novice", "rank 6 = Novice")
+	GameManager.trainer_rank = 11
+	_assert_eq(GameManager.get_trainer_title(), "Skilled", "rank 11 = Skilled")
+
+	# 5. Save round trip
+	_begin("trainer_save_round_trip")
+	var save_path: String = SaveManager.SAVE_PATH
+	var backup_path: String = SaveManager.BACKUP_PATH
+	GameManager.trainer_rank = 7
+	GameManager.trainer_experience = 42
+	SaveManager.save_game()
+	GameManager.trainer_rank = 1
+	GameManager.trainer_experience = 0
+	SaveManager.load_game()
+	_assert_eq(GameManager.trainer_rank, 7, "trainer_rank restored")
+	_assert_eq(GameManager.trainer_experience, 42, "trainer_experience restored")
+
+	# 6. Migration v2 → v3
+	_begin("save_migration_v2_to_v3")
+	var v2_data: Dictionary = {
+		"save_version": 2,
+		"player_gender": "boy",
+		"gold": 100,
+		"player_party": [],
+	}
+	var migrated: Dictionary = SaveManager._migrate_save(v2_data)
+	_assert_eq(int(migrated["save_version"]), 3, "migrated to version 3")
+	_assert_eq(int(migrated["trainer_rank"]), 1, "default trainer_rank after migration")
+	_assert_eq(int(migrated["trainer_experience"]), 0, "default trainer_experience after migration")
+
+	# Cleanup
+	GameManager.trainer_rank = orig_rank
+	GameManager.trainer_experience = orig_exp
+	if FileAccess.file_exists(save_path):
+		DirAccess.remove_absolute(save_path)
+	if FileAccess.file_exists(backup_path):
+		DirAccess.remove_absolute(backup_path)

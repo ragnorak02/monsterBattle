@@ -25,6 +25,18 @@ func _build_party_list() -> void:
 		btn.queue_free()
 	_slot_buttons.clear()
 
+	# Remove old trainer rank header if present
+	for child in party_list.get_children():
+		if child.name == "TrainerRankHeader":
+			child.queue_free()
+
+	# Add trainer rank header
+	var header := Label.new()
+	header.name = "TrainerRankHeader"
+	header.text = "Trainer: %s (Rank %d)" % [GameManager.get_trainer_title(), GameManager.trainer_rank]
+	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	party_list.add_child(header)
+
 	for i in GameManager.player_party.size():
 		var monster: MonsterInstance = GameManager.player_party[i]
 		var data: Resource = monster.base_data
@@ -69,12 +81,14 @@ func _show_detail(index: int) -> void:
 	for skill in monster.skills:
 		var stype: String = str(skill.get("skill_type")) if skill.get("skill_type") else "Normal"
 		skills_text += "\n  - %s [%s] (Pow:%d)" % [str(skill.get("skill_name")), stype, int(skill.get("power"))]
-	detail_info.text = "%s [%s]  Lv.%d\nHP: %d / %d\nATK: %d  DEF: %d  AGI: %d\nSkills:%s" % [
+	detail_info.text = "%s [%s]  Lv.%d\nHP: %d / %d\nEXP: %d / %d\nATK: %d  DEF: %d  AGI: %d\nSkills:%s" % [
 		str(data.get("monster_name")),
 		etype,
 		monster.level,
 		monster.current_hp,
 		monster.get_max_hp(),
+		monster.experience,
+		monster.get_xp_threshold(),
 		monster.get_attack(),
 		monster.get_defense(),
 		monster.get_agility(),

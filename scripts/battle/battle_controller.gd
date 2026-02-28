@@ -617,6 +617,13 @@ func _grant_xp() -> void:
 	elif level_diff < -5:
 		multiplier = maxf(0.25, 1.0 + (level_diff + 5) * 0.1)
 	var xp_amount: int = maxi(1, int(float(base_xp) * multiplier))
+
+	# Snapshot active monster stats before XP gain (for stat-delta display)
+	var old_hp: int = _player_monster.get_max_hp()
+	var old_atk: int = _player_monster.get_attack()
+	var old_def: int = _player_monster.get_defense()
+	var old_agi: int = _player_monster.get_agility()
+
 	var p_name: String = _get_name(_player_monster)
 	print("[BATTLE] %s gained %d XP" % [p_name, xp_amount])
 	_show_message("%s gained %d XP!" % [p_name, xp_amount])
@@ -629,7 +636,10 @@ func _grant_xp() -> void:
 	_show_message("You earned %d gold!" % gold_reward)
 	await get_tree().create_timer(0.8).timeout
 
+	# Award XP to active monster
 	var result: Dictionary = _player_monster.add_experience(xp_amount)
+	if player_display.has_method("update_xp"):
+		player_display.update_xp()
 
 	if result["leveled_up"]:
 		var new_level: int = result["new_level"]
@@ -637,6 +647,16 @@ func _grant_xp() -> void:
 		_show_message("%s grew to Lv.%d!" % [p_name, new_level])
 		player_display.setup(_player_monster, true)
 		await get_tree().create_timer(1.5).timeout
+
+		# Show stat deltas
+		var d_hp: int = _player_monster.get_max_hp() - old_hp
+		var d_atk: int = _player_monster.get_attack() - old_atk
+		var d_def: int = _player_monster.get_defense() - old_def
+		var d_agi: int = _player_monster.get_agility() - old_agi
+		var delta_msg := "HP +%d  ATK +%d  DEF +%d  AGI +%d" % [d_hp, d_atk, d_def, d_agi]
+		print("[BATTLE] %s" % delta_msg)
+		_show_message(delta_msg)
+		await get_tree().create_timer(2.0).timeout
 
 		# Handle new skills
 		var new_skills: Array = result["new_skills"]
@@ -647,6 +667,28 @@ func _grant_xp() -> void:
 		if result["can_evolve"]:
 			var evo_id: int = result["evolves_into_id"]
 			await _handle_evolution(evo_id)
+
+	# Award XP to non-active party members
+	for monster in GameManager.player_party:
+		if monster == _player_monster or monster.is_fainted():
+			continue
+		var party_result: Dictionary = monster.add_experience(xp_amount)
+		if party_result["leveled_up"]:
+			var m_name: String = _get_name(monster)
+			var m_level: int = party_result["new_level"]
+			print("[BATTLE] %s also grew to Lv.%d!" % [m_name, m_level])
+			_show_message("%s also grew to Lv.%d!" % [m_name, m_level])
+			await get_tree().create_timer(1.0).timeout
+
+	# Award trainer XP
+	var trainer_xp: int = maxi(1, xp_amount / 2)
+	var trainer_result: Dictionary = GameManager.add_trainer_experience(trainer_xp)
+	if trainer_result["ranked_up"]:
+		var title: String = GameManager.get_trainer_title()
+		var new_rank: int = trainer_result["new_rank"]
+		print("[BATTLE] Trainer Rank Up! %s (Rank %d)" % [title, new_rank])
+		_show_message("Trainer Rank Up! %s (Rank %d)" % [title, new_rank])
+		await get_tree().create_timer(1.5).timeout
 
 	var battle_result: String = "catch" if _caught else "win"
 	_end_battle(battle_result)
