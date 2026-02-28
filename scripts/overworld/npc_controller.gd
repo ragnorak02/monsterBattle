@@ -20,11 +20,19 @@ func _ready() -> void:
 		interaction_zone.body_entered.connect(_on_player_near)
 		interaction_zone.body_exited.connect(_on_player_away)
 
+func _get_overworld() -> Node:
+	var node := get_parent()
+	while node:
+		if node.has_method("_show_dialogue"):
+			return node
+		node = node.get_parent()
+	return null
+
 func interact() -> void:
-	var overworld := get_parent().get_parent()  # NPCs container -> Overworld
+	var overworld := _get_overworld()
 	if dialogue_tree.size() > 0 and overworld and overworld.has_method("_show_dialogue_tree"):
 		overworld._show_dialogue_tree(dialogue_tree)
-	elif overworld and overworld.has_method("_show_dialogue"):
+	elif overworld:
 		overworld._show_dialogue(dialogue_lines)
 	else:
 		_show_dialogue_fallback()

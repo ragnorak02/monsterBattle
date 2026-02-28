@@ -33,7 +33,11 @@
       "Bash(unzip:*)",
       "Bash(# Check no placeholder-sized files remain \\(originals were 176-178 bytes\\) DEST=\"\"Z:/Development/amatris/monsterBattle/assets/sprites/monsters\"\" echo \"\"=== Files still under 200 bytes \\(should be NONE\\) ===\"\" find \"\"$DEST\"\" -name \"\"*.png\"\" -size -200c echo \"\"\"\" echo \"\"=== Size range of new sprites ===\"\" ls -la \"\"$DEST\"\"/*.png)",
       "Bash(cd:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(node:*)",
+      "Bash(cd \"Z:\\\\Development\\\\amatris\\\\monsterBattle\" && \"Z:\\\\godot\\\\godot.exe\" --path . --headless --script res://tests/run_tests.gd 2>&1)",
+      "Bash(do grep:*)",
+      "Bash(cat:*)"
     ]
   }
 }

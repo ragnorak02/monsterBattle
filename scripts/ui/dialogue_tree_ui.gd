@@ -125,7 +125,12 @@ func _input(event: InputEvent) -> void:
 				text_label.text = _full_text
 			_is_typing = false
 			_on_typing_done()
-		elif not _has_choices:
+		elif _has_choices:
+			# Activate the focused choice button
+			var focused := get_viewport().gui_get_focus_owner()
+			if focused and focused is Button and focused.get_parent() == choices_container:
+				focused.emit_signal("pressed")
+		else:
 			# Advance to next node
 			_current_index += 1
 			if _current_index >= _nodes.size():

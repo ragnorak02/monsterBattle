@@ -8,12 +8,24 @@ const MAP_POSITIONS: Dictionary = {
 	"route1": Vector2(160, 190),
 	"route2": Vector2(160, 120),
 	"town2": Vector2(160, 50),
+	"route3": Vector2(250, 50),
+	"town3": Vector2(340, 50),
+	"route4": Vector2(340, 120),
+	"town4": Vector2(340, 190),
+	"route5": Vector2(340, 260),
+	"town5": Vector2(340, 330),
 }
 
 const MAP_CONNECTIONS: Array = [
 	["town", "route1"],
 	["route1", "route2"],
 	["route2", "town2"],
+	["town2", "route3"],
+	["route3", "town3"],
+	["town3", "route4"],
+	["route4", "town4"],
+	["town4", "route5"],
+	["route5", "town5"],
 ]
 
 const AREA_DISPLAY_NAMES: Dictionary = {
@@ -21,6 +33,12 @@ const AREA_DISPLAY_NAMES: Dictionary = {
 	"route1": "Route 1",
 	"route2": "Route 2",
 	"town2": "Coral City",
+	"route3": "Route 3",
+	"town3": "Ember Ridge",
+	"route4": "Route 4",
+	"town4": "Verdant Grove",
+	"route5": "Route 5",
+	"town5": "Stormhaven",
 }
 
 func _ready() -> void:

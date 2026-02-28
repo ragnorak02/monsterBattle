@@ -1,8 +1,11 @@
 extends PanelContainer
 
+signal dialogue_closed
+
 @onready var text_label: RichTextLabel = $MarginContainer/TextLabel
 @onready var continue_indicator: Label = $MarginContainer/ContinueIndicator
 
+var block_cancel: bool = false
 var _lines: Array[String] = []
 var _current_line_index: int = 0
 var _current_char_index: int = 0
@@ -61,10 +64,11 @@ func _input(event: InputEvent) -> void:
 			_show_line(_current_line_index)
 		get_viewport().set_input_as_handled()
 
-	elif event.is_action_pressed("ui_cancel"):
+	elif event.is_action_pressed("ui_cancel") and not block_cancel:
 		_close()
 		get_viewport().set_input_as_handled()
 
 func _close() -> void:
 	GameManager.is_in_dialogue = false
+	dialogue_closed.emit()
 	queue_free()

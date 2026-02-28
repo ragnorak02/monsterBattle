@@ -7,7 +7,7 @@ func _ready() -> void:
 	var overlay := $FadeOverlay as ColorRect
 	SceneManager.setup(container, overlay)
 
-	SceneManager.change_scene("res://scenes/gender_select.tscn", false)
+	SceneManager.change_scene("res://scenes/title_menu.tscn", false)
 
 func _print_environment_info() -> void:
 	var godot_ver: String = Engine.get_version_info().get("string", "unknown")

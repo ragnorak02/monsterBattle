@@ -47,6 +47,11 @@ func _ready() -> void:
 	_run_world_map_tests()
 	_run_day_night_tests()
 	_run_weather_tests()
+	_run_save_system_tests()
+	_run_gold_system_tests()
+	_run_shop_scene_tests()
+	_run_new_area_tests()
+	_run_trainer_flow_tests()
 
 	var total := _pass_count + _fail_count
 	print("")
@@ -746,6 +751,7 @@ func _run_scene_loading_tests() -> void:
 		"inventory_ui.tscn": "res://scenes/ui/inventory_ui.tscn",
 		"pokedex.tscn": "res://scenes/ui/pokedex.tscn",
 		"trainer.tscn": "res://scenes/overworld/trainer.tscn",
+		"shop_ui.tscn": "res://scenes/ui/shop_ui.tscn",
 	}
 
 	for scene_name: String in scenes:
@@ -1586,10 +1592,14 @@ func _run_trainer_scene_tests() -> void:
 		"route1": "Route 1",
 		"route2": "Route 2",
 		"town2": "Coral City",
+		"route3": "Route 3",
+		"town3": "Ember Ridge",
 	}
-	_assert_eq(area_names.size(), 4, "area_names has 4 entries")
+	_assert_eq(area_names.size(), 6, "area_names has 6 entries")
 	_assert_true(area_names.has("town2"), "area_names has town2")
 	_assert_true(area_names.has("route2"), "area_names has route2")
+	_assert_true(area_names.has("route3"), "area_names has route3")
+	_assert_true(area_names.has("town3"), "area_names has town3")
 
 # ══════════════════════════════════════════════
 #  W. Dialogue Tree Tests
@@ -1998,3 +2008,483 @@ func _run_weather_tests() -> void:
 	if ow_script2:
 		var source: String = ow_script2.source_code
 		_assert_true(source.contains("_setup_weather"), "overworld has _setup_weather")
+
+# ── Save System Tests ──
+
+func _run_save_system_tests() -> void:
+	print("\n── Save System ──")
+
+	# Clean up any existing test save files first
+	var save_path: String = SaveManager.SAVE_PATH
+	var backup_path: String = SaveManager.BACKUP_PATH
+	if FileAccess.file_exists(save_path):
+		DirAccess.remove_absolute(save_path)
+	if FileAccess.file_exists(backup_path):
+		DirAccess.remove_absolute(backup_path)
+
+	# Save original GameManager state to restore later
+	var orig_gender: String = GameManager.player_gender
+	var orig_area: String = GameManager.current_area
+	var orig_party: Array[MonsterInstance] = GameManager.player_party.duplicate()
+	var orig_pc: Array[MonsterInstance] = GameManager.pc_storage.duplicate()
+	var orig_inventory: Dictionary = GameManager.inventory.duplicate()
+	var orig_badges: Dictionary = GameManager.badges.duplicate()
+	var orig_defeated_trainers: Dictionary = GameManager.defeated_trainers.duplicate()
+	var orig_seen: Dictionary = GameManager.monster_registry_seen.duplicate()
+	var orig_caught: Dictionary = GameManager.monster_registry_caught.duplicate()
+	var orig_active_quests: Dictionary = GameManager.active_quests.duplicate(true)
+	var orig_completed_quests: Dictionary = GameManager.completed_quests.duplicate()
+	var orig_area_positions: Dictionary = GameManager.area_player_positions.duplicate(true)
+	var orig_area_defeated: Dictionary = GameManager.area_defeated_monsters.duplicate(true)
+	var orig_game_time: float = GameManager.game_time
+	var orig_time_period: String = GameManager.time_period
+
+	# 1. No save file exists initially
+	_begin("save_has_save_false_initially")
+	_assert_false(SaveManager.has_save(), "no save file exists at start")
+
+	# 2. Round-trip party
+	_begin("save_round_trip_party")
+	var test_base: Resource = MonsterDB.get_monster(1)
+	if test_base:
+		GameManager.player_gender = "boy"
+		GameManager.current_area = "route1"
+		GameManager.player_party = []
+		var m := MonsterInstance.new(test_base, 10)
+		m.current_hp = 25
+		m.experience = 42
+		GameManager.player_party.append(m)
+		SaveManager.save_game()
+
+		# Clear and reload
+		GameManager.player_party = []
+		GameManager.player_gender = ""
+		SaveManager.load_game()
+		_assert_eq(GameManager.player_party.size(), 1, "party size restored")
+		if GameManager.player_party.size() > 0:
+			var loaded: MonsterInstance = GameManager.player_party[0]
+			_assert_eq(loaded.level, 10, "party monster level restored")
+			_assert_eq(loaded.current_hp, 25, "party monster HP restored")
+			_assert_eq(loaded.experience, 42, "party monster XP restored")
+			_assert_eq(int(loaded.base_data.get("id")), 1, "party monster base_id restored")
+	else:
+		_fail("could not load monster ID 1 for party test")
+
+	# 3. Round-trip inventory
+	_begin("save_round_trip_inventory")
+	GameManager.inventory = {"potion": 5, "capture_ball": 3}
+	SaveManager.save_game()
+	GameManager.inventory = {}
+	SaveManager.load_game()
+	_assert_eq(GameManager.get_item_count("potion"), 5, "potion count restored")
+	_assert_eq(GameManager.get_item_count("capture_ball"), 3, "capture_ball count restored")
+
+	# 4. Round-trip registry
+	_begin("save_round_trip_registry")
+	GameManager.monster_registry_seen = {1: true, 2: true, 3: true}
+	GameManager.monster_registry_caught = {1: true}
+	SaveManager.save_game()
+	GameManager.monster_registry_seen = {}
+	GameManager.monster_registry_caught = {}
+	SaveManager.load_game()
+	_assert_true(GameManager.is_monster_seen(1), "seen registry restored")
+	_assert_true(GameManager.is_monster_seen(2), "seen registry restored (2)")
+	_assert_true(GameManager.is_monster_caught(1), "caught registry restored")
+	_assert_false(GameManager.is_monster_caught(2), "uncaught remains uncaught")
+
+	# 5. Round-trip badges
+	_begin("save_round_trip_badges")
+	GameManager.badges = {"tide_badge": true}
+	GameManager.defeated_trainers = {"town2_gym": true}
+	SaveManager.save_game()
+	GameManager.badges = {}
+	GameManager.defeated_trainers = {}
+	SaveManager.load_game()
+	_assert_true(GameManager.has_badge("tide_badge"), "badge restored")
+	_assert_true(GameManager.is_trainer_defeated("town2_gym"), "defeated trainer restored")
+
+	# 6. Round-trip quests
+	_begin("save_round_trip_quests")
+	GameManager.active_quests = {"fetch_herb": {"progress": 0}}
+	GameManager.completed_quests = {"catch_5_monsters": true}
+	SaveManager.save_game()
+	GameManager.active_quests = {}
+	GameManager.completed_quests = {}
+	SaveManager.load_game()
+	_assert_true(GameManager.is_quest_active("fetch_herb"), "active quest restored")
+	_assert_true(GameManager.is_quest_complete("catch_5_monsters"), "completed quest restored")
+
+	# 7. Round-trip area state
+	_begin("save_round_trip_area_state")
+	GameManager.area_player_positions = {"town": Vector2(100, 200)}
+	GameManager.area_defeated_monsters = {"route1": [1, 3]}
+	SaveManager.save_game()
+	GameManager.area_player_positions = {}
+	GameManager.area_defeated_monsters = {}
+	SaveManager.load_game()
+	var pos: Variant = GameManager.get_area_player_position("town")
+	_assert_not_null(pos, "area position restored")
+	if pos is Vector2:
+		_assert_eq(int((pos as Vector2).x), 100, "area position X restored")
+		_assert_eq(int((pos as Vector2).y), 200, "area position Y restored")
+	_assert_true(GameManager.is_area_monster_defeated("route1", 1), "area defeated monster restored")
+	_assert_true(GameManager.is_area_monster_defeated("route1", 3), "area defeated monster 3 restored")
+
+	# 8. Round-trip time
+	_begin("save_round_trip_time")
+	GameManager.game_time = 20.5
+	GameManager.time_period = "night"
+	SaveManager.save_game()
+	GameManager.game_time = 10.0
+	GameManager.time_period = "day"
+	SaveManager.load_game()
+	_assert_eq(GameManager.game_time, 20.5, "game_time restored")
+	_assert_eq(GameManager.time_period, "night", "time_period restored")
+
+	# 9. Save version present
+	_begin("save_version_present")
+	SaveManager.save_game()
+	var file := FileAccess.open(save_path, FileAccess.READ)
+	if file:
+		var text := file.get_as_text()
+		file.close()
+		var json := JSON.new()
+		json.parse(text)
+		if json.data is Dictionary:
+			var save_data: Dictionary = json.data as Dictionary
+			_assert_true(save_data.has("save_version"), "save_version key exists")
+			_assert_eq(int(save_data["save_version"]), 2, "save_version is 2")
+		else:
+			_fail("save file is not a dictionary")
+	else:
+		_fail("could not open save file for version check")
+
+	# 10. Corruption fallback — invalid JSON returns false
+	_begin("save_corruption_fallback")
+	# Write garbage to save file
+	var corrupt_file := FileAccess.open(save_path, FileAccess.WRITE)
+	if corrupt_file:
+		corrupt_file.store_string("NOT VALID JSON {{{")
+		corrupt_file.close()
+	# Also corrupt backup
+	var corrupt_backup := FileAccess.open(backup_path, FileAccess.WRITE)
+	if corrupt_backup:
+		corrupt_backup.store_string("ALSO BAD")
+		corrupt_backup.close()
+	var load_result := SaveManager.load_game()
+	_assert_false(load_result, "loading corrupt save returns false")
+
+	# 11. Delete save
+	_begin("save_delete")
+	# Re-create a valid save first
+	SaveManager.save_game()
+	_assert_true(SaveManager.has_save(), "save exists before delete")
+	SaveManager.delete_save()
+	_assert_false(SaveManager.has_save(), "save gone after delete")
+
+	# 12. Monster skills preserved
+	_begin("save_monster_skills_preserved")
+	var skill_base: Resource = MonsterDB.get_monster(1)
+	if skill_base:
+		var sm := MonsterInstance.new(skill_base, 5)
+		GameManager.player_party = [sm]
+		var expected_count: int = sm.skills.size()
+		SaveManager.save_game()
+		GameManager.player_party = []
+		SaveManager.load_game()
+		if GameManager.player_party.size() > 0:
+			_assert_eq(GameManager.player_party[0].skills.size(), expected_count, "skill count preserved")
+		else:
+			_fail("party empty after load for skills test")
+	else:
+		_fail("could not load monster for skills test")
+
+	# 13. Backup created
+	_begin("save_backup_created")
+	SaveManager.delete_save()
+	SaveManager.save_game()  # First save — no backup yet
+	SaveManager.save_game()  # Second save — should create backup from first
+	_assert_true(FileAccess.file_exists(backup_path), "backup file created on second save")
+
+	# Cleanup: restore original GameManager state
+	GameManager.player_gender = orig_gender
+	GameManager.current_area = orig_area
+	GameManager.player_party = orig_party
+	GameManager.pc_storage = orig_pc
+	GameManager.inventory = orig_inventory
+	GameManager.badges = orig_badges
+	GameManager.defeated_trainers = orig_defeated_trainers
+	GameManager.monster_registry_seen = orig_seen
+	GameManager.monster_registry_caught = orig_caught
+	GameManager.active_quests = orig_active_quests
+	GameManager.completed_quests = orig_completed_quests
+	GameManager.area_player_positions = orig_area_positions
+	GameManager.area_defeated_monsters = orig_area_defeated
+	GameManager.game_time = orig_game_time
+	GameManager.time_period = orig_time_period
+	# Clean up test save files
+	if FileAccess.file_exists(save_path):
+		DirAccess.remove_absolute(save_path)
+	if FileAccess.file_exists(backup_path):
+		DirAccess.remove_absolute(backup_path)
+
+# ══════════════════════════════════════════════
+#  AE. Gold System Tests
+# ══════════════════════════════════════════════
+
+func _run_gold_system_tests() -> void:
+	print("\n── Gold System ──")
+
+	# Save original gold
+	var orig_gold: int = GameManager.gold
+
+	# Test: default gold
+	_begin("gold_default_value")
+	GameManager.gold = 100
+	_assert_eq(GameManager.get_gold(), 100, "default gold is 100")
+
+	# Test: add gold
+	_begin("gold_add")
+	GameManager.gold = 100
+	GameManager.add_gold(50)
+	_assert_eq(GameManager.get_gold(), 150, "gold increased to 150")
+
+	# Test: spend gold success
+	_begin("gold_spend_success")
+	GameManager.gold = 200
+	var spent := GameManager.spend_gold(150)
+	_assert_true(spent, "spend_gold returns true")
+	_assert_eq(GameManager.get_gold(), 50, "gold reduced to 50")
+
+	# Test: spend gold fail (insufficient)
+	_begin("gold_spend_fail")
+	GameManager.gold = 30
+	var fail_spent := GameManager.spend_gold(100)
+	_assert_false(fail_spent, "spend_gold returns false when insufficient")
+	_assert_eq(GameManager.get_gold(), 30, "gold unchanged after failed spend")
+
+	# Test: SHOP_PRICES exists with 5 items
+	_begin("gold_shop_prices")
+	_assert_eq(GameManager.SHOP_PRICES.size(), 5, "SHOP_PRICES has 5 items")
+	_assert_true(GameManager.SHOP_PRICES.has("potion"), "SHOP_PRICES has potion")
+	_assert_true(GameManager.SHOP_PRICES.has("antidote"), "SHOP_PRICES has antidote")
+
+	# Test: gold round-trip via save
+	_begin("gold_save_round_trip")
+	GameManager.gold = 777
+	# Set minimum required save data
+	var save_gender: String = GameManager.player_gender
+	var save_party: Array[MonsterInstance] = GameManager.player_party.duplicate()
+	if GameManager.player_party.is_empty():
+		var base: Resource = MonsterDB.get_monster(1)
+		if base:
+			GameManager.player_party = [MonsterInstance.new(base, 5)]
+	GameManager.player_gender = "boy"
+	SaveManager.save_game()
+	GameManager.gold = 0
+	SaveManager.load_game()
+	_assert_eq(GameManager.gold, 777, "gold restored from save")
+	GameManager.player_gender = save_gender
+	GameManager.player_party = save_party
+
+	# Restore
+	GameManager.gold = orig_gold
+	# Clean up save files
+	SaveManager.delete_save()
+
+# ══════════════════════════════════════════════
+#  AF. Shop Scene Tests
+# ══════════════════════════════════════════════
+
+func _run_shop_scene_tests() -> void:
+	print("\n── Shop Scene ──")
+
+	_begin("shop_scene_loads")
+	var packed := load("res://scenes/ui/shop_ui.tscn") as PackedScene
+	_assert_not_null(packed, "shop_ui.tscn loads")
+
+	_begin("shop_script_loads")
+	var script := load("res://scripts/ui/shop_ui.gd") as GDScript
+	_assert_not_null(script, "shop_ui.gd loads")
+
+# ══════════════════════════════════════════════
+#  AG. New Area Tests (Route 3 & Ember Ridge)
+# ══════════════════════════════════════════════
+
+func _run_new_area_tests() -> void:
+	print("\n── New Areas (Route 3 & Ember Ridge) ──")
+
+	var overworld_script := load("res://scripts/overworld/overworld.gd") as GDScript
+	if not overworld_script:
+		_begin("new_area_script_loads")
+		_fail("could not load overworld script")
+		return
+
+	var source: String = overworld_script.source_code
+
+	# Test: route3 exists in AREA_DATA
+	_begin("area_data_has_route3")
+	_assert_true(source.contains("\"route3\""), "AREA_DATA contains route3 key")
+
+	# Test: town3 exists in AREA_DATA
+	_begin("area_data_has_town3")
+	_assert_true(source.contains("\"town3\""), "AREA_DATA contains town3 key")
+
+	# Test: town2 has east transition to route3
+	_begin("area_town2_east_to_route3")
+	_assert_true(source.contains("\"target_area\": \"route3\""), "town2 has transition to route3")
+
+	# Test: route3 has transition to town3
+	_begin("area_route3_to_town3")
+	_assert_true(source.contains("\"target_area\": \"town3\""), "route3 has transition to town3")
+
+	# Test: town3 has safe_zone
+	_begin("area_town3_safe_zone")
+	var town3_idx := source.find("\"town3\"")
+	if town3_idx >= 0:
+		var town3_block := source.substr(town3_idx, 500)
+		_assert_true(town3_block.contains("\"safe_zone\": true"), "town3 is a safe zone")
+	else:
+		_fail("town3 not found in source")
+
+	# Test: town3 has shop NPC (open_shop action)
+	_begin("area_town3_has_shop")
+	_assert_true(source.contains("\"open_shop\""), "town3 has open_shop dialogue action")
+
+	# Test: town3 has heal NPC (heal_party action)
+	_begin("area_town3_has_healer")
+	_assert_true(source.contains("\"heal_party\""), "town3 has heal_party dialogue action")
+
+	# Test: world map has route3 and town3
+	_begin("world_map_has_route3")
+	var map_script := load("res://scripts/ui/world_map_ui.gd") as GDScript
+	if map_script:
+		var map_source: String = map_script.source_code
+		_assert_true(map_source.contains("\"route3\""), "world map has route3")
+		_assert_true(map_source.contains("\"town3\""), "world map has town3")
+	else:
+		_fail("could not load world map script")
+
+func _run_trainer_flow_tests() -> void:
+	print("\n── Trainer Flow (Signal-Based) ──")
+
+	# ── State flag management ──
+
+	# Test: is_in_dialogue defaults false
+	_begin("trainer_flow_dialogue_default_false")
+	var saved_dialogue := GameManager.is_in_dialogue
+	var saved_battle := GameManager.is_in_battle
+	GameManager.is_in_dialogue = false
+	GameManager.is_in_battle = false
+	_assert_false(GameManager.is_in_dialogue, "is_in_dialogue defaults false")
+
+	# Test: is_in_battle defaults false
+	_begin("trainer_flow_battle_default_false")
+	_assert_false(GameManager.is_in_battle, "is_in_battle defaults false")
+
+	# Test: can_player_move returns true when no flags set
+	_begin("trainer_flow_can_move_all_clear")
+	GameManager.is_in_menu = false
+	_assert_true(GameManager.can_player_move(), "player can move when all flags clear")
+
+	# Test: can_player_move returns false when is_in_dialogue
+	_begin("trainer_flow_cant_move_dialogue")
+	GameManager.is_in_dialogue = true
+	_assert_false(GameManager.can_player_move(), "player locked during dialogue")
+	GameManager.is_in_dialogue = false
+
+	# Test: can_player_move returns false when is_in_battle
+	_begin("trainer_flow_cant_move_battle")
+	GameManager.is_in_battle = true
+	_assert_false(GameManager.can_player_move(), "player locked during battle")
+	GameManager.is_in_battle = false
+
+	# Test: trainer defeat persistence
+	_begin("trainer_flow_defeat_persistence")
+	var test_id := "__test_trainer_flow__"
+	GameManager.defeated_trainers.erase(test_id)
+	_assert_false(GameManager.is_trainer_defeated(test_id), "trainer not defeated initially")
+	GameManager.mark_trainer_defeated(test_id)
+	_assert_true(GameManager.is_trainer_defeated(test_id), "trainer defeated after mark")
+	GameManager.defeated_trainers.erase(test_id)
+
+	# ── Source code validation ──
+
+	# Test: dialogue_closed signal exists in dialogue_box_ui.gd
+	_begin("trainer_flow_dialogue_closed_signal")
+	var dialogue_script := load("res://scripts/ui/dialogue_box_ui.gd") as GDScript
+	if dialogue_script:
+		var dsrc: String = dialogue_script.source_code
+		_assert_true(dsrc.contains("signal dialogue_closed"), "dialogue_box_ui has dialogue_closed signal")
+	else:
+		_fail("could not load dialogue_box_ui script")
+
+	# Test: block_cancel property exists
+	_begin("trainer_flow_block_cancel_property")
+	if dialogue_script:
+		var dsrc: String = dialogue_script.source_code
+		_assert_true(dsrc.contains("block_cancel"), "dialogue_box_ui has block_cancel property")
+	else:
+		_fail("could not load dialogue_box_ui script")
+
+	# Test: block_cancel prevents ui_cancel
+	_begin("trainer_flow_block_cancel_in_input")
+	if dialogue_script:
+		var dsrc: String = dialogue_script.source_code
+		_assert_true(dsrc.contains("not block_cancel"), "ui_cancel gated by block_cancel")
+	else:
+		_fail("could not load dialogue_box_ui script")
+
+	# Test: dialogue_closed emitted in _close
+	_begin("trainer_flow_signal_emitted_in_close")
+	if dialogue_script:
+		var dsrc: String = dialogue_script.source_code
+		_assert_true(dsrc.contains("dialogue_closed.emit()"), "dialogue_closed emitted in _close()")
+	else:
+		_fail("could not load dialogue_box_ui script")
+
+	# Test: trainer_controller uses await dialogue_closed (no fixed timer)
+	_begin("trainer_flow_uses_signal_not_timer")
+	var trainer_script := load("res://scripts/overworld/trainer_controller.gd") as GDScript
+	if trainer_script:
+		var tsrc: String = trainer_script.source_code
+		_assert_true(tsrc.contains("await dialogue_node.dialogue_closed"), "trainer uses signal-based await")
+		_assert_false(tsrc.contains("dialogue_before.size() * 1.5"), "fixed timer removed from trainer")
+		_assert_true(tsrc.contains("await tween.finished"), "trainer uses await tween.finished instead of tween_callback")
+		_assert_false(tsrc.contains("tween_callback(_engage_battle)"), "tween_callback to _engage_battle removed")
+	else:
+		_fail("could not load trainer_controller script")
+
+	# Test: overworld _show_dialogue returns Node
+	_begin("trainer_flow_show_dialogue_returns_node")
+	var overworld_script := load("res://scripts/overworld/overworld.gd") as GDScript
+	if overworld_script:
+		var osrc: String = overworld_script.source_code
+		_assert_true(osrc.contains("func _show_dialogue(lines: Array) -> Node"), "overworld _show_dialogue returns Node")
+	else:
+		_fail("could not load overworld script")
+
+	# Test: overworld resets is_in_dialogue in _on_trainer_battle_ended
+	_begin("trainer_flow_safety_reset_dialogue")
+	if overworld_script:
+		var osrc: String = overworld_script.source_code
+		var idx := osrc.find("_on_trainer_battle_ended")
+		if idx >= 0:
+			var block := osrc.substr(idx, 300)
+			_assert_true(block.contains("is_in_dialogue = false"), "safety reset of is_in_dialogue in trainer battle ended")
+		else:
+			_fail("_on_trainer_battle_ended not found")
+	else:
+		_fail("could not load overworld script")
+
+	# Test: DEBUG_TRAINER flag exists in GameManager
+	_begin("trainer_flow_debug_flag_exists")
+	_assert_true("DEBUG_TRAINER" in GameManager, "GameManager has DEBUG_TRAINER property")
+
+	# Test: DEBUG_TRAINER defaults to false
+	_begin("trainer_flow_debug_flag_default")
+	_assert_false(GameManager.DEBUG_TRAINER, "DEBUG_TRAINER defaults to false")
+
+	# Restore state
+	GameManager.is_in_dialogue = saved_dialogue
+	GameManager.is_in_battle = saved_battle

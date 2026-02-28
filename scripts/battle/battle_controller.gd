@@ -622,6 +622,13 @@ func _grant_xp() -> void:
 	_show_message("%s gained %d XP!" % [p_name, xp_amount])
 	await get_tree().create_timer(1.2).timeout
 
+	# Gold reward
+	var gold_reward: int = _enemy_monster.level * (15 if is_trainer_battle else 8)
+	GameManager.add_gold(gold_reward)
+	print("[BATTLE] Earned %d gold" % gold_reward)
+	_show_message("You earned %d gold!" % gold_reward)
+	await get_tree().create_timer(0.8).timeout
+
 	var result: Dictionary = _player_monster.add_experience(xp_amount)
 
 	if result["leveled_up"]:

@@ -576,6 +576,11 @@
 			"status": "pass"
 		},
 		{
+			"message": "scene loads: shop_ui.tscn",
+			"name": "load_scene_shop_ui",
+			"status": "pass"
+		},
+		{
 			"message": "MonsterDB has 30 monsters",
 			"name": "monsterdb_monster_count",
 			"status": "pass"
@@ -616,7 +621,7 @@
 			"status": "pass"
 		},
 		{
-			"message": "load battle scene in 2ms (< 1000ms)",
+			"message": "load battle scene in 4ms (< 1000ms)",
 			"name": "perf_load_battle_scene",
 			"status": "pass"
 		},
@@ -1226,7 +1231,7 @@
 			"status": "pass"
 		},
 		{
-			"message": "area_names has 4 entries",
+			"message": "area_names has 6 entries",
 			"name": "area_names_complete",
 			"status": "pass"
 		},
@@ -1237,6 +1242,16 @@
 		},
 		{
 			"message": "area_names has route2",
+			"name": "area_names_complete",
+			"status": "pass"
+		},
+		{
+			"message": "area_names has route3",
+			"name": "area_names_complete",
+			"status": "pass"
+		},
+		{
+			"message": "area_names has town3",
 			"name": "area_names_complete",
 			"status": "pass"
 		},
@@ -1609,11 +1624,361 @@
 			"message": "weather_system.gd loads",
 			"name": "weather_script_loads",
 			"status": "pass"
+		},
+		{
+			"message": "no save file exists at start",
+			"name": "save_has_save_false_initially",
+			"status": "pass"
+		},
+		{
+			"message": "party size restored",
+			"name": "save_round_trip_party",
+			"status": "pass"
+		},
+		{
+			"message": "party monster level restored",
+			"name": "save_round_trip_party",
+			"status": "pass"
+		},
+		{
+			"message": "party monster HP restored",
+			"name": "save_round_trip_party",
+			"status": "pass"
+		},
+		{
+			"message": "party monster XP restored",
+			"name": "save_round_trip_party",
+			"status": "pass"
+		},
+		{
+			"message": "party monster base_id restored",
+			"name": "save_round_trip_party",
+			"status": "pass"
+		},
+		{
+			"message": "potion count restored",
+			"name": "save_round_trip_inventory",
+			"status": "pass"
+		},
+		{
+			"message": "capture_ball count restored",
+			"name": "save_round_trip_inventory",
+			"status": "pass"
+		},
+		{
+			"message": "seen registry restored",
+			"name": "save_round_trip_registry",
+			"status": "pass"
+		},
+		{
+			"message": "seen registry restored (2)",
+			"name": "save_round_trip_registry",
+			"status": "pass"
+		},
+		{
+			"message": "caught registry restored",
+			"name": "save_round_trip_registry",
+			"status": "pass"
+		},
+		{
+			"message": "uncaught remains uncaught",
+			"name": "save_round_trip_registry",
+			"status": "pass"
+		},
+		{
+			"message": "badge restored",
+			"name": "save_round_trip_badges",
+			"status": "pass"
+		},
+		{
+			"message": "defeated trainer restored",
+			"name": "save_round_trip_badges",
+			"status": "pass"
+		},
+		{
+			"message": "active quest restored",
+			"name": "save_round_trip_quests",
+			"status": "pass"
+		},
+		{
+			"message": "completed quest restored",
+			"name": "save_round_trip_quests",
+			"status": "pass"
+		},
+		{
+			"message": "area position restored",
+			"name": "save_round_trip_area_state",
+			"status": "pass"
+		},
+		{
+			"message": "area position X restored",
+			"name": "save_round_trip_area_state",
+			"status": "pass"
+		},
+		{
+			"message": "area position Y restored",
+			"name": "save_round_trip_area_state",
+			"status": "pass"
+		},
+		{
+			"message": "area defeated monster restored",
+			"name": "save_round_trip_area_state",
+			"status": "pass"
+		},
+		{
+			"message": "area defeated monster 3 restored",
+			"name": "save_round_trip_area_state",
+			"status": "pass"
+		},
+		{
+			"message": "game_time restored",
+			"name": "save_round_trip_time",
+			"status": "pass"
+		},
+		{
+			"message": "time_period restored",
+			"name": "save_round_trip_time",
+			"status": "pass"
+		},
+		{
+			"message": "save_version key exists",
+			"name": "save_version_present",
+			"status": "pass"
+		},
+		{
+			"message": "save_version is 2",
+			"name": "save_version_present",
+			"status": "pass"
+		},
+		{
+			"message": "loading corrupt save returns false",
+			"name": "save_corruption_fallback",
+			"status": "pass"
+		},
+		{
+			"message": "save exists before delete",
+			"name": "save_delete",
+			"status": "pass"
+		},
+		{
+			"message": "save gone after delete",
+			"name": "save_delete",
+			"status": "pass"
+		},
+		{
+			"message": "skill count preserved",
+			"name": "save_monster_skills_preserved",
+			"status": "pass"
+		},
+		{
+			"message": "backup file created on second save",
+			"name": "save_backup_created",
+			"status": "pass"
+		},
+		{
+			"message": "default gold is 100",
+			"name": "gold_default_value",
+			"status": "pass"
+		},
+		{
+			"message": "gold increased to 150",
+			"name": "gold_add",
+			"status": "pass"
+		},
+		{
+			"message": "spend_gold returns true",
+			"name": "gold_spend_success",
+			"status": "pass"
+		},
+		{
+			"message": "gold reduced to 50",
+			"name": "gold_spend_success",
+			"status": "pass"
+		},
+		{
+			"message": "spend_gold returns false when insufficient",
+			"name": "gold_spend_fail",
+			"status": "pass"
+		},
+		{
+			"message": "gold unchanged after failed spend",
+			"name": "gold_spend_fail",
+			"status": "pass"
+		},
+		{
+			"message": "SHOP_PRICES has 5 items",
+			"name": "gold_shop_prices",
+			"status": "pass"
+		},
+		{
+			"message": "SHOP_PRICES has potion",
+			"name": "gold_shop_prices",
+			"status": "pass"
+		},
+		{
+			"message": "SHOP_PRICES has antidote",
+			"name": "gold_shop_prices",
+			"status": "pass"
+		},
+		{
+			"message": "gold restored from save",
+			"name": "gold_save_round_trip",
+			"status": "pass"
+		},
+		{
+			"message": "shop_ui.tscn loads",
+			"name": "shop_scene_loads",
+			"status": "pass"
+		},
+		{
+			"message": "shop_ui.gd loads",
+			"name": "shop_script_loads",
+			"status": "pass"
+		},
+		{
+			"message": "AREA_DATA contains route3 key",
+			"name": "area_data_has_route3",
+			"status": "pass"
+		},
+		{
+			"message": "AREA_DATA contains town3 key",
+			"name": "area_data_has_town3",
+			"status": "pass"
+		},
+		{
+			"message": "town2 has transition to route3",
+			"name": "area_town2_east_to_route3",
+			"status": "pass"
+		},
+		{
+			"message": "route3 has transition to town3",
+			"name": "area_route3_to_town3",
+			"status": "pass"
+		},
+		{
+			"message": "town3 is a safe zone",
+			"name": "area_town3_safe_zone",
+			"status": "pass"
+		},
+		{
+			"message": "town3 has open_shop dialogue action",
+			"name": "area_town3_has_shop",
+			"status": "pass"
+		},
+		{
+			"message": "town3 has heal_party dialogue action",
+			"name": "area_town3_has_healer",
+			"status": "pass"
+		},
+		{
+			"message": "world map has route3",
+			"name": "world_map_has_route3",
+			"status": "pass"
+		},
+		{
+			"message": "world map has town3",
+			"name": "world_map_has_route3",
+			"status": "pass"
+		},
+		{
+			"message": "is_in_dialogue defaults false",
+			"name": "trainer_flow_dialogue_default_false",
+			"status": "pass"
+		},
+		{
+			"message": "is_in_battle defaults false",
+			"name": "trainer_flow_battle_default_false",
+			"status": "pass"
+		},
+		{
+			"message": "player can move when all flags clear",
+			"name": "trainer_flow_can_move_all_clear",
+			"status": "pass"
+		},
+		{
+			"message": "player locked during dialogue",
+			"name": "trainer_flow_cant_move_dialogue",
+			"status": "pass"
+		},
+		{
+			"message": "player locked during battle",
+			"name": "trainer_flow_cant_move_battle",
+			"status": "pass"
+		},
+		{
+			"message": "trainer not defeated initially",
+			"name": "trainer_flow_defeat_persistence",
+			"status": "pass"
+		},
+		{
+			"message": "trainer defeated after mark",
+			"name": "trainer_flow_defeat_persistence",
+			"status": "pass"
+		},
+		{
+			"message": "dialogue_box_ui has dialogue_closed signal",
+			"name": "trainer_flow_dialogue_closed_signal",
+			"status": "pass"
+		},
+		{
+			"message": "dialogue_box_ui has block_cancel property",
+			"name": "trainer_flow_block_cancel_property",
+			"status": "pass"
+		},
+		{
+			"message": "ui_cancel gated by block_cancel",
+			"name": "trainer_flow_block_cancel_in_input",
+			"status": "pass"
+		},
+		{
+			"message": "dialogue_closed emitted in _close()",
+			"name": "trainer_flow_signal_emitted_in_close",
+			"status": "pass"
+		},
+		{
+			"message": "trainer uses signal-based await",
+			"name": "trainer_flow_uses_signal_not_timer",
+			"status": "pass"
+		},
+		{
+			"message": "fixed timer removed from trainer",
+			"name": "trainer_flow_uses_signal_not_timer",
+			"status": "pass"
+		},
+		{
+			"message": "trainer uses await tween.finished instead of tween_callback",
+			"name": "trainer_flow_uses_signal_not_timer",
+			"status": "pass"
+		},
+		{
+			"message": "tween_callback to _engage_battle removed",
+			"name": "trainer_flow_uses_signal_not_timer",
+			"status": "pass"
+		},
+		{
+			"message": "overworld _show_dialogue returns Node",
+			"name": "trainer_flow_show_dialogue_returns_node",
+			"status": "pass"
+		},
+		{
+			"message": "safety reset of is_in_dialogue in trainer battle ended",
+			"name": "trainer_flow_safety_reset_dialogue",
+			"status": "pass"
+		},
+		{
+			"message": "GameManager has DEBUG_TRAINER property",
+			"name": "trainer_flow_debug_flag_exists",
+			"status": "pass"
+		},
+		{
+			"message": "DEBUG_TRAINER defaults to false",
+			"name": "trainer_flow_debug_flag_default",
+			"status": "pass"
 		}
 	],
-	"durationMs": 426,
+	"durationMs": 520,
 	"status": "pass",
-	"testsPassed": 322.0,
-	"testsTotal": 322.0,
-	"timestamp": "2026-02-24T23:40:11"
+	"testsPassed": 395.0,
+	"testsTotal": 395.0,
+	"timestamp": "2026-02-28T14:43:11"
 }

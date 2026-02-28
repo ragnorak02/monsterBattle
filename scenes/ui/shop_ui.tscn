@@ -1,9 +1,9 @@
 [gd_scene load_steps=3 format=3]
 
-[ext_resource type="Script" path="res://scripts/ui/world_map_ui.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/ui/shop_ui.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/ui/controller_hint_bar.tscn" id="2"]
 
-[node name="WorldMap" type="CanvasLayer"]
+[node name="ShopUI" type="CanvasLayer"]
 layer = 15
 script = ExtResource("1")
 
@@ -21,10 +21,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -160.0
-offset_top = -210.0
-offset_right = 160.0
-offset_bottom = 210.0
+offset_left = -150.0
+offset_top = -140.0
+offset_right = 150.0
+offset_bottom = 140.0
 grow_horizontal = 2
 grow_vertical = 2
 
@@ -37,16 +37,26 @@ theme_override_constants/margin_bottom = 10
 
 [node name="VBox" type="VBoxContainer" parent="Panel/MarginContainer"]
 layout_mode = 2
-theme_override_constants/separation = 6
+theme_override_constants/separation = 8
 
 [node name="Title" type="Label" parent="Panel/MarginContainer/VBox"]
 layout_mode = 2
-text = "World Map"
+text = "Shop"
 horizontal_alignment = 1
 
-[node name="MapCanvas" type="Control" parent="Panel/MarginContainer/VBox"]
+[node name="GoldLabel" type="Label" parent="Panel/MarginContainer/VBox"]
 layout_mode = 2
-size_flags_vertical = 3
-custom_minimum_size = Vector2(0, 370)
+text = "Gold: 0"
+horizontal_alignment = 2
+
+[node name="ItemList" type="VBoxContainer" parent="Panel/MarginContainer/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="DetailLabel" type="Label" parent="Panel/MarginContainer/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 50)
+text = "Select an item to buy"
+autowrap_mode = 2
 
 [node name="ControllerHintBar" parent="." instance=ExtResource("2")]

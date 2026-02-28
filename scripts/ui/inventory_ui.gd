@@ -2,12 +2,15 @@ extends CanvasLayer
 
 @onready var item_list: VBoxContainer = $Panel/MarginContainer/VBox/ItemList
 @onready var detail_label: Label = $Panel/MarginContainer/VBox/DetailLabel
+@onready var gold_label: Label = $Panel/MarginContainer/VBox/GoldLabel
 @onready var hint_bar: PanelContainer = $ControllerHintBar
 
 var _item_buttons: Array[Button] = []
 
 func _ready() -> void:
 	GameManager.is_in_menu = true
+	if gold_label:
+		gold_label.text = "Gold: %d" % GameManager.get_gold()
 	_build_item_list()
 	if hint_bar:
 		hint_bar.set_hints([

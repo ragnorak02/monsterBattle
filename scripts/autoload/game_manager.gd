@@ -6,8 +6,10 @@ signal pc_storage_changed
 signal registry_changed
 signal quest_updated(quest_id: String)
 signal time_changed(new_period: String)
+signal gold_changed
 
 var player_gender: String = ""  # "boy" or "girl"
+var gold: int = 100
 var player_party: Array[MonsterInstance] = []
 var pc_storage: Array[MonsterInstance] = []
 var defeated_monster_ids: Array[int] = []  # Track removed overworld monsters (legacy, for backward compat)
@@ -17,12 +19,23 @@ var is_in_dialogue: bool = false
 var monster_registry_seen: Dictionary = {}
 var monster_registry_caught: Dictionary = {}
 
+# ── Debug Flags ──
+var DEBUG_TRAINER: bool = false
+
 # ── Badges & Trainers ──
 var badges: Dictionary = {}              # { "gym_1": true }
 var defeated_trainers: Dictionary = {}   # { "town2_gym": true }
 
 # ── Inventory ──
 var inventory: Dictionary = {}  # { item_id: count }
+
+const SHOP_PRICES: Dictionary = {
+	"potion": 100,
+	"super_potion": 300,
+	"capture_ball": 150,
+	"great_ball": 400,
+	"antidote": 75,
+}
 
 const ITEM_DEFS: Dictionary = {
 	"potion": {"name": "Potion", "type": "heal", "value": 30, "battle": true},
@@ -226,6 +239,22 @@ func get_battle_items() -> Array:
 		if ITEM_DEFS.has(item_id) and ITEM_DEFS[item_id]["battle"]:
 			items.append({"id": item_id, "name": ITEM_DEFS[item_id]["name"], "count": inventory[item_id]})
 	return items
+
+# ── Gold Methods ──
+
+func add_gold(amount: int) -> void:
+	gold += amount
+	gold_changed.emit()
+
+func spend_gold(amount: int) -> bool:
+	if gold < amount:
+		return false
+	gold -= amount
+	gold_changed.emit()
+	return true
+
+func get_gold() -> int:
+	return gold
 
 # ── Quest System ──
 

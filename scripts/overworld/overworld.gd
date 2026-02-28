@@ -1213,6 +1213,7 @@ func start_trainer_battle(trainer: Node) -> void:
 
 func _on_trainer_battle_ended(result: String, _overworld_id: int, trainer: Node) -> void:
 	GameManager.is_in_battle = false
+	GameManager.is_in_dialogue = false
 	GameManager.advance_time(0.5)
 	if result == "win":
 		GameManager.mark_trainer_defeated(trainer.trainer_id)
@@ -1530,12 +1531,14 @@ func _on_battle_ended(result: String, overworld_id: int) -> void:
 				child.on_battle_ended(removed)
 			break
 
-func _show_dialogue(lines: Array) -> void:
+func _show_dialogue(lines: Array) -> Node:
 	var dialogue_scene := load("res://scenes/overworld/dialogue_box.tscn") as PackedScene
 	if dialogue_scene:
 		var dialogue := dialogue_scene.instantiate()
 		dialogue.set_lines(lines)
 		ui_layer.add_child(dialogue)
+		return dialogue
+	return null
 
 func _input(event: InputEvent) -> void:
 	# Debug: F1 to start a test battle (skips encounter UI)

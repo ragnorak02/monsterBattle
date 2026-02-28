@@ -6,7 +6,7 @@
 size = Vector2(14, 14)
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_interact"]
-radius = 28.0
+radius = 40.0
 
 [sub_resource type="Animation" id="anim_idle"]
 resource_name = "idle"
