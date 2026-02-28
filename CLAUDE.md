@@ -205,16 +205,16 @@ AMARIS STANDARD — 95 Checkpoints
 
 ## Macro Phase 5 — Save & Persistence (61–70)
 
-- [ ] 61. Save system (JSON or ResourceSaver)
-- [ ] 62. Continue option enabled
-- [ ] 63. Party persistence
-- [ ] 64. Registry persistence
-- [ ] 65. Inventory persistence
-- [ ] 66. Save version migration
-- [ ] 67. Auto-save after battle
-- [ ] 68. Corruption fallback
-- [ ] 69. Save/load regression tests
-- [ ] 70. Launcher compliance save check
+- [x] 61. Save system (JSON or ResourceSaver)
+- [x] 62. Continue option enabled
+- [x] 63. Party persistence
+- [x] 64. Registry persistence
+- [x] 65. Inventory persistence
+- [x] 66. Save version migration
+- [x] 67. Auto-save after battle
+- [x] 68. Corruption fallback
+- [x] 69. Save/load regression tests
+- [x] 70. Launcher compliance save check
 
 ---
 
@@ -369,14 +369,14 @@ Controller:
 
 ## Implementation Tasks
 
-- [ ] Create PartyMenuScene
-- [ ] Limit party to 6 monsters
-- [ ] Create PartySlot UI component
-- [ ] Add HP bar component
-- [ ] Add Level display
-- [ ] Highlight selected slot
-- [ ] Add smooth open animation
-- [ ] Remove unnecessary player stat clutter
+- [x] Create PartyMenuScene
+- [x] Limit party to 6 monsters
+- [x] Create PartySlot UI component
+- [x] Add HP bar component
+- [x] Add Level display
+- [x] Highlight selected slot
+- [x] Add smooth open animation
+- [x] Remove unnecessary player stat clutter
 
 ---
 
@@ -413,13 +413,13 @@ Controller:
 
 ## Implementation Tasks
 
-- [ ] Create MonsterDetailScene
-- [ ] Create TabSwitchComponent
-- [ ] Create EXP progress bar
-- [ ] Create MoveList UI
-- [ ] Ensure scaling layout
-- [ ] Ensure 16:9 compatibility
-- [ ] Add smooth transition animation
+- [x] Create MonsterDetailScene
+- [x] Create TabSwitchComponent
+- [x] Create EXP progress bar
+- [x] Create MoveList UI
+- [x] Ensure scaling layout
+- [x] Ensure 16:9 compatibility
+- [x] Add smooth transition animation
 
 ---
 
@@ -515,10 +515,10 @@ AMARIS dashboard depends on this.
 
 # Current Focus
 
-Current Goal: Phase 6 Experience System Complete — Continue Phase 5/7
-Current Task: Save & persistence system / Status menu refactor
+Current Goal: Phase 5 Complete — Continue Phase 7 (Status Menu Refactor)
+Current Task: Status menu refactor (PartyMenuScene + MonsterDetailScene)
 Work Mode: Feature Development
-Next Milestone: Macro Phase 5 (checkpoints 61–70)
+Next Milestone: Phase 7 — Status Menu Refactor
 
 ---
 

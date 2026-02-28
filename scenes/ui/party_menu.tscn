@@ -13,58 +13,82 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.5)
+color = Color(0, 0, 0, 0.55)
 
-[node name="Panel" type="PanelContainer" parent="."]
-anchors_preset = 6
-anchor_left = 1.0
+[node name="MainPanel" type="PanelContainer" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
 anchor_top = 0.5
-anchor_right = 1.0
+anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -280.0
-offset_top = -160.0
-offset_right = -10.0
-offset_bottom = 160.0
-grow_horizontal = 0
+offset_left = -290.0
+offset_top = -140.0
+offset_right = 290.0
+offset_bottom = 140.0
+grow_horizontal = 2
 grow_vertical = 2
 
-[node name="MarginContainer" type="MarginContainer" parent="Panel"]
+[node name="MarginContainer" type="MarginContainer" parent="MainPanel"]
 layout_mode = 2
-theme_override_constants/margin_left = 10
-theme_override_constants/margin_top = 10
-theme_override_constants/margin_right = 10
-theme_override_constants/margin_bottom = 10
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
 
-[node name="VBox" type="VBoxContainer" parent="Panel/MarginContainer"]
-layout_mode = 2
-theme_override_constants/separation = 10
-
-[node name="Title" type="Label" parent="Panel/MarginContainer/VBox"]
-layout_mode = 2
-text = "Party"
-horizontal_alignment = 1
-
-[node name="PartyList" type="VBoxContainer" parent="Panel/MarginContainer/VBox"]
-layout_mode = 2
-theme_override_constants/separation = 4
-
-[node name="DetailPanel" type="PanelContainer" parent="Panel/MarginContainer/VBox"]
-layout_mode = 2
-custom_minimum_size = Vector2(0, 100)
-
-[node name="HBox" type="HBoxContainer" parent="Panel/MarginContainer/VBox/DetailPanel"]
+[node name="HBox" type="HBoxContainer" parent="MainPanel/MarginContainer"]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="Sprite" type="TextureRect" parent="Panel/MarginContainer/VBox/DetailPanel/HBox"]
-layout_mode = 2
-custom_minimum_size = Vector2(48, 48)
-stretch_mode = 5
-expand_mode = 1
-
-[node name="Info" type="Label" parent="Panel/MarginContainer/VBox/DetailPanel/HBox"]
+[node name="LeftPanel" type="VBoxContainer" parent="MainPanel/MarginContainer/HBox"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Select a monster"
+size_flags_stretch_ratio = 0.45
+theme_override_constants/separation = 4
+
+[node name="ActiveSprite" type="TextureRect" parent="MainPanel/MarginContainer/HBox/LeftPanel"]
+layout_mode = 2
+custom_minimum_size = Vector2(64, 64)
+size_flags_horizontal = 4
+stretch_mode = 5
+expand_mode = 1
+texture_filter = 0
+
+[node name="NameLabel" type="Label" parent="MainPanel/MarginContainer/HBox/LeftPanel"]
+layout_mode = 2
+horizontal_alignment = 1
+
+[node name="TypeLabel" type="Label" parent="MainPanel/MarginContainer/HBox/LeftPanel"]
+layout_mode = 2
+horizontal_alignment = 1
+
+[node name="LevelLabel" type="Label" parent="MainPanel/MarginContainer/HBox/LeftPanel"]
+layout_mode = 2
+horizontal_alignment = 1
+
+[node name="HPBar" type="Control" parent="MainPanel/MarginContainer/HBox/LeftPanel"]
+layout_mode = 2
+custom_minimum_size = Vector2(120, 20)
+
+[node name="StatusLabel" type="Label" parent="MainPanel/MarginContainer/HBox/LeftPanel"]
+layout_mode = 2
+horizontal_alignment = 1
+
+[node name="VSeparator" type="VSeparator" parent="MainPanel/MarginContainer/HBox"]
+layout_mode = 2
+
+[node name="RightPanel" type="VBoxContainer" parent="MainPanel/MarginContainer/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.55
+theme_override_constants/separation = 4
+
+[node name="TrainerHeader" type="Label" parent="MainPanel/MarginContainer/HBox/RightPanel"]
+layout_mode = 2
+horizontal_alignment = 1
+
+[node name="PartyList" type="VBoxContainer" parent="MainPanel/MarginContainer/HBox/RightPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 3
 
 [node name="ControllerHintBar" parent="." instance=ExtResource("2")]

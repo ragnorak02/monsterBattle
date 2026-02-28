@@ -53,6 +53,8 @@ func _ready() -> void:
 	_run_new_area_tests()
 	_run_trainer_flow_tests()
 	_run_trainer_rank_tests()
+	_run_continue_button_tests()
+	_run_party_menu_tests()
 
 	var total := _pass_count + _fail_count
 	print("")
@@ -2572,3 +2574,113 @@ func _run_trainer_rank_tests() -> void:
 		DirAccess.remove_absolute(save_path)
 	if FileAccess.file_exists(backup_path):
 		DirAccess.remove_absolute(backup_path)
+
+# ══════════════════════════════════════════════
+#  AK. Continue Button Tests
+# ══════════════════════════════════════════════
+
+func _run_continue_button_tests() -> void:
+	print("\n── Continue Button ──")
+
+	var script := load("res://scripts/ui/title_menu_ui.gd") as GDScript
+	_begin("continue_button_script_loads")
+	_assert_not_null(script, "title_menu_ui.gd loads")
+
+	var source: String = ""
+	if script:
+		source = script.source_code
+
+	# 1. Continue handler checks has_save
+	_begin("continue_calls_has_save")
+	_assert_true(source.find("SaveManager.has_save()") >= 0, "continue handler checks SaveManager.has_save()")
+
+	# 2. Continue handler calls load_game
+	_begin("continue_calls_load_game")
+	_assert_true(source.find("SaveManager.load_game()") >= 0, "continue handler calls SaveManager.load_game()")
+
+	# 3. Continue button visibility gated on save existence
+	_begin("continue_visibility_gated")
+	var has_visibility_check: bool = source.find("has_save()") >= 0 and source.find("continue_button.visible") >= 0
+	_assert_true(has_visibility_check, "continue button visibility gated on save existence")
+
+# ── AC: Party Menu Refactor ──
+
+func _run_party_menu_tests() -> void:
+	print("\n── Party Menu Refactor ──")
+
+	# 1. XP bar scene loads
+	_begin("xp_bar_scene_loads")
+	var xp_bar_scene := load("res://scenes/ui/xp_bar.tscn") as PackedScene
+	_assert_not_null(xp_bar_scene, "xp_bar.tscn loads")
+
+	# 2. XP bar script loads
+	_begin("xp_bar_script_loads")
+	var xp_bar_script := load("res://scripts/ui/xp_bar_ui.gd") as GDScript
+	_assert_not_null(xp_bar_script, "xp_bar_ui.gd loads")
+
+	# 3. Party slot scene loads
+	_begin("party_slot_scene_loads")
+	var slot_scene := load("res://scenes/ui/party_slot.tscn") as PackedScene
+	_assert_not_null(slot_scene, "party_slot.tscn loads")
+
+	# 4. Party slot script loads
+	_begin("party_slot_script_loads")
+	var slot_script := load("res://scripts/ui/party_slot_ui.gd") as GDScript
+	_assert_not_null(slot_script, "party_slot_ui.gd loads")
+
+	# 5. Monster detail scene loads
+	_begin("monster_detail_scene_loads")
+	var detail_scene := load("res://scenes/ui/monster_detail.tscn") as PackedScene
+	_assert_not_null(detail_scene, "monster_detail.tscn loads")
+
+	# 6. Monster detail script loads
+	_begin("monster_detail_script_loads")
+	var detail_script := load("res://scripts/ui/monster_detail_ui.gd") as GDScript
+	_assert_not_null(detail_script, "monster_detail_ui.gd loads")
+
+	# 7. Party menu scene loads
+	_begin("party_menu_scene_loads")
+	var menu_scene := load("res://scenes/ui/party_menu.tscn") as PackedScene
+	_assert_not_null(menu_scene, "party_menu.tscn loads")
+
+	# 8. Party menu script has PartySlot integration
+	_begin("party_menu_uses_party_slots")
+	var menu_script := load("res://scripts/ui/party_menu_ui.gd") as GDScript
+	var menu_source: String = ""
+	if menu_script:
+		menu_source = menu_script.source_code
+	_assert_true(menu_source.find("PartySlotScene") >= 0, "party_menu uses PartySlot scenes")
+
+	# 9. Party menu script has left panel update
+	_begin("party_menu_has_left_panel")
+	_assert_true(menu_source.find("_update_left_panel") >= 0, "party_menu has left panel update")
+
+	# 10. Party menu script opens detail view
+	_begin("party_menu_opens_detail")
+	_assert_true(menu_source.find("monster_detail.tscn") >= 0, "party_menu opens monster detail")
+
+	# 11. Monster detail script has tab switching
+	_begin("monster_detail_has_tabs")
+	var det_source: String = ""
+	if detail_script:
+		det_source = detail_script.source_code
+	_assert_true(det_source.find("_show_tab") >= 0, "monster detail has tab switching")
+
+	# 12. Monster detail uses ui_tab_left/right
+	_begin("monster_detail_uses_tab_actions")
+	var has_tab_input: bool = det_source.find("ui_tab_left") >= 0 and det_source.find("ui_tab_right") >= 0
+	_assert_true(has_tab_input, "monster detail uses ui_tab_left/right input actions")
+
+	# 13. LB icon exists
+	_begin("lb_icon_exists")
+	_assert_true(FileAccess.file_exists("res://assets/ui/controller/btn_lb.png"), "btn_lb.png exists")
+
+	# 14. RB icon exists
+	_begin("rb_icon_exists")
+	_assert_true(FileAccess.file_exists("res://assets/ui/controller/btn_rb.png"), "btn_rb.png exists")
+
+	# 15. Input actions registered
+	_begin("tab_input_actions_exist")
+	var has_tab_left := InputMap.has_action("ui_tab_left")
+	var has_tab_right := InputMap.has_action("ui_tab_right")
+	_assert_true(has_tab_left and has_tab_right, "ui_tab_left and ui_tab_right input actions exist")

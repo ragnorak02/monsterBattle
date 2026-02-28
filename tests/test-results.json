@@ -2064,11 +2064,106 @@
 			"message": "default trainer_experience after migration",
 			"name": "save_migration_v2_to_v3",
 			"status": "pass"
+		},
+		{
+			"message": "title_menu_ui.gd loads",
+			"name": "continue_button_script_loads",
+			"status": "pass"
+		},
+		{
+			"message": "continue handler checks SaveManager.has_save()",
+			"name": "continue_calls_has_save",
+			"status": "pass"
+		},
+		{
+			"message": "continue handler calls SaveManager.load_game()",
+			"name": "continue_calls_load_game",
+			"status": "pass"
+		},
+		{
+			"message": "continue button visibility gated on save existence",
+			"name": "continue_visibility_gated",
+			"status": "pass"
+		},
+		{
+			"message": "xp_bar.tscn loads",
+			"name": "xp_bar_scene_loads",
+			"status": "pass"
+		},
+		{
+			"message": "xp_bar_ui.gd loads",
+			"name": "xp_bar_script_loads",
+			"status": "pass"
+		},
+		{
+			"message": "party_slot.tscn loads",
+			"name": "party_slot_scene_loads",
+			"status": "pass"
+		},
+		{
+			"message": "party_slot_ui.gd loads",
+			"name": "party_slot_script_loads",
+			"status": "pass"
+		},
+		{
+			"message": "monster_detail.tscn loads",
+			"name": "monster_detail_scene_loads",
+			"status": "pass"
+		},
+		{
+			"message": "monster_detail_ui.gd loads",
+			"name": "monster_detail_script_loads",
+			"status": "pass"
+		},
+		{
+			"message": "party_menu.tscn loads",
+			"name": "party_menu_scene_loads",
+			"status": "pass"
+		},
+		{
+			"message": "party_menu uses PartySlot scenes",
+			"name": "party_menu_uses_party_slots",
+			"status": "pass"
+		},
+		{
+			"message": "party_menu has left panel update",
+			"name": "party_menu_has_left_panel",
+			"status": "pass"
+		},
+		{
+			"message": "party_menu opens monster detail",
+			"name": "party_menu_opens_detail",
+			"status": "pass"
+		},
+		{
+			"message": "monster detail has tab switching",
+			"name": "monster_detail_has_tabs",
+			"status": "pass"
+		},
+		{
+			"message": "monster detail uses ui_tab_left/right input actions",
+			"name": "monster_detail_uses_tab_actions",
+			"status": "pass"
+		},
+		{
+			"message": "btn_lb.png exists",
+			"name": "lb_icon_exists",
+			"status": "pass"
+		},
+		{
+			"message": "btn_rb.png exists",
+			"name": "rb_icon_exists",
+			"status": "pass"
+		},
+		{
+			"message": "ui_tab_left and ui_tab_right input actions exist",
+			"name": "tab_input_actions_exist",
+			"status": "pass"
 		}
 	],
-	"durationMs": 515,
+	"durationMs": 517,
 	"status": "pass",
-	"testsPassed": 413.0,
-	"testsTotal": 413.0,
-	"timestamp": "2026-02-28T16:19:31"
+	"testsPassed": 432.0,
+	"testsTotal": 432.0,
+	"timestamp": "2026-02-28T20:50:12"
 }

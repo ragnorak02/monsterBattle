@@ -6,47 +6,34 @@ extends Control
 @onready var exit_button: Button = $VBox/ExitButton
 
 func _ready() -> void:
-	continue_button.visible = true
+	if SaveManager.has_save():
+		continue_button.visible = true
+		continue_button.grab_focus()
+	else:
+		continue_button.visible = false
+		new_game_button.grab_focus()
 
 	continue_button.pressed.connect(_on_continue)
 	new_game_button.pressed.connect(_on_new_game)
 	settings_button.pressed.connect(_on_settings)
 	exit_button.pressed.connect(_on_exit)
 
-	continue_button.grab_focus()
-
 func _on_continue() -> void:
-	# Quick-start: skip gender/starter select, jump straight into overworld
-	GameManager.player_gender = "boy"
-	GameManager.gold = 100
-	GameManager.player_party = []
-	GameManager.pc_storage = []
-	GameManager.inventory = {}
-	GameManager.badges = {}
-	GameManager.defeated_trainers = {}
-	GameManager.active_quests = {}
-	GameManager.completed_quests = {}
-	GameManager.monster_registry_seen = {}
-	GameManager.monster_registry_caught = {}
-	GameManager.area_player_positions = {}
-	GameManager.area_defeated_monsters = {}
-	GameManager.defeated_monster_ids = []
+	if not SaveManager.has_save():
+		print("TitleMenu: No save data found")
+		return
 
-	# Create starter monster (monster #1) at level 5
-	var starter_data: Resource = MonsterDB.get_monster(1)
-	if starter_data:
-		var starter := MonsterInstance.new(starter_data, 5)
-		GameManager.add_to_party(starter)
-		GameManager.mark_monster_caught(int(starter_data.get("id")))
+	var success := SaveManager.load_game()
+	if not success:
+		print("TitleMenu: Failed to load save data")
+		return
 
-	# Give starter items
-	GameManager.add_item("potion", 5)
-	GameManager.add_item("antidote", 3)
-	GameManager.add_item("capture_ball", 10)
-
-	# Set spawn position at town north entrance
-	GameManager.current_area = "town"
-	GameManager.set_area_player_position("town", Vector2(0, -576))
+	# Safety: sync registry from owned monsters
+	for monster: MonsterInstance in GameManager.player_party:
+		if monster.base_data:
+			var mid: int = int(monster.base_data.get("id"))
+			GameManager.mark_monster_seen(mid)
+			GameManager.mark_monster_caught(mid)
 
 	SceneManager.change_scene("res://scenes/overworld/overworld.tscn")
 
