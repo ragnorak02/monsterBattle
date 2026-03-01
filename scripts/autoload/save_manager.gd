@@ -2,7 +2,7 @@ extends Node
 
 const SAVE_PATH: String = "user://save_data.json"
 const BACKUP_PATH: String = "user://save_data.backup.json"
-const CURRENT_SAVE_VERSION: int = 3
+const CURRENT_SAVE_VERSION: int = 4
 
 func save_game() -> bool:
 	# Create backup of existing save before writing
@@ -70,6 +70,11 @@ func _serialize() -> Dictionary:
 	data["time_period"] = GameManager.time_period
 	data["trainer_rank"] = GameManager.trainer_rank
 	data["trainer_experience"] = GameManager.trainer_experience
+
+	# Building state
+	data["is_in_building"] = GameManager.is_in_building
+	data["building_return_area"] = GameManager.building_return_area
+	data["building_return_position"] = {"x": GameManager.building_return_position.x, "y": GameManager.building_return_position.y}
 
 	# Party
 	data["player_party"] = _serialize_monster_array(GameManager.player_party)
@@ -148,6 +153,15 @@ func _deserialize(data: Dictionary) -> void:
 	GameManager.time_period = str(data.get("time_period", "day"))
 	GameManager.trainer_rank = int(data.get("trainer_rank", 1))
 	GameManager.trainer_experience = int(data.get("trainer_experience", 0))
+
+	# Building state
+	GameManager.is_in_building = bool(data.get("is_in_building", false))
+	GameManager.building_return_area = str(data.get("building_return_area", ""))
+	var bpos_data: Dictionary = data.get("building_return_position", {})
+	GameManager.building_return_position = Vector2(
+		float(bpos_data.get("x", 0.0)),
+		float(bpos_data.get("y", 0.0))
+	)
 
 	# Party
 	GameManager.player_party = _deserialize_monster_array(data.get("player_party", []))
@@ -266,6 +280,11 @@ func _migrate_save(data: Dictionary) -> Dictionary:
 		data["trainer_rank"] = 1
 		data["trainer_experience"] = 0
 		data["save_version"] = 3
+	if version < 4:
+		data["is_in_building"] = false
+		data["building_return_area"] = ""
+		data["building_return_position"] = {"x": 0.0, "y": 0.0}
+		data["save_version"] = 4
 	return data
 
 # ── Validation ──

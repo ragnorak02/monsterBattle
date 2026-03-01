@@ -55,6 +55,7 @@ func _ready() -> void:
 	_run_trainer_rank_tests()
 	_run_continue_button_tests()
 	_run_party_menu_tests()
+	_run_building_interior_tests()
 
 	var total := _pass_count + _fail_count
 	print("")
@@ -2156,7 +2157,7 @@ func _run_save_system_tests() -> void:
 		if json.data is Dictionary:
 			var save_data: Dictionary = json.data as Dictionary
 			_assert_true(save_data.has("save_version"), "save_version key exists")
-			_assert_eq(int(save_data["save_version"]), 3, "save_version is 3")
+			_assert_eq(int(save_data["save_version"]), 4, "save_version is 4")
 		else:
 			_fail("save file is not a dictionary")
 	else:
@@ -2563,7 +2564,7 @@ func _run_trainer_rank_tests() -> void:
 		"player_party": [],
 	}
 	var migrated: Dictionary = SaveManager._migrate_save(v2_data)
-	_assert_eq(int(migrated["save_version"]), 3, "migrated to version 3")
+	_assert_eq(int(migrated["save_version"]), 4, "migrated to version 4")
 	_assert_eq(int(migrated["trainer_rank"]), 1, "default trainer_rank after migration")
 	_assert_eq(int(migrated["trainer_experience"]), 0, "default trainer_experience after migration")
 
@@ -2684,3 +2685,110 @@ func _run_party_menu_tests() -> void:
 	var has_tab_left := InputMap.has_action("ui_tab_left")
 	var has_tab_right := InputMap.has_action("ui_tab_right")
 	_assert_true(has_tab_left and has_tab_right, "ui_tab_left and ui_tab_right input actions exist")
+
+# ══════════════════════════════════════════════
+#  Building Interior Tests
+# ══════════════════════════════════════════════
+
+func _run_building_interior_tests() -> void:
+	print("\n── Building Interior ──")
+
+	# 1. Door scene loads
+	_begin("door_scene_loads")
+	var door_scene := load("res://scenes/overworld/door.tscn") as PackedScene
+	_assert_not_null(door_scene, "door.tscn loads")
+
+	# 2. Door script loads and has interact()
+	_begin("door_script_has_interact")
+	var door_script := load("res://scripts/overworld/door_controller.gd") as GDScript
+	_assert_not_null(door_script, "door_controller.gd loads")
+	var door_source: String = ""
+	if door_script:
+		door_source = door_script.source_code
+	_assert_true(door_source.find("func interact()") >= 0, "door has interact() method")
+
+	# 3. Door script has required properties
+	_begin("door_script_properties")
+	_assert_true(door_source.find("target_area") >= 0, "door has target_area property")
+	_assert_true(door_source.find("is_exit") >= 0, "door has is_exit property")
+
+	# 4. INTERIOR_TEMPLATES exists in overworld
+	_begin("interior_templates_exist")
+	var ow_script := load("res://scripts/overworld/overworld.gd") as GDScript
+	var ow_source: String = ""
+	if ow_script:
+		ow_source = ow_script.source_code
+	_assert_true(ow_source.find("INTERIOR_TEMPLATES") >= 0, "INTERIOR_TEMPLATES constant exists")
+
+	# 5. All 4 building types in templates
+	_begin("interior_templates_types")
+	_assert_true(ow_source.find("\"hospital\"") >= 0, "hospital template exists")
+	_assert_true(ow_source.find("\"shop\"") >= 0, "shop template exists")
+	_assert_true(ow_source.find("\"gym\"") >= 0, "gym template exists")
+	_assert_true(ow_source.find("\"house\"") >= 0, "house template exists")
+
+	# 6. _build_interior_config function exists
+	_begin("build_interior_config_exists")
+	_assert_true(ow_source.find("func _build_interior_config") >= 0, "interior config builder exists")
+
+	# 7. _setup_interior_tilemap function exists
+	_begin("setup_interior_tilemap_exists")
+	_assert_true(ow_source.find("func _setup_interior_tilemap") >= 0, "interior tilemap function exists")
+
+	# 8. Layout functions exist
+	_begin("layout_functions_exist")
+	_assert_true(ow_source.find("func _layout_hospital_interior") >= 0, "hospital layout exists")
+	_assert_true(ow_source.find("func _layout_shop_interior") >= 0, "shop layout exists")
+	_assert_true(ow_source.find("func _layout_gym_interior") >= 0, "gym layout exists")
+	_assert_true(ow_source.find("func _layout_house_interior") >= 0, "house layout exists")
+
+	# 9. GameManager building state fields
+	_begin("gamemanager_building_fields")
+	_assert_true("is_in_building" in GameManager, "GameManager has is_in_building")
+	_assert_true("building_return_area" in GameManager, "GameManager has building_return_area")
+	_assert_true("building_return_position" in GameManager, "GameManager has building_return_position")
+
+	# 10. Default building state
+	_begin("gamemanager_building_defaults")
+	_assert_false(GameManager.is_in_building, "is_in_building defaults false")
+	_assert_eq(GameManager.building_return_area, "", "building_return_area defaults empty")
+
+	# 11. SaveManager version bumped to 4
+	_begin("save_version_4")
+	_assert_eq(SaveManager.CURRENT_SAVE_VERSION, 4, "save version is 4")
+
+	# 12. SaveManager serializes building state
+	_begin("save_serializes_building_state")
+	var save_script := load("res://scripts/autoload/save_manager.gd") as GDScript
+	var save_source: String = ""
+	if save_script:
+		save_source = save_script.source_code
+	_assert_true(save_source.find("is_in_building") >= 0, "save handles is_in_building")
+	_assert_true(save_source.find("building_return_area") >= 0, "save handles building_return_area")
+	_assert_true(save_source.find("building_return_position") >= 0, "save handles building_return_position")
+
+	# 13. SaveManager v4 migration exists
+	_begin("save_v4_migration")
+	_assert_true(save_source.find("version < 4") >= 0, "v4 migration exists")
+
+	# 14. _spawn_building_doors function exists
+	_begin("spawn_building_doors_exists")
+	_assert_true(ow_source.find("func _spawn_building_doors") >= 0, "building door spawner exists")
+
+	# 15. _spawn_interior_exit function exists
+	_begin("spawn_interior_exit_exists")
+	_assert_true(ow_source.find("func _spawn_interior_exit") >= 0, "interior exit spawner exists")
+
+	# 16. Interior area key parsing
+	_begin("interior_key_format")
+	var test_key: String = "town_interior_hospital_0"
+	var parts: PackedStringArray = test_key.split("_interior_")
+	_assert_eq(parts.size(), 2, "interior key splits into 2 parts")
+	_assert_eq(parts[0], "town", "parent area parsed correctly")
+	var suffix_parts: PackedStringArray = parts[1].rsplit("_", true, 1)
+	_assert_eq(suffix_parts[0], "hospital", "building type parsed correctly")
+	_assert_eq(suffix_parts[1], "0", "building index parsed correctly")
+
+	# 17. Buildings have interior_npcs in town data
+	_begin("buildings_have_interior_npcs")
+	_assert_true(ow_source.find("interior_npcs") >= 0, "interior_npcs key exists in AREA_DATA")

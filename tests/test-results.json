@@ -1746,7 +1746,7 @@
 			"status": "pass"
 		},
 		{
-			"message": "save_version is 3",
+			"message": "save_version is 4",
 			"name": "save_version_present",
 			"status": "pass"
 		},
@@ -2051,7 +2051,7 @@
 			"status": "pass"
 		},
 		{
-			"message": "migrated to version 3",
+			"message": "migrated to version 4",
 			"name": "save_migration_v2_to_v3",
 			"status": "pass"
 		},
@@ -2159,11 +2159,176 @@
 			"message": "ui_tab_left and ui_tab_right input actions exist",
 			"name": "tab_input_actions_exist",
 			"status": "pass"
+		},
+		{
+			"message": "door.tscn loads",
+			"name": "door_scene_loads",
+			"status": "pass"
+		},
+		{
+			"message": "door_controller.gd loads",
+			"name": "door_script_has_interact",
+			"status": "pass"
+		},
+		{
+			"message": "door has interact() method",
+			"name": "door_script_has_interact",
+			"status": "pass"
+		},
+		{
+			"message": "door has target_area property",
+			"name": "door_script_properties",
+			"status": "pass"
+		},
+		{
+			"message": "door has is_exit property",
+			"name": "door_script_properties",
+			"status": "pass"
+		},
+		{
+			"message": "INTERIOR_TEMPLATES constant exists",
+			"name": "interior_templates_exist",
+			"status": "pass"
+		},
+		{
+			"message": "hospital template exists",
+			"name": "interior_templates_types",
+			"status": "pass"
+		},
+		{
+			"message": "shop template exists",
+			"name": "interior_templates_types",
+			"status": "pass"
+		},
+		{
+			"message": "gym template exists",
+			"name": "interior_templates_types",
+			"status": "pass"
+		},
+		{
+			"message": "house template exists",
+			"name": "interior_templates_types",
+			"status": "pass"
+		},
+		{
+			"message": "interior config builder exists",
+			"name": "build_interior_config_exists",
+			"status": "pass"
+		},
+		{
+			"message": "interior tilemap function exists",
+			"name": "setup_interior_tilemap_exists",
+			"status": "pass"
+		},
+		{
+			"message": "hospital layout exists",
+			"name": "layout_functions_exist",
+			"status": "pass"
+		},
+		{
+			"message": "shop layout exists",
+			"name": "layout_functions_exist",
+			"status": "pass"
+		},
+		{
+			"message": "gym layout exists",
+			"name": "layout_functions_exist",
+			"status": "pass"
+		},
+		{
+			"message": "house layout exists",
+			"name": "layout_functions_exist",
+			"status": "pass"
+		},
+		{
+			"message": "GameManager has is_in_building",
+			"name": "gamemanager_building_fields",
+			"status": "pass"
+		},
+		{
+			"message": "GameManager has building_return_area",
+			"name": "gamemanager_building_fields",
+			"status": "pass"
+		},
+		{
+			"message": "GameManager has building_return_position",
+			"name": "gamemanager_building_fields",
+			"status": "pass"
+		},
+		{
+			"message": "is_in_building defaults false",
+			"name": "gamemanager_building_defaults",
+			"status": "pass"
+		},
+		{
+			"message": "building_return_area defaults empty",
+			"name": "gamemanager_building_defaults",
+			"status": "pass"
+		},
+		{
+			"message": "save version is 4",
+			"name": "save_version_4",
+			"status": "pass"
+		},
+		{
+			"message": "save handles is_in_building",
+			"name": "save_serializes_building_state",
+			"status": "pass"
+		},
+		{
+			"message": "save handles building_return_area",
+			"name": "save_serializes_building_state",
+			"status": "pass"
+		},
+		{
+			"message": "save handles building_return_position",
+			"name": "save_serializes_building_state",
+			"status": "pass"
+		},
+		{
+			"message": "v4 migration exists",
+			"name": "save_v4_migration",
+			"status": "pass"
+		},
+		{
+			"message": "building door spawner exists",
+			"name": "spawn_building_doors_exists",
+			"status": "pass"
+		},
+		{
+			"message": "interior exit spawner exists",
+			"name": "spawn_interior_exit_exists",
+			"status": "pass"
+		},
+		{
+			"message": "interior key splits into 2 parts",
+			"name": "interior_key_format",
+			"status": "pass"
+		},
+		{
+			"message": "parent area parsed correctly",
+			"name": "interior_key_format",
+			"status": "pass"
+		},
+		{
+			"message": "building type parsed correctly",
+			"name": "interior_key_format",
+			"status": "pass"
+		},
+		{
+			"message": "building index parsed correctly",
+			"name": "interior_key_format",
+			"status": "pass"
+		},
+		{
+			"message": "interior_npcs key exists in AREA_DATA",
+			"name": "buildings_have_interior_npcs",
+			"status": "pass"
 		}
 	],
-	"durationMs": 517,
+	"durationMs": 520,
 	"status": "pass",
-	"testsPassed": 432.0,
-	"testsTotal": 432.0,
-	"timestamp": "2026-02-28T20:50:12"
+	"testsPassed": 465.0,
+	"testsTotal": 465.0,
+	"timestamp": "2026-02-28T21:46:01"
 }

@@ -27,8 +27,33 @@ const AREA_DATA: Dictionary = {
 		"tile_palette": "town",
 		"safe_zone": true,
 		"buildings": [
-			{"type": "hospital", "pos": Vector2i(-14, -16)},
-			{"type": "shop", "pos": Vector2i(6, -16)},
+			{"type": "hospital", "pos": Vector2i(-14, -16),
+				"interior_npcs": [
+					{"pos": Vector2(0, -48), "lines": ["Your monsters are fully healed!"], "bubble": "Need healing?",
+						"dialogue": [
+							{"id": "start", "text": "Welcome to the Monster Town\nHospital! Want me to heal\nyour monsters?", "speaker": "Nurse Joy", "choices": [
+								{"label": "Yes, please", "next": "heal"},
+								{"label": "No thanks", "next": "bye"},
+							]},
+							{"id": "heal", "text": "All better! Your monsters\nare fully healed.", "speaker": "Nurse Joy", "action": "heal_party"},
+							{"id": "bye", "text": "Take care out there!", "speaker": "Nurse Joy"},
+						]},
+				],
+				"interior_pc_terminals": [{"pos": Vector2(48, -32)}],
+			},
+			{"type": "shop", "pos": Vector2i(6, -16),
+				"interior_npcs": [
+					{"pos": Vector2(0, -48), "lines": ["Welcome to my shop!"], "bubble": "Buy something!",
+						"dialogue": [
+							{"id": "start", "text": "Welcome! Care to browse my wares?", "speaker": "Shopkeeper", "choices": [
+								{"label": "Browse wares", "next": "shop"},
+								{"label": "No thanks", "next": "bye"},
+							]},
+							{"id": "shop", "text": "Take a look!", "speaker": "Shopkeeper", "action": "open_shop"},
+							{"id": "bye", "text": "Come back anytime!", "speaker": "Shopkeeper"},
+						]},
+				],
+			},
 			{"type": "house", "pos": Vector2i(-16, -6)},
 			{"type": "house", "pos": Vector2i(-8, -6)},
 			{"type": "house", "pos": Vector2i(4, -6)},
@@ -45,32 +70,8 @@ const AREA_DATA: Dictionary = {
 			{"type": "flowers", "pos": Vector2i(20, 6), "size": Vector2i(4, 4)},
 		],
 		"npcs": [
-			{
-				"pos": Vector2(-176, -176),
-				"lines": ["Your monsters are fully healed!"],
-				"bubble": "Need healing?",
-				"dialogue": [
-					{"id": "start", "text": "Welcome to the Monster Town\nHospital! Want me to heal\nyour monsters?", "speaker": "Nurse Joy", "choices": [
-						{"label": "Yes, please", "next": "heal"},
-						{"label": "No thanks", "next": "bye"},
-					]},
-					{"id": "heal", "text": "All better! Your monsters\nare fully healed.", "speaker": "Nurse Joy", "action": "heal_party"},
-					{"id": "bye", "text": "Take care out there!", "speaker": "Nurse Joy"},
-				],
-			},
-			{
-				"pos": Vector2(144, -176),
-				"lines": ["Welcome to my shop!"],
-				"bubble": "Buy something!",
-				"dialogue": [
-					{"id": "start", "text": "Welcome! Care to browse my wares?", "speaker": "Shopkeeper", "choices": [
-						{"label": "Browse wares", "next": "shop"},
-						{"label": "No thanks", "next": "bye"},
-					]},
-					{"id": "shop", "text": "Take a look!", "speaker": "Shopkeeper", "action": "open_shop"},
-					{"id": "bye", "text": "Come back anytime!", "speaker": "Shopkeeper"},
-				],
-			},
+			{"pos": Vector2(-176, -176), "lines": ["This is the Monster Town Hospital.\nGo inside to heal!"], "bubble": "Hospital"},
+			{"pos": Vector2(144, -176), "lines": ["This is the Monster Town Shop.\nGo inside to browse!"], "bubble": "Shop"},
 			{
 				"pos": Vector2(-48, -128),
 				"lines": ["Welcome to Monster Town!", "Go explore and catch monsters!"],
@@ -94,9 +95,7 @@ const AREA_DATA: Dictionary = {
 			{"pos": Vector2(-128, 160), "lines": ["My grandpa says there used to be\nonly wild monsters here.\nNow we have a whole town!"], "bubble": "Did you know?"},
 			{"pos": Vector2(192, 128), "lines": ["Hold LB or Shift to run faster!\nPress Y or Space to jump!", "And hold RT for 4x speed!"], "bubble": "Movement tips!"},
 		],
-		"pc_terminals": [
-			{"pos": Vector2(48, -128)},
-		],
+		"pc_terminals": [],
 		"transitions": [
 			{"edge": "north", "target_area": "route1", "spawn_offset": Vector2(0, -32)},
 		],
@@ -200,9 +199,49 @@ const AREA_DATA: Dictionary = {
 		"tile_palette": "town",
 		"safe_zone": true,
 		"buildings": [
-			{"type": "hospital", "pos": Vector2i(-16, -16)},
-			{"type": "shop", "pos": Vector2i(6, -16)},
-			{"type": "gym", "pos": Vector2i(14, -6)},
+			{"type": "hospital", "pos": Vector2i(-16, -16),
+				"interior_npcs": [
+					{"pos": Vector2(0, -48), "lines": ["Your monsters are fully healed!"], "bubble": "Need healing?",
+						"dialogue": [
+							{"id": "start", "text": "Welcome to the Coral City\nHospital! Want me to heal\nyour monsters?", "speaker": "Nurse", "choices": [
+								{"label": "Yes, please", "next": "heal"},
+								{"label": "No thanks", "next": "bye"},
+							]},
+							{"id": "heal", "text": "All better! Your monsters\nare fully healed.", "speaker": "Nurse", "action": "heal_party"},
+							{"id": "bye", "text": "Take care out there!", "speaker": "Nurse"},
+						]},
+				],
+				"interior_pc_terminals": [{"pos": Vector2(48, -32)}],
+			},
+			{"type": "shop", "pos": Vector2i(6, -16),
+				"interior_npcs": [
+					{"pos": Vector2(0, -48), "lines": ["Welcome to my shop!"], "bubble": "Buy something!",
+						"dialogue": [
+							{"id": "start", "text": "Welcome! Care to browse my wares?", "speaker": "Shopkeeper", "choices": [
+								{"label": "Browse wares", "next": "shop"},
+								{"label": "No thanks", "next": "bye"},
+							]},
+							{"id": "shop", "text": "Take a look!", "speaker": "Shopkeeper", "action": "open_shop"},
+							{"id": "bye", "text": "Come back anytime!", "speaker": "Shopkeeper"},
+						]},
+				],
+			},
+			{"type": "gym", "pos": Vector2i(14, -6),
+				"interior_trainers": [
+					{
+						"pos": Vector2(0, -64),
+						"trainer_id": "town2_gym",
+						"name": "Gym Leader Coral",
+						"monster_ids": [5, 2],
+						"monster_levels": [14, 12],
+						"dialogue_before": ["I am Coral, master of Water-types!", "Prepare yourself!"],
+						"dialogue_after": ["Impressive... You've earned\nthe Tide Badge!"],
+						"is_gym_leader": true,
+						"badge_id": "tide_badge",
+						"sight_dir": "down",
+					},
+				],
+			},
 			{"type": "house", "pos": Vector2i(-16, -6)},
 			{"type": "house", "pos": Vector2i(-8, -6)},
 			{"type": "house", "pos": Vector2i(4, 8)},
@@ -215,56 +254,17 @@ const AREA_DATA: Dictionary = {
 			{"type": "flowers", "pos": Vector2i(14, 14), "size": Vector2i(6, 4)},
 		],
 		"npcs": [
-			{
-				"pos": Vector2(-208, -176),
-				"lines": ["Your monsters are fully healed!"],
-				"bubble": "Need healing?",
-				"dialogue": [
-					{"id": "start", "text": "Welcome to the Coral City\nHospital! Want me to heal\nyour monsters?", "speaker": "Nurse", "choices": [
-						{"label": "Yes, please", "next": "heal"},
-						{"label": "No thanks", "next": "bye"},
-					]},
-					{"id": "heal", "text": "All better! Your monsters\nare fully healed.", "speaker": "Nurse", "action": "heal_party"},
-					{"id": "bye", "text": "Take care out there!", "speaker": "Nurse"},
-				],
-			},
-			{
-				"pos": Vector2(144, -176),
-				"lines": ["Welcome to my shop!"],
-				"bubble": "Buy something!",
-				"dialogue": [
-					{"id": "start", "text": "Welcome! Care to browse my wares?", "speaker": "Shopkeeper", "choices": [
-						{"label": "Browse wares", "next": "shop"},
-						{"label": "No thanks", "next": "bye"},
-					]},
-					{"id": "shop", "text": "Take a look!", "speaker": "Shopkeeper", "action": "open_shop"},
-					{"id": "bye", "text": "Come back anytime!", "speaker": "Shopkeeper"},
-				],
-			},
+			{"pos": Vector2(-208, -176), "lines": ["This is the Coral City Hospital.\nGo inside to heal!"], "bubble": "Hospital"},
+			{"pos": Vector2(144, -176), "lines": ["This is the Coral City Shop.\nGo inside to browse!"], "bubble": "Shop"},
 			{"pos": Vector2(-48, -128), "lines": ["Welcome to Coral City!", "Our gym leader specializes\nin Water-types."], "bubble": "Welcome!"},
-			{"pos": Vector2(96, 96), "lines": ["The gym is in the northeast.\nYou'll need strong monsters!"], "bubble": "Good luck!"},
+			{"pos": Vector2(96, 96), "lines": ["The gym is in the northeast.\nGo inside to challenge the leader!"], "bubble": "Good luck!"},
 			{"pos": Vector2(-160, 64), "lines": ["The harbor down south connects\nus to distant lands.\nSailors bring rare items!"], "bubble": "The harbor..."},
 			{"pos": Vector2(48, 160), "lines": ["I love the sound of the waves.\nCoral City is the best place\nto raise Water-types!"], "bubble": "Ocean breeze..."},
 			{"pos": Vector2(-96, 160), "lines": ["Did you know? The Tide Badge\nlets your monsters use Surf\noutside of battle!"], "bubble": "Badge info!"},
 			{"pos": Vector2(208, 96), "lines": ["I'm training to be a fisherman.\nThe waters here are full of\namazing monsters!"], "bubble": "Fishing tales..."},
 		],
-		"pc_terminals": [
-			{"pos": Vector2(-80, -128)},
-		],
-		"trainers": [
-			{
-				"pos": Vector2(256, -64),
-				"trainer_id": "town2_gym",
-				"name": "Gym Leader Coral",
-				"monster_ids": [5, 2],
-				"monster_levels": [14, 12],
-				"dialogue_before": ["I am Coral, master of Water-types!", "Prepare yourself!"],
-				"dialogue_after": ["Impressive... You've earned\nthe Tide Badge!"],
-				"is_gym_leader": true,
-				"badge_id": "tide_badge",
-				"sight_dir": "left",
-			},
-		],
+		"pc_terminals": [],
+		"trainers": [],
 		"transitions": [
 			{"edge": "south", "target_area": "route2", "spawn_offset": Vector2(0, 32)},
 			{"edge": "east", "target_area": "route3", "spawn_offset": Vector2(-32, 0)},
@@ -329,8 +329,33 @@ const AREA_DATA: Dictionary = {
 		"tile_palette": "town",
 		"safe_zone": true,
 		"buildings": [
-			{"type": "hospital", "pos": Vector2i(6, -16)},
-			{"type": "shop", "pos": Vector2i(-14, -16)},
+			{"type": "hospital", "pos": Vector2i(6, -16),
+				"interior_npcs": [
+					{"pos": Vector2(0, -48), "lines": ["Rest here and heal your monsters!"], "bubble": "Need healing?",
+						"dialogue": [
+							{"id": "start", "text": "You look tired! Want me to\nheal your monsters?", "speaker": "Nurse", "choices": [
+								{"label": "Yes, please", "next": "heal"},
+								{"label": "No thanks", "next": "bye"},
+							]},
+							{"id": "heal", "text": "All better! Your monsters\nare fully healed.", "speaker": "Nurse", "action": "heal_party"},
+							{"id": "bye", "text": "Take care out there!", "speaker": "Nurse"},
+						]},
+				],
+				"interior_pc_terminals": [{"pos": Vector2(48, -32)}],
+			},
+			{"type": "shop", "pos": Vector2i(-14, -16),
+				"interior_npcs": [
+					{"pos": Vector2(0, -48), "lines": ["Welcome to my shop!"], "bubble": "Buy something!",
+						"dialogue": [
+							{"id": "start", "text": "Welcome! Care to browse my wares?", "speaker": "Shopkeeper", "choices": [
+								{"label": "Browse wares", "next": "shop"},
+								{"label": "No thanks", "next": "bye"},
+							]},
+							{"id": "shop", "text": "Take a look!", "speaker": "Shopkeeper", "action": "open_shop"},
+							{"id": "bye", "text": "Come back anytime!", "speaker": "Shopkeeper"},
+						]},
+				],
+			},
 			{"type": "house", "pos": Vector2i(-16, -6)},
 			{"type": "house", "pos": Vector2i(-8, -6)},
 			{"type": "house", "pos": Vector2i(4, -6)},
@@ -346,32 +371,8 @@ const AREA_DATA: Dictionary = {
 			{"type": "flowers", "pos": Vector2i(-4, 18), "size": Vector2i(8, 3)},
 		],
 		"npcs": [
-			{
-				"pos": Vector2(-176, -176),
-				"lines": ["Welcome to my shop!"],
-				"bubble": "Buy something!",
-				"dialogue": [
-					{"id": "start", "text": "Welcome! Care to browse my wares?", "speaker": "Shopkeeper", "choices": [
-						{"label": "Browse wares", "next": "shop"},
-						{"label": "No thanks", "next": "bye"},
-					]},
-					{"id": "shop", "text": "Take a look!", "speaker": "Shopkeeper", "action": "open_shop"},
-					{"id": "bye", "text": "Come back anytime!", "speaker": "Shopkeeper"},
-				],
-			},
-			{
-				"pos": Vector2(144, -176),
-				"lines": ["Rest here and heal your monsters!"],
-				"bubble": "Need healing?",
-				"dialogue": [
-					{"id": "start", "text": "You look tired! Want me to\nheal your monsters?", "speaker": "Nurse", "choices": [
-						{"label": "Yes, please", "next": "heal"},
-						{"label": "No thanks", "next": "bye"},
-					]},
-					{"id": "heal", "text": "All better! Your monsters\nare fully healed.", "speaker": "Nurse", "action": "heal_party"},
-					{"id": "bye", "text": "Take care out there!", "speaker": "Nurse"},
-				],
-			},
+			{"pos": Vector2(144, -176), "lines": ["This is the Ember Ridge Hospital.\nGo inside to heal!"], "bubble": "Hospital"},
+			{"pos": Vector2(-176, -176), "lines": ["This is the Ember Ridge Shop.\nGo inside to browse!"], "bubble": "Shop"},
 			{
 				"pos": Vector2(-48, -128),
 				"lines": ["Welcome to Ember Ridge!"],
@@ -393,9 +394,7 @@ const AREA_DATA: Dictionary = {
 			{"pos": Vector2(-128, 160), "lines": ["I train my monsters near the\nlava pools. The heat makes\nthem stronger!"], "bubble": "Training hard!"},
 			{"pos": Vector2(96, 160), "lines": ["Ember Ridge was founded by\nfire tamers. Our ancestors\nbefriended Fire-type monsters."], "bubble": "Town history..."},
 		],
-		"pc_terminals": [
-			{"pos": Vector2(48, -128)},
-		],
+		"pc_terminals": [],
 		"transitions": [
 			{"edge": "west", "target_area": "route3", "spawn_offset": Vector2(32, 0)},
 			{"edge": "south", "target_area": "route4", "spawn_offset": Vector2(0, -32)},
@@ -460,9 +459,49 @@ const AREA_DATA: Dictionary = {
 		"tile_palette": "town",
 		"safe_zone": true,
 		"buildings": [
-			{"type": "hospital", "pos": Vector2i(6, -16)},
-			{"type": "shop", "pos": Vector2i(-14, -16)},
-			{"type": "gym", "pos": Vector2i(-16, -6)},
+			{"type": "hospital", "pos": Vector2i(6, -16),
+				"interior_npcs": [
+					{"pos": Vector2(0, -48), "lines": ["Rest here and heal your monsters!"], "bubble": "Need healing?",
+						"dialogue": [
+							{"id": "start", "text": "You look tired! Want me to\nheal your monsters?", "speaker": "Nurse", "choices": [
+								{"label": "Yes, please", "next": "heal"},
+								{"label": "No thanks", "next": "bye"},
+							]},
+							{"id": "heal", "text": "All better! Your monsters\nare fully healed.", "speaker": "Nurse", "action": "heal_party"},
+							{"id": "bye", "text": "Take care out there!", "speaker": "Nurse"},
+						]},
+				],
+				"interior_pc_terminals": [{"pos": Vector2(48, -32)}],
+			},
+			{"type": "shop", "pos": Vector2i(-14, -16),
+				"interior_npcs": [
+					{"pos": Vector2(0, -48), "lines": ["Welcome to my shop!"], "bubble": "Buy something!",
+						"dialogue": [
+							{"id": "start", "text": "Welcome! Care to browse my wares?", "speaker": "Shopkeeper", "choices": [
+								{"label": "Browse wares", "next": "shop"},
+								{"label": "No thanks", "next": "bye"},
+							]},
+							{"id": "shop", "text": "Take a look!", "speaker": "Shopkeeper", "action": "open_shop"},
+							{"id": "bye", "text": "Come back anytime!", "speaker": "Shopkeeper"},
+						]},
+				],
+			},
+			{"type": "gym", "pos": Vector2i(-16, -6),
+				"interior_trainers": [
+					{
+						"pos": Vector2(0, -64),
+						"trainer_id": "town4_gym",
+						"name": "Gym Leader Ivy",
+						"monster_ids": [6, 3],
+						"monster_levels": [24, 22],
+						"dialogue_before": ["I am Ivy, guardian of the grove!", "Nature's strength flows through me!"],
+						"dialogue_after": ["You've proven your worth...\nTake the Grove Badge!"],
+						"is_gym_leader": true,
+						"badge_id": "grove_badge",
+						"sight_dir": "down",
+					},
+				],
+			},
 			{"type": "house", "pos": Vector2i(-8, -6)},
 			{"type": "house", "pos": Vector2i(4, -6)},
 			{"type": "house", "pos": Vector2i(12, -6)},
@@ -479,32 +518,8 @@ const AREA_DATA: Dictionary = {
 			{"type": "flowers", "pos": Vector2i(6, 4), "size": Vector2i(4, 3)},
 		],
 		"npcs": [
-			{
-				"pos": Vector2(-176, -176),
-				"lines": ["Welcome to my shop!"],
-				"bubble": "Buy something!",
-				"dialogue": [
-					{"id": "start", "text": "Welcome! Care to browse my wares?", "speaker": "Shopkeeper", "choices": [
-						{"label": "Browse wares", "next": "shop"},
-						{"label": "No thanks", "next": "bye"},
-					]},
-					{"id": "shop", "text": "Take a look!", "speaker": "Shopkeeper", "action": "open_shop"},
-					{"id": "bye", "text": "Come back anytime!", "speaker": "Shopkeeper"},
-				],
-			},
-			{
-				"pos": Vector2(144, -176),
-				"lines": ["Rest here and heal your monsters!"],
-				"bubble": "Need healing?",
-				"dialogue": [
-					{"id": "start", "text": "You look tired! Want me to\nheal your monsters?", "speaker": "Nurse", "choices": [
-						{"label": "Yes, please", "next": "heal"},
-						{"label": "No thanks", "next": "bye"},
-					]},
-					{"id": "heal", "text": "All better! Your monsters\nare fully healed.", "speaker": "Nurse", "action": "heal_party"},
-					{"id": "bye", "text": "Take care out there!", "speaker": "Nurse"},
-				],
-			},
+			{"pos": Vector2(144, -176), "lines": ["This is the Verdant Grove Hospital.\nGo inside to heal!"], "bubble": "Hospital"},
+			{"pos": Vector2(-176, -176), "lines": ["This is the Verdant Grove Shop.\nGo inside to browse!"], "bubble": "Shop"},
 			{
 				"pos": Vector2(-48, -128),
 				"lines": ["Welcome to Verdant Grove!"],
@@ -526,23 +541,8 @@ const AREA_DATA: Dictionary = {
 			{"pos": Vector2(-128, 160), "lines": ["I practice my gardening\nevery day. Grass-type monsters\nhelp the flowers grow!"], "bubble": "Garden lover..."},
 			{"pos": Vector2(96, 160), "lines": ["The maze garden to the south\nis a great place to train.\nWatch out for wild monsters!"], "bubble": "Garden maze..."},
 		],
-		"pc_terminals": [
-			{"pos": Vector2(48, -128)},
-		],
-		"trainers": [
-			{
-				"pos": Vector2(-224, -64),
-				"trainer_id": "town4_gym",
-				"name": "Gym Leader Ivy",
-				"monster_ids": [6, 3],
-				"monster_levels": [24, 22],
-				"dialogue_before": ["I am Ivy, guardian of the grove!", "Nature's strength flows through me!"],
-				"dialogue_after": ["You've proven your worth...\nTake the Grove Badge!"],
-				"is_gym_leader": true,
-				"badge_id": "grove_badge",
-				"sight_dir": "right",
-			},
-		],
+		"pc_terminals": [],
+		"trainers": [],
 		"transitions": [
 			{"edge": "north", "target_area": "route4", "spawn_offset": Vector2(0, 32)},
 			{"edge": "south", "target_area": "route5", "spawn_offset": Vector2(0, -32)},
@@ -608,9 +608,49 @@ const AREA_DATA: Dictionary = {
 		"tile_palette": "town",
 		"safe_zone": true,
 		"buildings": [
-			{"type": "hospital", "pos": Vector2i(6, -16)},
-			{"type": "shop", "pos": Vector2i(-14, -16)},
-			{"type": "gym", "pos": Vector2i(-16, -6)},
+			{"type": "hospital", "pos": Vector2i(6, -16),
+				"interior_npcs": [
+					{"pos": Vector2(0, -48), "lines": ["Rest here and heal your monsters!"], "bubble": "Need healing?",
+						"dialogue": [
+							{"id": "start", "text": "You look tired! Want me to\nheal your monsters?", "speaker": "Nurse", "choices": [
+								{"label": "Yes, please", "next": "heal"},
+								{"label": "No thanks", "next": "bye"},
+							]},
+							{"id": "heal", "text": "All better! Your monsters\nare fully healed.", "speaker": "Nurse", "action": "heal_party"},
+							{"id": "bye", "text": "Take care out there!", "speaker": "Nurse"},
+						]},
+				],
+				"interior_pc_terminals": [{"pos": Vector2(48, -32)}],
+			},
+			{"type": "shop", "pos": Vector2i(-14, -16),
+				"interior_npcs": [
+					{"pos": Vector2(0, -48), "lines": ["Welcome to my shop!"], "bubble": "Buy something!",
+						"dialogue": [
+							{"id": "start", "text": "Welcome! Care to browse my wares?", "speaker": "Shopkeeper", "choices": [
+								{"label": "Browse wares", "next": "shop"},
+								{"label": "No thanks", "next": "bye"},
+							]},
+							{"id": "shop", "text": "Take a look!", "speaker": "Shopkeeper", "action": "open_shop"},
+							{"id": "bye", "text": "Come back anytime!", "speaker": "Shopkeeper"},
+						]},
+				],
+			},
+			{"type": "gym", "pos": Vector2i(-16, -6),
+				"interior_trainers": [
+					{
+						"pos": Vector2(0, -64),
+						"trainer_id": "town5_gym",
+						"name": "Gym Leader Volt",
+						"monster_ids": [27, 7],
+						"monster_levels": [28, 26],
+						"dialogue_before": ["I am Volt, master of lightning!", "Feel the surge of electricity!"],
+						"dialogue_after": ["Shocking... You've earned\nthe Storm Badge!"],
+						"is_gym_leader": true,
+						"badge_id": "storm_badge",
+						"sight_dir": "down",
+					},
+				],
+			},
 			{"type": "house", "pos": Vector2i(-8, -6)},
 			{"type": "house", "pos": Vector2i(4, -6)},
 			{"type": "house", "pos": Vector2i(12, -6)},
@@ -626,32 +666,8 @@ const AREA_DATA: Dictionary = {
 			{"type": "flowers", "pos": Vector2i(14, 24), "size": Vector2i(6, 3)},
 		],
 		"npcs": [
-			{
-				"pos": Vector2(-176, -176),
-				"lines": ["Welcome to my shop!"],
-				"bubble": "Buy something!",
-				"dialogue": [
-					{"id": "start", "text": "Welcome! Care to browse my wares?", "speaker": "Shopkeeper", "choices": [
-						{"label": "Browse wares", "next": "shop"},
-						{"label": "No thanks", "next": "bye"},
-					]},
-					{"id": "shop", "text": "Take a look!", "speaker": "Shopkeeper", "action": "open_shop"},
-					{"id": "bye", "text": "Come back anytime!", "speaker": "Shopkeeper"},
-				],
-			},
-			{
-				"pos": Vector2(144, -176),
-				"lines": ["Rest here and heal your monsters!"],
-				"bubble": "Need healing?",
-				"dialogue": [
-					{"id": "start", "text": "You look tired! Want me to\nheal your monsters?", "speaker": "Nurse", "choices": [
-						{"label": "Yes, please", "next": "heal"},
-						{"label": "No thanks", "next": "bye"},
-					]},
-					{"id": "heal", "text": "All better! Your monsters\nare fully healed.", "speaker": "Nurse", "action": "heal_party"},
-					{"id": "bye", "text": "Take care out there!", "speaker": "Nurse"},
-				],
-			},
+			{"pos": Vector2(144, -176), "lines": ["This is the Stormhaven Hospital.\nGo inside to heal!"], "bubble": "Hospital"},
+			{"pos": Vector2(-176, -176), "lines": ["This is the Stormhaven Shop.\nGo inside to browse!"], "bubble": "Shop"},
 			{
 				"pos": Vector2(-48, -128),
 				"lines": ["Welcome to Stormhaven!"],
@@ -673,54 +689,72 @@ const AREA_DATA: Dictionary = {
 			{"pos": Vector2(-128, 160), "lines": ["The storm shelter underground\ncan hold the whole town.\nWe've weathered many storms!"], "bubble": "Storm shelter..."},
 			{"pos": Vector2(96, 160), "lines": ["I work at the power station.\nWe harness storm energy to\npower all of Stormhaven!"], "bubble": "Power station..."},
 		],
-		"pc_terminals": [
-			{"pos": Vector2(48, -128)},
-		],
-		"trainers": [
-			{
-				"pos": Vector2(-224, -64),
-				"trainer_id": "town5_gym",
-				"name": "Gym Leader Volt",
-				"monster_ids": [27, 7],
-				"monster_levels": [28, 26],
-				"dialogue_before": ["I am Volt, master of lightning!", "Feel the surge of electricity!"],
-				"dialogue_after": ["Shocking... You've earned\nthe Storm Badge!"],
-				"is_gym_leader": true,
-				"badge_id": "storm_badge",
-				"sight_dir": "right",
-			},
-		],
+		"pc_terminals": [],
+		"trainers": [],
 		"transitions": [
 			{"edge": "north", "target_area": "route5", "spawn_offset": Vector2(0, 32)},
 		],
 	},
 }
 
+# ── Interior Templates ──
+const INTERIOR_TEMPLATES: Dictionary = {
+	"hospital": {"interior_size": Vector2i(16, 10), "map_size": 10},
+	"shop": {"interior_size": Vector2i(16, 10), "map_size": 10},
+	"gym": {"interior_size": Vector2i(20, 14), "map_size": 14},
+	"house": {"interior_size": Vector2i(10, 8), "map_size": 8},
+}
+
 func _ready() -> void:
 	var area_config: Dictionary = _get_area_config()
 	_setup_tilemap(area_config)
-	_spawn_npcs(area_config)
-	_spawn_trainers(area_config)
-	_spawn_pc_terminals(area_config)
-	_spawn_wild_monsters(area_config)
-	_spawn_pois(area_config)
-	_spawn_transition_zones(area_config)
-	_update_player_sprite()
-	_restore_player_position()
-	_setup_follower()
-	_show_area_name()
-	_setup_day_night()
-	_setup_weather(area_config)
-	AudioManager.play_music(area_config["music"], false)
-	if hint_bar:
-		hint_bar.set_hints([
-			{"icon": "lstick", "label": "Move"},
-			{"icon": "btn_b", "label": "Run"},
-			{"icon": "btn_y", "label": "Jump"},
-			{"icon": "btn_x", "label": "Attack"},
-			{"icon": "btn_a", "label": "Interact"},
-			{"icon": "btn_start", "label": "Party"},
-		])
+
+	if GameManager.is_in_building:
+		_spawn_interior_exit(area_config)
+		_spawn_npcs(area_config)
+		_spawn_trainers(area_config)
+		_spawn_pc_terminals(area_config)
+		_update_player_sprite()
+		_restore_player_position()
+		# Hide follower indoors (small rooms cause wall clipping)
+		if follower:
+			follower.visible = false
+		_show_area_name()
+		# No day/night or weather indoors
+		AudioManager.play_music(area_config["music"], false)
+		# Constrain camera to interior bounds
+		_setup_interior_camera(area_config)
+		if hint_bar:
+			hint_bar.set_hints([
+				{"icon": "lstick", "label": "Move"},
+				{"icon": "btn_a", "label": "Interact"},
+				{"icon": "btn_b", "label": "Exit"},
+				{"icon": "btn_start", "label": "Party"},
+			])
+	else:
+		_spawn_npcs(area_config)
+		_spawn_trainers(area_config)
+		_spawn_pc_terminals(area_config)
+		_spawn_wild_monsters(area_config)
+		_spawn_pois(area_config)
+		_spawn_transition_zones(area_config)
+		_spawn_building_doors(area_config)
+		_update_player_sprite()
+		_restore_player_position()
+		_setup_follower()
+		_show_area_name()
+		_setup_day_night()
+		_setup_weather(area_config)
+		AudioManager.play_music(area_config["music"], false)
+		if hint_bar:
+			hint_bar.set_hints([
+				{"icon": "lstick", "label": "Move"},
+				{"icon": "btn_b", "label": "Run"},
+				{"icon": "btn_y", "label": "Jump"},
+				{"icon": "btn_x", "label": "Attack"},
+				{"icon": "btn_a", "label": "Interact"},
+				{"icon": "btn_start", "label": "Party"},
+			])
 	if _auto_test:
 		_run_auto_test()
 
@@ -728,7 +762,54 @@ func _get_area_config() -> Dictionary:
 	var area: String = GameManager.current_area
 	if AREA_DATA.has(area):
 		return AREA_DATA[area]
+	if area.find("_interior_") != -1:
+		return _build_interior_config(area)
 	return AREA_DATA["town"]
+
+func _build_interior_config(area_key: String) -> Dictionary:
+	# Format: "{parent}_interior_{type}_{index}"
+	var parts: PackedStringArray = area_key.split("_interior_")
+	if parts.size() < 2:
+		return AREA_DATA["town"]
+	var parent_area: String = parts[0]
+	var suffix: String = parts[1]  # e.g. "hospital_0" or "shop_1"
+	var suffix_parts: PackedStringArray = suffix.rsplit("_", true, 1)
+	var btype: String = suffix_parts[0]
+	var bindex: int = int(suffix_parts[1]) if suffix_parts.size() > 1 else 0
+
+	var parent_config: Dictionary = AREA_DATA.get(parent_area, {})
+	var buildings: Array = parent_config.get("buildings", [])
+	var building: Dictionary = buildings[bindex] if bindex < buildings.size() else {}
+
+	var template: Dictionary = INTERIOR_TEMPLATES.get(btype, INTERIOR_TEMPLATES["house"])
+	var interior_size: Vector2i = template["interior_size"]
+
+	# Build area name for display
+	var area_names: Dictionary = {
+		"town": "Monster Town", "town2": "Coral City", "town3": "Ember Ridge",
+		"town4": "Verdant Grove", "town5": "Stormhaven",
+	}
+	var town_name: String = area_names.get(parent_area, parent_area)
+	var type_names: Dictionary = {
+		"hospital": "Hospital", "shop": "Shop", "gym": "Gym", "house": "House",
+	}
+	var display_name: String = "%s %s" % [town_name, type_names.get(btype, "Building")]
+
+	var config: Dictionary = {
+		"music": parent_config.get("music", "res://assets/audio/music/town_theme.wav"),
+		"map_size": template["map_size"],
+		"tile_palette": "interior",
+		"safe_zone": true,
+		"interior_size": interior_size,
+		"interior_type": btype,
+		"interior_display_name": display_name,
+		"parent_area": parent_area,
+		"building_index": bindex,
+		"npcs": building.get("interior_npcs", []),
+		"trainers": building.get("interior_trainers", []),
+		"pc_terminals": building.get("interior_pc_terminals", []),
+	}
+	return config
 
 func _restore_player_position() -> void:
 	var saved_pos: Variant = GameManager.get_area_player_position(GameManager.current_area)
@@ -750,6 +831,8 @@ func _setup_tilemap(area_config: Dictionary) -> void:
 
 	if palette == "town":
 		_setup_town_tilemap(tile_set, map_size)
+	elif palette == "interior":
+		_setup_interior_tilemap(tile_set, area_config)
 	else:
 		_setup_route_tilemap(tile_set, map_size)
 
@@ -1140,6 +1223,104 @@ func _setup_route_tilemap(tile_set: TileSet, map_size: int) -> void:
 
 	tile_map.modulate = Color(0.85, 0.9, 0.75)
 
+func _setup_interior_tilemap(tile_set: TileSet, area_config: Dictionary) -> void:
+	var source := TileSetAtlasSource.new()
+	var tex := AssetRegistry.load_texture(AssetRegistry.tileset_town)
+	if not tex:
+		tex = AssetRegistry.load_texture(AssetRegistry.tileset_route)
+	if tex:
+		source.texture = tex
+		source.texture_region_size = Vector2i(16, 16)
+		for i in 8:
+			source.create_tile(Vector2i(i, 0))
+		tile_set.add_source(source, 0)
+
+	tile_map.tile_set = tile_set
+
+	# Tile indices (same as town tileset)
+	var PATH := Vector2i(1, 0)   # Floor
+	var WALL := Vector2i(4, 0)   # Walls
+	var FENCE := Vector2i(6, 0)  # Counters/furniture
+
+	var isize: Vector2i = area_config.get("interior_size", Vector2i(16, 10))
+	var itype: String = area_config.get("interior_type", "house")
+	var half_w: int = isize.x / 2
+	var half_h: int = isize.y / 2
+
+	# 1. Fill interior rect with floor tiles
+	for x in range(-half_w, half_w):
+		for y in range(-half_h, half_h):
+			tile_map.set_cell(Vector2i(x, y), 0, PATH)
+
+	# 2. Wall perimeter
+	for x in range(-half_w, half_w):
+		tile_map.set_cell(Vector2i(x, -half_h), 0, WALL)
+		tile_map.set_cell(Vector2i(x, half_h - 1), 0, WALL)
+	for y in range(-half_h, half_h):
+		tile_map.set_cell(Vector2i(-half_w, y), 0, WALL)
+		tile_map.set_cell(Vector2i(half_w - 1, y), 0, WALL)
+
+	# 3. Door opening at bottom center (2 tiles wide)
+	tile_map.set_cell(Vector2i(-1, half_h - 1), 0, PATH)
+	tile_map.set_cell(Vector2i(0, half_h - 1), 0, PATH)
+
+	# 4. Type-specific layout
+	match itype:
+		"hospital": _layout_hospital_interior(half_w, half_h, FENCE, PATH)
+		"shop": _layout_shop_interior(half_w, half_h, FENCE, PATH)
+		"gym": _layout_gym_interior(half_w, half_h, FENCE, PATH)
+		"house": _layout_house_interior(half_w, half_h, FENCE, PATH)
+
+	# 5. Collision on walls and furniture
+	_add_tile_collision(source, WALL)
+	_add_tile_collision(source, FENCE)
+
+	tile_map.modulate = Color(1.0, 1.0, 1.0)
+
+func _layout_hospital_interior(hw: int, hh: int, FENCE: Vector2i, _PATH: Vector2i) -> void:
+	# Counter across top with center gap
+	var counter_y: int = -hh + 2
+	for x in range(-hw + 1, hw - 1):
+		if abs(x) > 1:  # Leave 3-tile gap in center
+			tile_map.set_cell(Vector2i(x, counter_y), 0, FENCE)
+	# Flower decorations in corners
+	var FLOWERS := Vector2i(7, 0)
+	tile_map.set_cell(Vector2i(-hw + 1, -hh + 1), 0, FLOWERS)
+	tile_map.set_cell(Vector2i(hw - 2, -hh + 1), 0, FLOWERS)
+	tile_map.set_cell(Vector2i(-hw + 1, hh - 2), 0, FLOWERS)
+	tile_map.set_cell(Vector2i(hw - 2, hh - 2), 0, FLOWERS)
+
+func _layout_shop_interior(hw: int, hh: int, FENCE: Vector2i, _PATH: Vector2i) -> void:
+	# Counter near top
+	var counter_y: int = -hh + 2
+	for x in range(-hw + 1, hw - 1):
+		if abs(x) > 1:
+			tile_map.set_cell(Vector2i(x, counter_y), 0, FENCE)
+	# Shelf lines along side walls
+	for y in range(-hh + 3, hh - 2):
+		tile_map.set_cell(Vector2i(-hw + 1, y), 0, FENCE)
+		tile_map.set_cell(Vector2i(hw - 2, y), 0, FENCE)
+
+func _layout_gym_interior(hw: int, hh: int, FENCE: Vector2i, _PATH: Vector2i) -> void:
+	# Arena border pattern in center
+	var arena_hw: int = hw / 2
+	var arena_hh: int = hh / 2
+	# Top and bottom arena lines
+	for x in range(-arena_hw, arena_hw):
+		tile_map.set_cell(Vector2i(x, -arena_hh), 0, FENCE)
+		tile_map.set_cell(Vector2i(x, arena_hh - 1), 0, FENCE)
+	# Left and right arena lines
+	for y in range(-arena_hh, arena_hh):
+		tile_map.set_cell(Vector2i(-arena_hw, y), 0, FENCE)
+		tile_map.set_cell(Vector2i(arena_hw - 1, y), 0, FENCE)
+
+func _layout_house_interior(hw: int, hh: int, FENCE: Vector2i, _PATH: Vector2i) -> void:
+	# Table in corner
+	tile_map.set_cell(Vector2i(-hw + 2, -hh + 2), 0, FENCE)
+	tile_map.set_cell(Vector2i(-hw + 3, -hh + 2), 0, FENCE)
+	# Simple furniture piece
+	tile_map.set_cell(Vector2i(hw - 3, -hh + 2), 0, FENCE)
+
 func _add_tile_collision(source: TileSetAtlasSource, atlas_coords: Vector2i) -> void:
 	var tile_data := source.get_tile_data(atlas_coords, 0)
 	if tile_data:
@@ -1348,6 +1529,82 @@ func _spawn_pois(area_config: Dictionary) -> void:
 					]
 					npcs_container.add_child(npc)
 
+func _spawn_building_doors(area_config: Dictionary) -> void:
+	var buildings: Array = area_config.get("buildings", [])
+	if buildings.is_empty():
+		return
+	var door_scene := load("res://scenes/overworld/door.tscn") as PackedScene
+	if not door_scene:
+		return
+	var parent_area: String = GameManager.current_area
+	for i in buildings.size():
+		var bldg: Dictionary = buildings[i]
+		var bpos: Vector2i = bldg["pos"]
+		var btype: String = bldg.get("type", "house")
+		var bsize: Vector2i = bldg.get("size", _default_building_size(btype))
+		# Door position: bottom-center of building, in pixel coords
+		var door_x: float = (float(bpos.x) + float(bsize.x) / 2.0) * 16.0 + 8.0
+		var door_y: float = (float(bpos.y) + float(bsize.y)) * 16.0 + 8.0
+		var door := door_scene.instantiate()
+		door.position = Vector2(door_x, door_y)
+		door.target_area = "%s_interior_%s_%d" % [parent_area, btype, i]
+		door.is_exit = false
+		door.building_name = btype
+		# Return position: one tile south of door
+		door.return_position = Vector2(door_x, door_y + 16.0)
+		npcs_container.add_child(door)
+
+func _spawn_interior_exit(area_config: Dictionary) -> void:
+	var isize: Vector2i = area_config.get("interior_size", Vector2i(16, 10))
+	var half_h: int = isize.y / 2
+
+	# Exit door at bottom center
+	var door_scene := load("res://scenes/overworld/door.tscn") as PackedScene
+	if door_scene:
+		var exit_door := door_scene.instantiate()
+		exit_door.position = Vector2(0, (half_h - 1) * 16)
+		exit_door.is_exit = true
+		exit_door.target_area = ""  # Not used for exit
+		var prompt: Label = exit_door.get_node("PromptLabel")
+		if prompt:
+			prompt.text = "Exit"
+		npcs_container.add_child(exit_door)
+
+	# Walk-through exit zone below door (auto-exit like classic Pokemon)
+	var exit_zone := Area2D.new()
+	exit_zone.name = "ExitZone"
+	exit_zone.collision_layer = 0
+	exit_zone.collision_mask = 1
+	var shape := CollisionShape2D.new()
+	var rect := RectangleShape2D.new()
+	rect.size = Vector2(32, 16)
+	shape.shape = rect
+	exit_zone.position = Vector2(0, half_h * 16)
+	exit_zone.add_child(shape)
+	add_child(exit_zone)
+	exit_zone.body_entered.connect(_on_interior_exit_entered)
+
+func _on_interior_exit_entered(_body: Node2D) -> void:
+	if GameManager.is_in_battle or GameManager.is_in_menu or GameManager.is_in_dialogue:
+		return
+	GameManager.is_in_building = false
+	GameManager.current_area = GameManager.building_return_area
+	GameManager.set_area_player_position(GameManager.building_return_area, GameManager.building_return_position)
+	GameManager.building_return_area = ""
+	GameManager.building_return_position = Vector2.ZERO
+	SceneManager.change_scene("res://scenes/overworld/overworld.tscn")
+
+func _setup_interior_camera(area_config: Dictionary) -> void:
+	var isize: Vector2i = area_config.get("interior_size", Vector2i(16, 10))
+	var half_w: int = isize.x / 2
+	var half_h: int = isize.y / 2
+	if player and player.has_node("Camera2D"):
+		var cam: Camera2D = player.get_node("Camera2D")
+		cam.limit_left = -half_w * 16
+		cam.limit_right = half_w * 16
+		cam.limit_top = -half_h * 16
+		cam.limit_bottom = half_h * 16
+
 func _spawn_transition_zones(area_config: Dictionary) -> void:
 	var transitions: Array = area_config.get("transitions", [])
 	var map_size: int = area_config.get("map_size", 30)
@@ -1426,7 +1683,12 @@ func _show_area_name() -> void:
 		"route5": "Route 5",
 		"town5": "Stormhaven",
 	}
-	var display_name: String = area_names.get(GameManager.current_area, GameManager.current_area)
+	var display_name: String = ""
+	var area_config: Dictionary = _get_area_config()
+	if area_config.has("interior_display_name"):
+		display_name = area_config["interior_display_name"]
+	else:
+		display_name = area_names.get(GameManager.current_area, GameManager.current_area)
 
 	_area_name_label = Label.new()
 	_area_name_label.text = display_name

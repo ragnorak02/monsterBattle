@@ -57,6 +57,11 @@ var current_area: String = "town"
 var area_player_positions: Dictionary = {}  # { area_name: Vector2 }
 var area_defeated_monsters: Dictionary = {}  # { area_name: Array[int] }
 
+# ── Building Interior State ──
+var is_in_building: bool = false
+var building_return_area: String = ""
+var building_return_position: Vector2 = Vector2.ZERO
+
 func get_area_defeated(area: String) -> Array:
 	if area_defeated_monsters.has(area):
 		return area_defeated_monsters[area]
