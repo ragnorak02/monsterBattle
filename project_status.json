@@ -2,10 +2,10 @@
   "schemaVersion": 1,
   "gameId": "monsterbattle",
   "title": "Monster Catcher",
-  "lastUpdated": "2026-02-28T20:16:00Z",
+  "lastUpdated": "2026-02-28T21:48:00Z",
   "health": {
-    "progressPercent": 76,
-    "buildVersion": "0.5.0",
+    "progressPercent": 78,
+    "buildVersion": "0.5.1",
     "assetStage": "placeholder"
   },
   "tech": {
@@ -33,9 +33,9 @@
   },
   "testing": {
     "testCommand": "tests/run-tests.bat",
-    "lastRunAt": "2026-02-28T20:16:00Z",
+    "lastRunAt": "2026-02-28T21:48:00Z",
     "status": "pass",
-    "notes": "417 tests passing — Phase 5 save system complete (continue button, party/inventory/registry/badge/quest persistence, migration v1-v3, corruption fallback, auto-save)"
+    "notes": "465 tests passing — Enterable buildings with procedural interiors (door controller, 4 interior layouts, NPC migration, save v4 migration, camera constraints, 17 new building tests)"
   },
   "links": {
     "repo": null,
