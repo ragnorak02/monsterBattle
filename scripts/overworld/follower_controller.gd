@@ -248,7 +248,7 @@ func perform_action(direction: Vector2) -> void:
 	sprite.scale = SPRITE_SCALE * 1.3
 
 	# SFX
-	AudioManager.play_sfx("res://assets/audio/sfx/hit.wav")
+	AudioManager.play_sfx(AssetRegistry.sfx_hit)
 
 func _process_dashing(delta: float, _player_pos: Vector2) -> void:
 	_dash_timer += delta

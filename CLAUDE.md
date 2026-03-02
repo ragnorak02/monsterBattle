@@ -524,10 +524,10 @@ Next Milestone: Phase 7 — Achievements & Meta
 
 # Known Gaps
 
-- No save system
 - No achievements system
 - Version display added to title menu (v0.6.0)
 - AI move selection is score-based (could be deeper)
+- Building auto-enter race condition fixed (entrance zones deferred + is_in_building sanity check)
 
 ---
 

@@ -26,12 +26,14 @@ func setup(current_hp: int, max_hp: int) -> void:
 		bar.value = pct
 	_update_color()
 	_update_label(current_hp, max_hp)
+	set_process(false)
 
 func animate_to(current_hp: int, max_hp: int) -> void:
 	if max_hp <= 0:
 		return
 	_target_value = (float(current_hp) / float(max_hp)) * 100.0
 	_update_label(current_hp, max_hp)
+	set_process(true)
 
 func _process(delta: float) -> void:
 	if not bar:
@@ -43,16 +45,24 @@ func _process(delta: float) -> void:
 			_current_display = min(_target_value, _current_display + DRAIN_SPEED * delta)
 		bar.value = _current_display
 		_update_color()
+	else:
+		_current_display = _target_value
+		bar.value = _current_display
+		set_process(false)
 
 func _update_color() -> void:
 	if not bar or not _cached_style:
 		return
+	var cb_mode: bool = false
+	var am := get_node_or_null("/root/AccessibilityManager")
+	if am:
+		cb_mode = am.get("colorblind_mode") == true
 	if _current_display > 50:
-		_cached_style.bg_color = Color(0.2, 0.8, 0.2)  # Green
+		_cached_style.bg_color = Color(0.2, 0.5, 0.9) if cb_mode else Color(0.2, 0.8, 0.2)  # Blue / Green
 	elif _current_display > 25:
-		_cached_style.bg_color = Color(0.9, 0.7, 0.1)  # Yellow
+		_cached_style.bg_color = Color(0.9, 0.8, 0.2) if cb_mode else Color(0.9, 0.7, 0.1)  # Yellow
 	else:
-		_cached_style.bg_color = Color(0.9, 0.2, 0.2)  # Red
+		_cached_style.bg_color = Color(0.9, 0.2, 0.2)  # Red (same in both modes)
 
 func _update_label(current_hp: int, max_hp: int) -> void:
 	if label:

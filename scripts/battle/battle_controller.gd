@@ -91,7 +91,8 @@ func _ready() -> void:
 	action_menu.item_selected.connect(_on_item_selected)
 	action_menu.set_enabled(false)
 
-	AudioManager.play_music("res://assets/audio/music/battle_theme.wav")
+	AudioManager.play_sfx(AssetRegistry.sfx_encounter)
+	AudioManager.play_music(AssetRegistry.music_battle)
 	_start_intro()
 
 func _update_hints_for_state() -> void:
@@ -114,6 +115,10 @@ func _start_intro() -> void:
 	_update_hints_for_state()
 	if not is_trainer_battle:
 		GameManager.mark_monster_seen(int(wild_monster_data.get("id")))
+
+	# Intro slide: enemy from right, player from left
+	_slide_in_displays()
+
 	var msg: String
 	if is_trainer_battle:
 		msg = "%s wants to battle!" % trainer_name
@@ -191,6 +196,7 @@ func _on_catch_selected() -> void:
 		_caught = true
 		var enemy_name: String = _get_name(_enemy_monster)
 		print("[BATTLE] Catch success!")
+		AudioManager.play_sfx(AssetRegistry.sfx_catch_success)
 		var caught_instance := _build_caught_instance()
 		GameManager.mark_monster_caught(int(wild_monster_data.get("id")))
 		if GameManager.player_party.size() < 6:
@@ -203,6 +209,7 @@ func _on_catch_selected() -> void:
 		await _grant_xp()
 	else:
 		print("[BATTLE] Catch failed!")
+		AudioManager.play_sfx(AssetRegistry.sfx_catch_fail)
 		_show_message("It broke free!")
 		await get_tree().create_timer(0.8).timeout
 		_enemy_skill = _pick_enemy_skill()
@@ -225,6 +232,7 @@ func _on_run_selected() -> void:
 
 	if DamageCalculator.check_run_success():
 		print("[BATTLE] Run success!")
+		AudioManager.play_sfx(AssetRegistry.sfx_run)
 		_show_message("Got away safely!")
 		_state = BattleState.RUN
 		await get_tree().create_timer(1.0).timeout
@@ -259,6 +267,7 @@ func _on_item_selected(item_id: String) -> void:
 
 	var item_type: String = item_def["type"]
 	if item_type == "heal":
+		AudioManager.play_sfx(AssetRegistry.sfx_item_use)
 		var heal_amount: int = int(item_def["value"])
 		var p_name: String = _get_name(_player_monster)
 		var old_hp: int = _player_monster.current_hp
@@ -277,6 +286,7 @@ func _on_item_selected(item_id: String) -> void:
 		await _check_faint()
 
 	elif item_type == "cure":
+		AudioManager.play_sfx(AssetRegistry.sfx_item_use)
 		var target_status: String = str(item_def["value"])
 		var p_name: String = _get_name(_player_monster)
 		if _player_monster.status != target_status:
@@ -312,6 +322,7 @@ func _on_item_selected(item_id: String) -> void:
 			_caught = true
 			var enemy_name: String = _get_name(_enemy_monster)
 			print("[BATTLE] Catch success!")
+			AudioManager.play_sfx(AssetRegistry.sfx_catch_success)
 			var caught_instance := _build_caught_instance()
 			GameManager.mark_monster_caught(int(wild_monster_data.get("id")))
 			if GameManager.player_party.size() < 6:
@@ -324,6 +335,7 @@ func _on_item_selected(item_id: String) -> void:
 			await _grant_xp()
 		else:
 			print("[BATTLE] Catch failed!")
+			AudioManager.play_sfx(AssetRegistry.sfx_catch_fail)
 			_show_message("It broke free!")
 			await get_tree().create_timer(0.8).timeout
 			_enemy_skill = _pick_enemy_skill()
@@ -417,6 +429,11 @@ func _execute_attack(attacker: MonsterInstance, defender: MonsterInstance, skill
 		await get_tree().create_timer(0.6).timeout
 		return
 
+	# Attacker lunge animation
+	var attacker_display: Control = player_display if is_player_attacking else enemy_display
+	var lunge_dir: float = 1.0 if is_player_attacking else -1.0
+	await _lunge_attacker(attacker_display, lunge_dir)
+
 	# Multi-hit support
 	var hit_count: int = DamageCalculator.calculate_hit_count(skill)
 	var total_damage: int = 0
@@ -431,11 +448,18 @@ func _execute_attack(attacker: MonsterInstance, defender: MonsterInstance, skill
 		defender.take_damage(damage)
 		total_damage += damage
 		last_result = result
-		AudioManager.play_sfx("res://assets/audio/sfx/hit.wav")
+		AudioManager.play_sfx(AssetRegistry.sfx_hit)
 
-		# Flash defender on hit
+		# Flash defender on hit + damage popup + screenshake
 		var target_display: Control = enemy_display if is_player_attacking else player_display
 		_flash_display(target_display)
+		BattleVFX.damage_popup(target_display, damage, result["critical"] as bool, result["effectiveness"])
+		if result["critical"] as bool:
+			_screen_shake(5.0, 0.25)
+		elif result["effectiveness"] == "super_effective":
+			_screen_shake(3.5, 0.18)
+		else:
+			_screen_shake(2.0, 0.12)
 
 		if hit_count > 1:
 			print("[BATTLE] Hit %d! %d damage" % [hit_i + 1, damage])
@@ -456,6 +480,8 @@ func _execute_attack(attacker: MonsterInstance, defender: MonsterInstance, skill
 
 		# Critical hit message (show per hit)
 		if result["critical"] as bool:
+			AudioManager.play_sfx(AssetRegistry.sfx_critical)
+			BattleVFX.crit_flash(self)
 			print("[BATTLE] A critical hit!")
 			_show_message("A critical hit!")
 			await get_tree().create_timer(0.6).timeout
@@ -471,6 +497,8 @@ func _execute_attack(attacker: MonsterInstance, defender: MonsterInstance, skill
 	if not last_result.is_empty():
 		var effectiveness: String = last_result["effectiveness"]
 		if effectiveness == "super_effective":
+			AudioManager.play_sfx(AssetRegistry.sfx_super_effective)
+			BattleVFX.super_effective_flash(self)
 			_show_message("It's super effective!")
 			await get_tree().create_timer(0.6).timeout
 		elif effectiveness == "not_very_effective":
@@ -481,6 +509,8 @@ func _execute_attack(attacker: MonsterInstance, defender: MonsterInstance, skill
 	if not defender.is_fainted():
 		var applied_status: String = DamageCalculator.try_apply_status(skill, defender)
 		if applied_status != "":
+			var status_target_display: Control = enemy_display if is_player_attacking else player_display
+			_status_apply_pulse(status_target_display, applied_status)
 			_show_status_message(d_name, applied_status)
 			_update_status_displays()
 			await get_tree().create_timer(0.8).timeout
@@ -512,8 +542,79 @@ func _flash_display(display: Control) -> void:
 	if not display:
 		return
 	var tween := create_tween()
-	tween.tween_property(display, "modulate:a", 0.4, 0.08)
-	tween.tween_property(display, "modulate:a", 1.0, 0.08)
+	# Red tint flash + knockback
+	tween.tween_property(display, "modulate", Color(1.5, 0.5, 0.5), 0.06)
+	tween.tween_property(display, "position:x", display.position.x + 8.0, 0.06)
+	tween.tween_property(display, "modulate", Color(1, 1, 1, 0.4), 0.06)
+	tween.tween_property(display, "position:x", display.position.x, 0.08)
+	tween.tween_property(display, "modulate", Color(1, 1, 1, 1), 0.06)
+
+func _lunge_attacker(attacker_display: Control, direction: float) -> void:
+	if not attacker_display:
+		return
+	var orig_x: float = attacker_display.position.x
+	var tween := create_tween()
+	tween.tween_property(attacker_display, "position:x", orig_x + 16.0 * direction, 0.08)
+	tween.tween_property(attacker_display, "position:x", orig_x, 0.1)
+	await tween.finished
+
+func _slide_in_displays() -> void:
+	# Slide enemy from right, player from left
+	if enemy_display:
+		var target_x: float = enemy_display.position.x
+		enemy_display.position.x += 200.0
+		var tw := create_tween()
+		tw.tween_property(enemy_display, "position:x", target_x, 0.4).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	if player_display:
+		var target_x: float = player_display.position.x
+		player_display.position.x -= 200.0
+		var tw := create_tween()
+		tw.tween_property(player_display, "position:x", target_x, 0.4).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+
+func _faint_animation(display: Control) -> void:
+	if not display:
+		return
+	var tween := create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(display, "position:y", display.position.y + 20.0, 0.5).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+	tween.tween_property(display, "modulate:a", 0.0, 0.5)
+	await tween.finished
+
+func _screen_shake(intensity: float, duration: float) -> void:
+	# Gate behind accessibility preference
+	if has_node("/root/AccessibilityManager"):
+		if not get_node("/root/AccessibilityManager").screenshake_enabled:
+			return
+	var orig_pos: Vector2 = position
+	var tween := create_tween()
+	var steps: int = maxi(3, int(duration / 0.04))
+	for i in steps:
+		var offset := Vector2(randf_range(-intensity, intensity), randf_range(-intensity, intensity))
+		tween.tween_property(self, "position", orig_pos + offset, duration / float(steps))
+	tween.tween_property(self, "position", orig_pos, 0.02)
+
+func _reset_display(display: Control) -> void:
+	if not display:
+		return
+	display.modulate = Color(1, 1, 1, 1)
+	# Position is managed by layout, just ensure alpha is visible
+
+func _status_apply_pulse(display: Control, status_name: String) -> void:
+	if not display:
+		return
+	var color: Color
+	match status_name:
+		"poison":
+			color = Color(0.7, 0.3, 0.9)
+		"burn":
+			color = Color(1.0, 0.4, 0.2)
+		"paralysis":
+			color = Color(1.0, 0.85, 0.2)
+		_:
+			return
+	var tween := create_tween()
+	tween.tween_property(display, "modulate", color, 0.15)
+	tween.tween_property(display, "modulate", Color(1, 1, 1), 0.15)
 
 func _process_end_of_turn_status() -> void:
 	# Process player monster status
@@ -550,10 +651,12 @@ func _check_faint() -> bool:
 	_state = BattleState.CHECK_FAINT
 
 	if _enemy_monster.is_fainted():
-		AudioManager.play_sfx("res://assets/audio/sfx/faint.wav")
+		AudioManager.play_sfx(AssetRegistry.sfx_faint)
+		_screen_shake(4.0, 0.2)
+		await _faint_animation(enemy_display)
 		print("[BATTLE] Enemy %s fainted!" % _get_name(_enemy_monster))
 		_show_message("%s fainted!" % _get_name(_enemy_monster))
-		await get_tree().create_timer(1.0).timeout
+		await get_tree().create_timer(0.5).timeout
 
 		if is_trainer_battle:
 			_enemy_party_index += 1
@@ -562,18 +665,21 @@ func _check_faint() -> bool:
 				var next_name := _get_name(_enemy_monster)
 				print("[BATTLE] %s sent out %s!" % [trainer_name, next_name])
 				_show_message("%s sent out %s!" % [trainer_name, next_name])
+				_reset_display(enemy_display)
 				enemy_display.setup(_enemy_monster, false)
 				await get_tree().create_timer(1.0).timeout
 				_start_player_turn()
 				return true
 			else:
 				print("[BATTLE] You defeated %s!" % trainer_name)
+				AudioManager.play_sfx(AssetRegistry.sfx_victory)
 				_show_message("You defeated %s!" % trainer_name)
 				_state = BattleState.WIN
 				await get_tree().create_timer(1.0).timeout
 				await _grant_xp()
 				return true
 		else:
+			AudioManager.play_sfx(AssetRegistry.sfx_victory)
 			_show_message("You win!")
 			_state = BattleState.WIN
 			await get_tree().create_timer(1.0).timeout
@@ -581,16 +687,19 @@ func _check_faint() -> bool:
 			return true
 
 	if _player_monster.is_fainted():
-		AudioManager.play_sfx("res://assets/audio/sfx/faint.wav")
+		AudioManager.play_sfx(AssetRegistry.sfx_faint)
+		_screen_shake(4.0, 0.2)
+		await _faint_animation(player_display)
 		print("[BATTLE] Player %s fainted!" % _get_name(_player_monster))
 		_show_message("%s fainted!" % _get_name(_player_monster))
-		await get_tree().create_timer(1.0).timeout
+		await get_tree().create_timer(0.5).timeout
 
 		var next_monster: MonsterInstance = GameManager.get_first_alive_monster()
 		if next_monster and next_monster != _player_monster:
 			_player_monster = next_monster
 			print("[BATTLE] Sending in next monster: %s" % _get_name(_player_monster))
 			_show_message("Go, %s!" % _get_name(_player_monster))
+			_reset_display(player_display)
 			player_display.setup(_player_monster, true)
 			action_menu.setup_skills(_player_monster.skills)
 			await get_tree().create_timer(1.0).timeout
@@ -643,6 +752,7 @@ func _grant_xp() -> void:
 
 	if result["leveled_up"]:
 		var new_level: int = result["new_level"]
+		AudioManager.play_sfx(AssetRegistry.sfx_level_up)
 		print("[BATTLE] %s leveled up to Lv.%d!" % [p_name, new_level])
 		_show_message("%s grew to Lv.%d!" % [p_name, new_level])
 		player_display.setup(_player_monster, true)
@@ -731,12 +841,14 @@ func _handle_evolution(evolves_into_id: int) -> void:
 		return
 
 	var new_name: String = str(new_data.get("monster_name"))
+	AudioManager.play_sfx(AssetRegistry.sfx_evolution)
 	print("[BATTLE] %s is evolving into %s!" % [old_name, new_name])
 	_show_message("What? %s is evolving!" % old_name)
 	await get_tree().create_timer(1.0).timeout
 
 	# Flash pulses — 3 cycles, accelerating
 	for duration: float in [0.4, 0.3, 0.2]:
+		_screen_shake(2.0, 0.1)
 		var flash_tween := create_tween()
 		flash_tween.tween_property(player_display, "modulate", Color(3, 3, 3), duration * 0.5)
 		flash_tween.tween_property(player_display, "modulate", Color(1, 1, 1), duration * 0.5)
@@ -778,6 +890,6 @@ func _end_battle(result: String) -> void:
 	if result == "lose":
 		GameManager.heal_all_party()
 
-	AudioManager.play_music("res://assets/audio/music/town_theme.wav")
+	AudioManager.play_music(AssetRegistry.music_town)
 	battle_ended.emit(result, wild_overworld_id)
 	queue_free()

@@ -1,5 +1,7 @@
 extends Node
 
+const GAME_VERSION: String = "v0.6.0"
+
 signal party_changed
 signal inventory_changed
 signal pc_storage_changed

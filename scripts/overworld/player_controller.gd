@@ -288,7 +288,7 @@ func _start_swipe() -> void:
 	tween.tween_callback(arc.queue_free)
 
 	# SFX
-	AudioManager.play_sfx("res://assets/audio/sfx/hit.wav")
+	AudioManager.play_sfx(AssetRegistry.sfx_hit)
 
 func _on_swipe_hit(body: Node2D) -> void:
 	if body.has_method("take_overworld_hit"):

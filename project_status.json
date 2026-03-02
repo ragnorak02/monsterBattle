@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "gameId": "monsterbattle",
   "title": "Monster Catcher",
-  "lastUpdated": "2026-03-02T18:00:00Z",
+  "lastUpdated": "2026-03-02T20:00:00Z",
   "health": {
     "progressPercent": 82,
     "buildVersion": "0.6.0",
@@ -32,9 +32,9 @@
   },
   "testing": {
     "testCommand": "tests/run-tests.bat",
-    "lastRunAt": "2026-03-01T12:00:00Z",
+    "lastRunAt": "2026-03-02T20:00:00Z",
     "status": "pass",
-    "notes": "Phase 6 complete: CP74-85 audio cleanup, SFX hooks, battle animations, VFX, screenshake, UI polish, sprite validation, accessibility, colorblind support, performance optimization, asset pipeline, content balance"
+    "notes": "Bugfix: building auto-enter race condition — entrance zones deferred with monitoring=false + is_in_building sanity check in _ready()"
   },
   "links": {
     "repo": null,

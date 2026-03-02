@@ -32,11 +32,11 @@ func _make_portrait(full_sheet: Texture2D) -> AtlasTexture:
 	return atlas
 
 func _on_boy_selected() -> void:
-	AudioManager.play_sfx("res://assets/audio/sfx/select.wav")
+	AudioManager.play_sfx(AssetRegistry.sfx_select)
 	GameManager.player_gender = "boy"
 	SceneManager.change_scene("res://scenes/starter_select.tscn")
 
 func _on_girl_selected() -> void:
-	AudioManager.play_sfx("res://assets/audio/sfx/select.wav")
+	AudioManager.play_sfx(AssetRegistry.sfx_select)
 	GameManager.player_gender = "girl"
 	SceneManager.change_scene("res://scenes/starter_select.tscn")

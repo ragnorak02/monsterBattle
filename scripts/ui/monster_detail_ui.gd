@@ -70,6 +70,7 @@ func _ready() -> void:
 			{"icon": "btn_b", "label": "Back"},
 		])
 
+	AudioManager.play_sfx(AssetRegistry.sfx_menu_open)
 	_show_tab(0)
 
 func _build_tab_header() -> void:
@@ -275,13 +276,30 @@ func _populate_exp(monster: MonsterInstance) -> void:
 	exp_panel.add_child(growth_lbl)
 
 func _show_tab(index: int) -> void:
-	_current_tab = index
+	var panels: Array[VBoxContainer] = []
 	if stats_panel:
-		stats_panel.visible = (index == 0)
+		panels.append(stats_panel)
 	if moves_panel:
-		moves_panel.visible = (index == 1)
+		panels.append(moves_panel)
 	if exp_panel:
-		exp_panel.visible = (index == 2)
+		panels.append(exp_panel)
+
+	# Crossfade: fade out old, show + fade in new
+	for i in panels.size():
+		if i == index:
+			panels[i].visible = true
+			panels[i].modulate.a = 0.0
+			var tw := create_tween()
+			tw.tween_property(panels[i], "modulate:a", 1.0, 0.15)
+		else:
+			if panels[i].visible and i == _current_tab:
+				var tw := create_tween()
+				tw.tween_property(panels[i], "modulate:a", 0.0, 0.1)
+				tw.tween_callback(func() -> void: panels[i].visible = false)
+			else:
+				panels[i].visible = false
+
+	_current_tab = index
 
 	# Highlight active tab label
 	for i in _tab_labels.size():
@@ -302,5 +320,6 @@ func _input(event: InputEvent) -> void:
 		_show_tab(_current_tab)
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("ui_cancel"):
+		AudioManager.play_sfx(AssetRegistry.sfx_menu_close)
 		queue_free()
 		get_viewport().set_input_as_handled()

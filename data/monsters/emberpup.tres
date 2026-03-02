@@ -1,10 +1,12 @@
-[gd_resource type="Resource" script_class="MonsterData" load_steps=6 format=3]
+[gd_resource type="Resource" script_class="MonsterData" load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/monster_data.gd" id="1"]
 [ext_resource type="Texture2D" path="res://assets/sprites/monsters/emberpup_front.png" id="2"]
 [ext_resource type="Texture2D" path="res://assets/sprites/monsters/emberpup_back.png" id="3"]
 [ext_resource type="Resource" path="res://data/skills/flame_bite.tres" id="4"]
 [ext_resource type="Resource" path="res://data/skills/tackle.tres" id="5"]
+[ext_resource type="Resource" path="res://data/skills/scratch.tres" id="6"]
+[ext_resource type="Resource" path="res://data/skills/fire_blast.tres" id="7"]
 
 [resource]
 script = ExtResource("1")
@@ -23,6 +25,10 @@ element_type = "Fire"
 starting_skills = Array[Resource]([ExtResource("4"), ExtResource("5")])
 evolves_into_id = 4
 evolution_level = 12
+learnable_skills = {
+7: ExtResource("6"),
+10: ExtResource("7")
+}
 hp_growth = 0.8
 atk_growth = 1.2
 def_growth = 0.8

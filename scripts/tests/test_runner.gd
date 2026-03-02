@@ -56,6 +56,10 @@ func _ready() -> void:
 	_run_continue_button_tests()
 	_run_party_menu_tests()
 	_run_building_interior_tests()
+	_run_sprite_validation_tests()
+	_run_performance_benchmark_tests()
+	_run_asset_pipeline_tests()
+	_run_balance_validation_tests()
 
 	var total := _pass_count + _fail_count
 	print("")
@@ -777,7 +781,7 @@ func _run_asset_existence_tests() -> void:
 
 	# MonsterDB skill count
 	_begin("monsterdb_skill_count")
-	_assert_eq(MonsterDB.skills.size(), 22, "MonsterDB has 22 skills")
+	_assert_eq(MonsterDB.skills.size(), 25, "MonsterDB has 25 skills")
 
 	# Starters exist
 	_begin("starters_exist")
@@ -2792,3 +2796,244 @@ func _run_building_interior_tests() -> void:
 	# 17. Buildings have interior_npcs in town data
 	_begin("buildings_have_interior_npcs")
 	_assert_true(ow_source.find("interior_npcs") >= 0, "interior_npcs key exists in AREA_DATA")
+
+# ── CP76: Sprite Validation ──
+
+func _run_sprite_validation_tests() -> void:
+	print("\n── Sprite Validation (CP76) ──")
+
+	# 1. All 30 monsters have non-null front and back sprites
+	_begin("sprite_all_monsters_have_textures")
+	var sprite_ok := true
+	for id: int in MonsterDB.monsters:
+		var data: Resource = MonsterDB.monsters[id]
+		var mname: String = str(data.get("monster_name"))
+		if data.get("front_sprite") == null:
+			_fail("%s (id=%d) missing front_sprite" % [mname, id])
+			sprite_ok = false
+		if data.get("back_sprite") == null:
+			_fail("%s (id=%d) missing back_sprite" % [mname, id])
+			sprite_ok = false
+	if sprite_ok:
+		_pass("all monsters have front + back sprites")
+
+	# 2. Texture filter is set to NEAREST globally
+	_begin("sprite_nearest_filter")
+	var filter_val: int = ProjectSettings.get_setting("rendering/textures/canvas_textures/default_texture_filter", -1)
+	_assert_eq(filter_val, 0, "default_texture_filter == 0 (Nearest)")
+
+	# 3. Sprite textures are valid Texture2D instances
+	_begin("sprite_textures_are_texture2d")
+	var tex_ok := true
+	for id: int in MonsterDB.monsters:
+		var data: Resource = MonsterDB.monsters[id]
+		var front: Variant = data.get("front_sprite")
+		if front != null and not (front is Texture2D):
+			_fail("monster id=%d front_sprite is not Texture2D" % id)
+			tex_ok = false
+	if tex_ok:
+		_pass("all front_sprites are Texture2D")
+
+	# 4. Monster count is at least 30
+	_begin("sprite_monster_count_30")
+	_assert_true(MonsterDB.monsters.size() >= 30, "at least 30 monsters loaded (got %d)" % MonsterDB.monsters.size())
+
+# ── CP83: Performance Benchmarks ──
+
+func _run_performance_benchmark_tests() -> void:
+	print("\n── Performance Benchmarks (CP83) ──")
+
+	# 1. MonsterDB load performance
+	_begin("perf_monsterdb_count")
+	_assert_true(MonsterDB.monsters.size() > 0, "MonsterDB has monsters loaded")
+
+	# 2. MonsterInstance creation throughput
+	_begin("perf_monster_instance_creation")
+	var start_ms := Time.get_ticks_msec()
+	var test_data: Resource = MonsterDB.get_monster(1)
+	if test_data:
+		for i in 1000:
+			var _inst := MonsterInstance.new(test_data, 10)
+		var elapsed := Time.get_ticks_msec() - start_ms
+		_assert_true(elapsed < 2000, "1000 MonsterInstance creates in < 2s (took %dms)" % elapsed)
+	else:
+		_fail("cannot test — monster id 1 not found")
+
+	# 3. Damage calculation throughput
+	_begin("perf_damage_calc_throughput")
+	if test_data:
+		var attacker := MonsterInstance.new(test_data, 10)
+		var defender := MonsterInstance.new(test_data, 10)
+		var skill: Resource = attacker.skills[0] if not attacker.skills.is_empty() else null
+		if skill:
+			var start2 := Time.get_ticks_msec()
+			for i in 10000:
+				DamageCalculator.calculate_damage_with_type(attacker, defender, skill, 0)
+			var elapsed2 := Time.get_ticks_msec() - start2
+			_assert_true(elapsed2 < 3000, "10000 damage calcs in < 3s (took %dms)" % elapsed2)
+		else:
+			_fail("cannot test — no skills on test monster")
+	else:
+		_fail("cannot test — monster id 1 not found")
+
+	# 4. No load() calls in battle VFX
+	_begin("perf_no_runtime_loads_in_vfx")
+	var vfx_script := load("res://scripts/battle/battle_vfx.gd") as GDScript
+	if vfx_script:
+		var vfx_source: String = vfx_script.source_code
+		_assert_true(vfx_source.find("load(") < 0, "BattleVFX has no load() calls")
+	else:
+		_fail("battle_vfx.gd not found")
+
+# ── CP84: Asset Pipeline ──
+
+func _run_asset_pipeline_tests() -> void:
+	print("\n── Asset Pipeline (CP84) ──")
+
+	# 1. Core audio files exist
+	_begin("pipeline_core_audio")
+	var core_audio := [
+		AssetRegistry.music_town,
+		AssetRegistry.music_battle,
+		AssetRegistry.sfx_hit,
+		AssetRegistry.sfx_faint,
+		AssetRegistry.sfx_select,
+		AssetRegistry.sfx_run,
+	]
+	var audio_ok := true
+	for path: String in core_audio:
+		if not ResourceLoader.exists(path):
+			_fail("core audio missing: %s" % path)
+			audio_ok = false
+	if audio_ok:
+		_pass("all core audio files exist")
+
+	# 2. All monster sprites exist on disk
+	_begin("pipeline_all_monster_sprites_exist")
+	var sprites_ok := true
+	for id: int in MonsterDB.monsters:
+		var data: Resource = MonsterDB.monsters[id]
+		var mname: String = str(data.get("monster_name"))
+		if data.get("front_sprite") == null:
+			_fail("%s front_sprite null" % mname)
+			sprites_ok = false
+		if data.get("back_sprite") == null:
+			_fail("%s back_sprite null" % mname)
+			sprites_ok = false
+	if sprites_ok:
+		_pass("all monster sprite references valid")
+
+	# 3. All skill data is valid
+	_begin("pipeline_skill_data_valid")
+	var skills_dir := "res://data/skills/"
+	var skill_paths := [
+		"tackle.tres", "scratch.tres", "quick_strike.tres", "headbutt.tres",
+		"flame_bite.tres", "fire_blast.tres", "water_jet.tres", "tidal_wave.tres",
+		"vine_whip.tres", "leaf_storm.tres", "zap_bolt.tres", "gust_slash.tres",
+		"rock_throw.tres", "sand_blast.tres", "crystal_spike.tres", "ice_fang.tres",
+		"shadow_claw.tres", "poison_sting.tres", "fury_swipes.tres", "barrage.tres",
+		"light_beam.tres", "iron_slam.tres",
+		"frost_pulse.tres", "dark_pulse.tres", "gale_force.tres",
+	]
+	var skill_ok := true
+	for sp: String in skill_paths:
+		var full: String = skills_dir + sp
+		if not ResourceLoader.exists(full):
+			_fail("skill missing: %s" % full)
+			skill_ok = false
+		else:
+			var sk: Resource = load(full)
+			if not sk.get("skill_name"):
+				_fail("skill %s has no skill_name" % sp)
+				skill_ok = false
+			if int(sk.get("power")) <= 0 and str(sk.get("skill_name")) != "":
+				pass  # Some skills may have 0 power (support moves)
+	if skill_ok:
+		_pass("all skill files valid")
+
+	# 4. Player sprites exist
+	_begin("pipeline_player_sprites")
+	_assert_true(ResourceLoader.exists(AssetRegistry.player_boy_sprite), "boy sprite exists")
+	_assert_true(ResourceLoader.exists(AssetRegistry.player_girl_sprite), "girl sprite exists")
+
+# ── CP85: Balance Validation ──
+
+func _run_balance_validation_tests() -> void:
+	print("\n── Balance Validation (CP85) ──")
+
+	# 1. Stat totals in reasonable range
+	_begin("balance_stat_totals")
+	var stat_ok := true
+	for id: int in MonsterDB.monsters:
+		var data: Resource = MonsterDB.monsters[id]
+		var mname: String = str(data.get("monster_name"))
+		var hp: int = int(data.get("max_hp")) if data.get("max_hp") else 0
+		var atk: int = int(data.get("attack")) if data.get("attack") else 0
+		var def_val: int = int(data.get("defense")) if data.get("defense") else 0
+		var agi: int = int(data.get("agility")) if data.get("agility") else 0
+		var total: int = hp + atk + def_val + agi
+		if total < 20 or total > 300:
+			_fail("%s stat total %d out of range [20..300]" % [mname, total])
+			stat_ok = false
+	if stat_ok:
+		_pass("all monsters have reasonable stat totals")
+
+	# 2. Type coverage — all types have at least one monster
+	_begin("balance_type_coverage")
+	var types_used: Dictionary = {}
+	for id: int in MonsterDB.monsters:
+		var data: Resource = MonsterDB.monsters[id]
+		var etype: String = str(data.get("element_type")) if data.get("element_type") else "Normal"
+		types_used[etype] = true
+	var expected_types := ["Fire", "Water", "Grass", "Electric", "Wind", "Rock", "Ice", "Dark", "Poison", "Normal"]
+	var coverage_ok := true
+	for t: String in expected_types:
+		if not types_used.has(t):
+			_fail("no monster of type %s" % t)
+			coverage_ok = false
+	if coverage_ok:
+		_pass("all element types represented")
+
+	# 3. Skill coverage — all types have at least one skill
+	_begin("balance_skill_coverage")
+	var skill_types_found: Dictionary = {}
+	var skills_dir := "res://data/skills/"
+	var skill_files := [
+		"tackle.tres", "scratch.tres", "quick_strike.tres", "headbutt.tres",
+		"flame_bite.tres", "fire_blast.tres", "water_jet.tres", "tidal_wave.tres",
+		"vine_whip.tres", "leaf_storm.tres", "zap_bolt.tres", "gust_slash.tres",
+		"rock_throw.tres", "sand_blast.tres", "crystal_spike.tres", "ice_fang.tres",
+		"shadow_claw.tres", "poison_sting.tres", "fury_swipes.tres", "barrage.tres",
+		"light_beam.tres", "iron_slam.tres",
+		"frost_pulse.tres", "dark_pulse.tres", "gale_force.tres",
+	]
+	for sf: String in skill_files:
+		var full: String = skills_dir + sf
+		if ResourceLoader.exists(full):
+			var sk: Resource = load(full)
+			var stype: String = str(sk.get("skill_type")) if sk.get("skill_type") else "Normal"
+			skill_types_found[stype] = true
+	var skill_cov_ok := true
+	for t: String in expected_types:
+		if t != "Normal" and not skill_types_found.has(t):
+			_fail("no skill of type %s" % t)
+			skill_cov_ok = false
+	if skill_cov_ok:
+		_pass("all element types have skills")
+
+	# 4. Evolution chain validity
+	_begin("balance_evolution_chains")
+	var evo_ok := true
+	for id: int in MonsterDB.monsters:
+		var data: Resource = MonsterDB.monsters[id]
+		var evo_id: int = int(data.get("evolves_into_id")) if data.get("evolves_into_id") else 0
+		var evo_level: int = int(data.get("evolution_level")) if data.get("evolution_level") else 0
+		if evo_id > 0:
+			if not MonsterDB.monsters.has(evo_id):
+				_fail("monster id=%d evolves into missing id=%d" % [id, evo_id])
+				evo_ok = false
+			if evo_level <= 0:
+				_fail("monster id=%d has evo target but no evo level" % id)
+				evo_ok = false
+	if evo_ok:
+		_pass("all evolution chains reference valid monsters")

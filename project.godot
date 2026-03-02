@@ -27,6 +27,7 @@ AudioManager="*res://scripts/autoload/audio_manager.gd"
 AssetRegistry="*res://scripts/autoload/asset_registry.gd"
 ThemeManager="*res://scripts/autoload/theme_manager.gd"
 SaveManager="*res://scripts/autoload/save_manager.gd"
+AccessibilityManager="*res://scripts/autoload/accessibility_manager.gd"
 
 [display]
 

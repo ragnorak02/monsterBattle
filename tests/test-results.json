@@ -586,7 +586,7 @@
 			"status": "pass"
 		},
 		{
-			"message": "MonsterDB has 22 skills",
+			"message": "MonsterDB has 25 skills",
 			"name": "monsterdb_skill_count",
 			"status": "pass"
 		},
@@ -616,12 +616,12 @@
 			"status": "pass"
 		},
 		{
-			"message": "load all monsters in 1ms (< 2000ms)",
+			"message": "load all monsters in 0ms (< 2000ms)",
 			"name": "perf_load_all_monsters",
 			"status": "pass"
 		},
 		{
-			"message": "load battle scene in 1ms (< 1000ms)",
+			"message": "load battle scene in 2ms (< 1000ms)",
 			"name": "perf_load_battle_scene",
 			"status": "pass"
 		},
@@ -2324,11 +2324,96 @@
 			"message": "interior_npcs key exists in AREA_DATA",
 			"name": "buildings_have_interior_npcs",
 			"status": "pass"
+		},
+		{
+			"message": "all monsters have front + back sprites",
+			"name": "sprite_all_monsters_have_textures",
+			"status": "pass"
+		},
+		{
+			"message": "default_texture_filter == 0 (Nearest)",
+			"name": "sprite_nearest_filter",
+			"status": "pass"
+		},
+		{
+			"message": "all front_sprites are Texture2D",
+			"name": "sprite_textures_are_texture2d",
+			"status": "pass"
+		},
+		{
+			"message": "at least 30 monsters loaded (got 30)",
+			"name": "sprite_monster_count_30",
+			"status": "pass"
+		},
+		{
+			"message": "MonsterDB has monsters loaded",
+			"name": "perf_monsterdb_count",
+			"status": "pass"
+		},
+		{
+			"message": "1000 MonsterInstance creates in < 2s (took 2ms)",
+			"name": "perf_monster_instance_creation",
+			"status": "pass"
+		},
+		{
+			"message": "10000 damage calcs in < 3s (took 30ms)",
+			"name": "perf_damage_calc_throughput",
+			"status": "pass"
+		},
+		{
+			"message": "BattleVFX has no load() calls",
+			"name": "perf_no_runtime_loads_in_vfx",
+			"status": "pass"
+		},
+		{
+			"message": "all core audio files exist",
+			"name": "pipeline_core_audio",
+			"status": "pass"
+		},
+		{
+			"message": "all monster sprite references valid",
+			"name": "pipeline_all_monster_sprites_exist",
+			"status": "pass"
+		},
+		{
+			"message": "all skill files valid",
+			"name": "pipeline_skill_data_valid",
+			"status": "pass"
+		},
+		{
+			"message": "boy sprite exists",
+			"name": "pipeline_player_sprites",
+			"status": "pass"
+		},
+		{
+			"message": "girl sprite exists",
+			"name": "pipeline_player_sprites",
+			"status": "pass"
+		},
+		{
+			"message": "all monsters have reasonable stat totals",
+			"name": "balance_stat_totals",
+			"status": "pass"
+		},
+		{
+			"message": "all element types represented",
+			"name": "balance_type_coverage",
+			"status": "pass"
+		},
+		{
+			"message": "all element types have skills",
+			"name": "balance_skill_coverage",
+			"status": "pass"
+		},
+		{
+			"message": "all evolution chains reference valid monsters",
+			"name": "balance_evolution_chains",
+			"status": "pass"
 		}
 	],
-	"durationMs": 520,
+	"durationMs": 615,
 	"status": "pass",
-	"testsPassed": 465.0,
-	"testsTotal": 465.0,
-	"timestamp": "2026-02-28T21:46:01"
+	"testsPassed": 482.0,
+	"testsTotal": 482.0,
+	"timestamp": "2026-03-02T04:20:06"
 }

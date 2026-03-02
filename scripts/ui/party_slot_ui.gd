@@ -85,6 +85,12 @@ func set_selected(selected: bool) -> void:
 func _on_focus_entered() -> void:
 	set_selected(true)
 	slot_focused.emit(_index)
+	# Scale bounce on selection
+	pivot_offset = size / 2.0
+	var tween := create_tween()
+	tween.tween_property(self, "scale", Vector2(1.03, 1.03), 0.08).set_ease(Tween.EASE_OUT)
+	tween.tween_property(self, "scale", Vector2(1.0, 1.0), 0.06)
 
 func _on_focus_exited() -> void:
 	set_selected(false)
+	scale = Vector2(1.0, 1.0)

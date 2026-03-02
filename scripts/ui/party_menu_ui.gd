@@ -33,6 +33,7 @@ const STATUS_ABBREV: Dictionary = {
 
 func _ready() -> void:
 	GameManager.is_in_menu = true
+	AudioManager.play_sfx(AssetRegistry.sfx_menu_open)
 
 	# Instance HP bar into placeholder
 	_hp_bar = HPBarScene.instantiate()
@@ -163,5 +164,11 @@ func _on_detail_closed() -> void:
 		_slot_nodes[_selected_index].call_deferred("grab_focus")
 
 func _close() -> void:
+	AudioManager.play_sfx(AssetRegistry.sfx_menu_close)
 	GameManager.is_in_menu = false
+	# Slide-out animation (reverse of slide-in)
+	if main_panel:
+		var tween := create_tween()
+		tween.tween_property(main_panel, "position:x", main_panel.position.x + 600, 0.2).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_CUBIC)
+		await tween.finished
 	queue_free()

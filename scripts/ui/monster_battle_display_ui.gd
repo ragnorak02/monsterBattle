@@ -70,6 +70,7 @@ func update_status() -> void:
 		status_label.text = " PAR "
 		_apply_status_pill(STATUS_COLORS["paralysis"])
 	else:
+		BattleVFX.stop_status_pulse(status_label)
 		status_label.text = ""
 		status_label.remove_theme_stylebox_override("normal")
 		status_label.remove_theme_color_override("font_color")
@@ -81,3 +82,4 @@ func _apply_status_pill(color: Color) -> void:
 	pill.set_corner_radius_all(4)
 	pill.set_content_margin_all(2)
 	status_label.add_theme_stylebox_override("normal", pill)
+	BattleVFX.start_status_pulse(status_label)

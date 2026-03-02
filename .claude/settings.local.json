@@ -37,7 +37,9 @@
       "Bash(node:*)",
       "Bash(cd \"Z:\\\\Development\\\\amatris\\\\monsterBattle\" && \"Z:\\\\godot\\\\godot.exe\" --path . --headless --script res://tests/run_tests.gd 2>&1)",
       "Bash(do grep:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(python3:*)",
+      "Bash(/c/Python313/python.exe:*)"
     ]
   }
 }

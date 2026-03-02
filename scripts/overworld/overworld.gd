@@ -70,8 +70,8 @@ const AREA_DATA: Dictionary = {
 			{"type": "flowers", "pos": Vector2i(20, 6), "size": Vector2i(4, 4)},
 		],
 		"npcs": [
-			{"pos": Vector2(-176, -176), "lines": ["This is the Monster Town Hospital.\nGo inside to heal!"], "bubble": "Hospital"},
-			{"pos": Vector2(144, -176), "lines": ["This is the Monster Town Shop.\nGo inside to browse!"], "bubble": "Shop"},
+			{"pos": Vector2(-224, -144), "lines": ["This is the Monster Town Hospital.\nGo inside to heal!"], "bubble": "Hospital"},
+			{"pos": Vector2(200, -144), "lines": ["This is the Monster Town Shop.\nGo inside to browse!"], "bubble": "Shop"},
 			{
 				"pos": Vector2(-48, -128),
 				"lines": ["Welcome to Monster Town!", "Go explore and catch monsters!"],
@@ -254,8 +254,8 @@ const AREA_DATA: Dictionary = {
 			{"type": "flowers", "pos": Vector2i(14, 14), "size": Vector2i(6, 4)},
 		],
 		"npcs": [
-			{"pos": Vector2(-208, -176), "lines": ["This is the Coral City Hospital.\nGo inside to heal!"], "bubble": "Hospital"},
-			{"pos": Vector2(144, -176), "lines": ["This is the Coral City Shop.\nGo inside to browse!"], "bubble": "Shop"},
+			{"pos": Vector2(-256, -144), "lines": ["This is the Coral City Hospital.\nGo inside to heal!"], "bubble": "Hospital"},
+			{"pos": Vector2(200, -144), "lines": ["This is the Coral City Shop.\nGo inside to browse!"], "bubble": "Shop"},
 			{"pos": Vector2(-48, -128), "lines": ["Welcome to Coral City!", "Our gym leader specializes\nin Water-types."], "bubble": "Welcome!"},
 			{"pos": Vector2(96, 96), "lines": ["The gym is in the northeast.\nGo inside to challenge the leader!"], "bubble": "Good luck!"},
 			{"pos": Vector2(-160, 64), "lines": ["The harbor down south connects\nus to distant lands.\nSailors bring rare items!"], "bubble": "The harbor..."},
@@ -371,8 +371,8 @@ const AREA_DATA: Dictionary = {
 			{"type": "flowers", "pos": Vector2i(-4, 18), "size": Vector2i(8, 3)},
 		],
 		"npcs": [
-			{"pos": Vector2(144, -176), "lines": ["This is the Ember Ridge Hospital.\nGo inside to heal!"], "bubble": "Hospital"},
-			{"pos": Vector2(-176, -176), "lines": ["This is the Ember Ridge Shop.\nGo inside to browse!"], "bubble": "Shop"},
+			{"pos": Vector2(200, -144), "lines": ["This is the Ember Ridge Hospital.\nGo inside to heal!"], "bubble": "Hospital"},
+			{"pos": Vector2(-224, -144), "lines": ["This is the Ember Ridge Shop.\nGo inside to browse!"], "bubble": "Shop"},
 			{
 				"pos": Vector2(-48, -128),
 				"lines": ["Welcome to Ember Ridge!"],
@@ -518,8 +518,8 @@ const AREA_DATA: Dictionary = {
 			{"type": "flowers", "pos": Vector2i(6, 4), "size": Vector2i(4, 3)},
 		],
 		"npcs": [
-			{"pos": Vector2(144, -176), "lines": ["This is the Verdant Grove Hospital.\nGo inside to heal!"], "bubble": "Hospital"},
-			{"pos": Vector2(-176, -176), "lines": ["This is the Verdant Grove Shop.\nGo inside to browse!"], "bubble": "Shop"},
+			{"pos": Vector2(200, -144), "lines": ["This is the Verdant Grove Hospital.\nGo inside to heal!"], "bubble": "Hospital"},
+			{"pos": Vector2(-224, -144), "lines": ["This is the Verdant Grove Shop.\nGo inside to browse!"], "bubble": "Shop"},
 			{
 				"pos": Vector2(-48, -128),
 				"lines": ["Welcome to Verdant Grove!"],
@@ -666,8 +666,8 @@ const AREA_DATA: Dictionary = {
 			{"type": "flowers", "pos": Vector2i(14, 24), "size": Vector2i(6, 3)},
 		],
 		"npcs": [
-			{"pos": Vector2(144, -176), "lines": ["This is the Stormhaven Hospital.\nGo inside to heal!"], "bubble": "Hospital"},
-			{"pos": Vector2(-176, -176), "lines": ["This is the Stormhaven Shop.\nGo inside to browse!"], "bubble": "Shop"},
+			{"pos": Vector2(200, -144), "lines": ["This is the Stormhaven Hospital.\nGo inside to heal!"], "bubble": "Hospital"},
+			{"pos": Vector2(-224, -144), "lines": ["This is the Stormhaven Shop.\nGo inside to browse!"], "bubble": "Shop"},
 			{
 				"pos": Vector2(-48, -128),
 				"lines": ["Welcome to Stormhaven!"],
@@ -709,6 +709,11 @@ func _ready() -> void:
 	var area_config: Dictionary = _get_area_config()
 	_setup_tilemap(area_config)
 
+	# Safety net: if is_in_building got stuck true but we're not actually in an interior,
+	# reset the flag to prevent camera lock / invisible player on outdoor scenes.
+	if GameManager.is_in_building and "_interior_" not in GameManager.current_area:
+		GameManager.is_in_building = false
+
 	if GameManager.is_in_building:
 		_spawn_interior_exit(area_config)
 		_spawn_npcs(area_config)
@@ -716,6 +721,11 @@ func _ready() -> void:
 		_spawn_pc_terminals(area_config)
 		_update_player_sprite()
 		_restore_player_position()
+		# Fallback spawn: if no saved position, place player above the exit door
+		if GameManager.get_area_player_position(GameManager.current_area) == null:
+			var isize: Vector2i = area_config.get("interior_size", Vector2i(16, 10))
+			var half_h: int = isize.y / 2
+			player.position = Vector2(0, (half_h - 3) * 16)
 		# Hide follower indoors (small rooms cause wall clipping)
 		if follower:
 			follower.visible = false
@@ -1553,6 +1563,37 @@ func _spawn_building_doors(area_config: Dictionary) -> void:
 		# Return position: one tile south of door
 		door.return_position = Vector2(door_x, door_y + 16.0)
 		npcs_container.add_child(door)
+		# Auto-enter zone below door (walk-through like classic Pokemon)
+		var entrance_zone := Area2D.new()
+		entrance_zone.name = "EntranceZone_%d" % i
+		entrance_zone.collision_layer = 0
+		entrance_zone.collision_mask = 1  # Detect player
+		var zone_shape := CollisionShape2D.new()
+		var zone_rect := RectangleShape2D.new()
+		zone_rect.size = Vector2(32, 16)
+		zone_shape.shape = zone_rect
+		entrance_zone.position = Vector2(door_x, door_y)
+		entrance_zone.add_child(zone_shape)
+		npcs_container.add_child(entrance_zone)
+		# Disable monitoring on spawn so the zone doesn't fire on the first physics
+		# frame when the player is placed at building_return_position (which overlaps
+		# the entrance zone). Re-enable after the scene fade-in completes.
+		entrance_zone.monitoring = false
+		var _ez_ref: Area2D = entrance_zone  # capture for lambda
+		get_tree().create_timer(0.5).timeout.connect(func() -> void:
+			if is_instance_valid(_ez_ref):
+				_ez_ref.monitoring = true
+		)
+		var target: String = door.target_area
+		entrance_zone.body_entered.connect(func(_body: Node2D) -> void:
+			if GameManager.is_in_battle or GameManager.is_in_menu or GameManager.is_in_dialogue:
+				return
+			GameManager.is_in_building = true
+			GameManager.building_return_area = GameManager.current_area
+			GameManager.building_return_position = player.position
+			GameManager.current_area = target
+			SceneManager.change_scene("res://scenes/overworld/overworld.tscn")
+		)
 
 func _spawn_interior_exit(area_config: Dictionary) -> void:
 	var isize: Vector2i = area_config.get("interior_size", Vector2i(16, 10))

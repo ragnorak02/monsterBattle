@@ -1,10 +1,11 @@
-[gd_resource type="Resource" script_class="MonsterData" load_steps=6 format=3]
+[gd_resource type="Resource" script_class="MonsterData" load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/monster_data.gd" id="1"]
 [ext_resource type="Texture2D" path="res://assets/sprites/monsters/shadewisp_front.png" id="2"]
 [ext_resource type="Texture2D" path="res://assets/sprites/monsters/shadewisp_back.png" id="3"]
 [ext_resource type="Resource" path="res://data/skills/shadow_claw.tres" id="4"]
 [ext_resource type="Resource" path="res://data/skills/quick_strike.tres" id="5"]
+[ext_resource type="Resource" path="res://data/skills/dark_pulse.tres" id="6"]
 
 [resource]
 script = ExtResource("1")
@@ -20,3 +21,12 @@ sp_attack = 18
 sp_defense = 7
 element_type = "Dark"
 starting_skills = Array[Resource]([ExtResource("4"), ExtResource("5")])
+learnable_skills = {
+10: ExtResource("6")
+}
+hp_growth = 0.6
+atk_growth = 1.3
+def_growth = 0.5
+agi_growth = 1.3
+sp_atk_growth = 1.5
+sp_def_growth = 0.6
