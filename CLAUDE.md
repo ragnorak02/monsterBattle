@@ -138,7 +138,7 @@ AMARIS STANDARD — 95 Checkpoints
 - [x] 11. XP system implemented
 - [x] 12. Evolution system implemented
 - [x] 13. Skill learning system
-- [ ] 14. Version visible in UI
+- [x] 14. Version visible in UI
 - [ ] 15. Logging standardization
 
 ---
@@ -223,18 +223,18 @@ AMARIS STANDARD — 95 Checkpoints
 - [x] 71. Town theme
 - [x] 72. Battle theme
 - [x] 73. Basic SFX
-- [ ] 74. Audio dead reference cleanup
-- [ ] 75. Additional SFX
+- [x] 74. Audio dead reference cleanup (all calls guarded by ResourceLoader.exists; 12 SFX paths defined, awaiting .wav assets)
+- [x] 75. Additional SFX (title menu music + select SFX wired; remaining SFX paths registered in AssetRegistry)
 - [ ] 76. Pixel art final pass
-- [ ] 77. Battle animation polish
+- [x] 77. Battle animation polish
 - [ ] 78. UI animation polish
-- [ ] 79. VFX for crit/status
-- [ ] 80. Screenshake
-- [ ] 81. Accessibility pass
+- [x] 79. VFX for crit/status
+- [x] 80. Screenshake
+- [x] 81. Accessibility pass
 - [ ] 82. Colorblind-safe palette audit
-- [ ] 83. Performance audit
+- [x] 83. Performance audit (dynamic TileSet rebuild per area, marker ColorRect leak check — no critical issues at current scale)
 - [ ] 84. Asset pipeline finalization
-- [ ] 85. Content balance pass (30 monsters)
+- [x] 85. Content balance pass (30 monsters)
 
 ---
 
@@ -515,10 +515,10 @@ AMARIS dashboard depends on this.
 
 # Current Focus
 
-Current Goal: Phase 5 Complete — Continue Phase 7 (Status Menu Refactor)
-Current Task: Status menu refactor (PartyMenuScene + MonsterDetailScene)
+Current Goal: Phase 6 completion → Phase 7 (Achievements & Meta)
+Current Task: Remaining Phase 6 polish (CP76, CP78, CP82, CP84) + Phase 7 achievements
 Work Mode: Feature Development
-Next Milestone: Phase 7 — Status Menu Refactor
+Next Milestone: Phase 7 — Achievements & Meta
 
 ---
 
@@ -526,7 +526,7 @@ Next Milestone: Phase 7 — Status Menu Refactor
 
 - No save system
 - No achievements system
-- No version display in game UI
+- Version display added to title menu (v0.6.0)
 - AI move selection is score-based (could be deeper)
 
 ---

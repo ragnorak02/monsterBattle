@@ -4,8 +4,12 @@ extends Control
 @onready var continue_button: Button = $VBox/ContinueButton
 @onready var settings_button: Button = $VBox/SettingsButton
 @onready var exit_button: Button = $VBox/ExitButton
+@onready var version_label: Label = $VersionLabel
 
 func _ready() -> void:
+	version_label.text = GameManager.GAME_VERSION
+	AudioManager.play_music(AssetRegistry.music_town)
+
 	if SaveManager.has_save():
 		continue_button.visible = true
 		continue_button.grab_focus()
@@ -17,6 +21,10 @@ func _ready() -> void:
 	new_game_button.pressed.connect(_on_new_game)
 	settings_button.pressed.connect(_on_settings)
 	exit_button.pressed.connect(_on_exit)
+
+	# Wire select SFX on focus for all buttons
+	for btn in [new_game_button, continue_button, settings_button, exit_button]:
+		btn.focus_entered.connect(func(): AudioManager.play_sfx(AssetRegistry.sfx_select))
 
 func _on_continue() -> void:
 	if not SaveManager.has_save():
